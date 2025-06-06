@@ -5,6 +5,7 @@ import 'package:flutter_boilerplate/features/auth/controller/auth_controller.dar
 import 'package:flutter_boilerplate/features/auth/sign_in_screen.dart';
 import 'package:flutter_boilerplate/features/splash/splash_screen.dart';
 import 'package:flutter_boilerplate/util/styles.dart';
+import 'package:flutter_boilerplate/helper/route_helper.dart';
 import 'package:get/get.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -16,10 +17,14 @@ class HomeScreen extends StatelessWidget {
       body: Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Text('home'.tr, style: robotoRegular.copyWith(color: Theme.of(context).primaryColor)),
-          TextButton(
-            onPressed: () => Get.find<ThemeController>().toggleTheme(),
-            child: Text('Toggle theme'),
-          ),
+        TextButton(
+          onPressed: () => Get.find<ThemeController>().toggleTheme(),
+          child: Text('Toggle theme'),
+        ),
+        TextButton(
+          onPressed: () => Get.toNamed(RouteHelper.getTemplateRoute()),
+          child: Text('template_feature'.tr),
+        ),
         TextButton(
           onPressed: () {
             Get.to(SplashScreen());

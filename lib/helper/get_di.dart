@@ -17,6 +17,8 @@ import 'package:flutter_boilerplate/features/orders/controller/order_controller.
 import 'package:flutter_boilerplate/features/orders/repository/order_repo.dart';
 import 'package:flutter_boilerplate/features/history/repository/history_repo.dart';
 import 'package:flutter_boilerplate/features/history/controller/history_controller.dart';
+import 'package:flutter_boilerplate/features/template/repository/template_repo.dart';
+import 'package:flutter_boilerplate/features/template/controller/template_controller.dart';
 
 import 'package:flutter_boilerplate/util/app_constants.dart';
 import 'package:flutter_boilerplate/data/model/response/language_model.dart';
@@ -39,6 +41,7 @@ Future<Map<String, Map<String, String>>> init() async {
 
   Get.lazyPut(() => OrderRepo());
   Get.lazyPut(() => HistoryRepo(sharedPreferences: Get.find()));
+  Get.lazyPut(() => TemplateRepo(sharedPreferences: Get.find()));
 
 
   // Controller
@@ -50,6 +53,7 @@ Future<Map<String, Map<String, String>>> init() async {
   Get.lazyPut(() => AdvanceController(advanceRepo: Get.find()));
   Get.lazyPut(() => OrderController(orderRepo: Get.find()));
   Get.lazyPut(() => HistoryController(historyRepo: Get.find()));
+  Get.lazyPut(() => TemplateController(templateRepo: Get.find()));
 
 
   // Retrieving localized data

@@ -6,6 +6,7 @@ import 'package:flutter_boilerplate/features/splash/splash_screen.dart';
 import 'package:flutter_boilerplate/features/orders/order_list_screen.dart';
 import 'package:flutter_boilerplate/features/orders/order_detail_screen.dart';
 import 'package:flutter_boilerplate/features/history/history_screen.dart';
+import 'package:flutter_boilerplate/features/template/template_screen.dart';
 import 'package:get/get.dart';
 
 class RouteHelper {
@@ -19,6 +20,7 @@ class RouteHelper {
   static const String orders = '/orders';
   static const String orderDetail = '/order';
   static const String history = '/history';
+  static const String template = '/template';
 
 
   static getInitialRoute() => initial;
@@ -27,6 +29,7 @@ class RouteHelper {
   static String getOrdersRoute() => orders;
   static String getOrderDetailRoute(String id) => '$orderDetail?id=$id';
   static String getHistoryRoute(String type, String id) => '$history?type=$type&id=$id';
+  static String getTemplateRoute() => template;
 
   static List<GetPage> routes = [
     GetPage(name: initial, page: () => SplashScreen()),
@@ -47,5 +50,6 @@ class RouteHelper {
         entityId: Get.parameters['id']!,
       ),
     ),
+    GetPage(name: template, page: () => TemplateScreen()),
   ];
 }

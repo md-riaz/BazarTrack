@@ -20,6 +20,11 @@ advance payments, and monitor a complete audit trail of all activity.
 The project follows a layered architecture with modular features so each part
 of the codebase stays organized and maintainable.
 
+New contributors should read `docs/INTERN_MANUAL.md` for a detailed overview of
+the project structure and coding conventions. A small sample feature lives under
+`lib/features/template` showing how controllers, repositories and routes work
+together.
+
 ## Prerequisites
 - **Flutter**: stable 3.x
 - **Dart**: 3.7 or later
