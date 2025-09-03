@@ -16,6 +16,8 @@ class AppColors {
   static final Color? lightGray = Colors.grey[300];
   static final Color? darkGray = Colors.grey[600];
   static final Color? textButtonTextColor = Colors.grey[700];
+  static final Color primaryText = Color(0xFFFFFFFF);
   static final Color borderGrey = Colors.grey.shade400;
   static const Color error = Colors.redAccent;
+
 }
