@@ -4,6 +4,7 @@ class Finance {
   int? ownerId; // optional, required for debit entries
   double amount;
   String type; // "credit" or "debit"
+  String? assistantName;
   DateTime createdAt;
 
   Finance({
@@ -13,6 +14,7 @@ class Finance {
     required this.amount,
     required this.type,
     required this.createdAt,
+    this.assistantName,
   });
 
   factory Finance.fromJson(Map<String, dynamic> json) {
@@ -35,6 +37,7 @@ class Finance {
       ownerId: json['owner_id'] != null ? parseInt(json['owner_id']) : null,
       amount: parseAmt(json['amount']),
       type: json['type'] as String,
+      assistantName: json['assistant_name'] ,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
