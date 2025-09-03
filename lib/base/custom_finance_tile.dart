@@ -8,86 +8,90 @@ import '../util/dimensions.dart';
 
 class CustomFinanceTile extends StatelessWidget {
   final Finance finance;
-  const CustomFinanceTile({super.key, required this.finance,});
+  const CustomFinanceTile({super.key, required this.finance});
 
   @override
   Widget build(BuildContext context) {
-    final credit = finance.type == 'credit';
-    final color = credit ? Colors.green : Colors.red;
-    final dateStr = DateFormat('d MMM yyyy h:mma').format(finance.createdAt);
+    final isCredit = finance.type == 'credit';
+    final color = isCredit ? Colors.green : Colors.red;
+    final icon = isCredit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
+    final typeLabel = isCredit ? 'Credit' : 'Debit';
 
-    // Get TextTheme (make sure Get.context is not null in your app)
-    final textTheme = Theme.of(Get.context!).textTheme;
-    return  Card(
-        margin: const EdgeInsets.only(bottom: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.inputFieldBorderRadius)),
-        elevation: 1,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(Dimensions.inputFieldBorderRadius),
-          onTap: () {
-            Get.toNamed(RouteHelper.getEntityHistoryRoute('Payment', finance.id.toString()));
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(Dimensions.inputFieldBorderRadius),
-                  ),
-                  child: Icon(
-                    credit ? Icons.arrow_upward : Icons.arrow_downward,
-                    color: color,
-                    size: 20,
-                  ),
+    final dateStr = DateFormat('d MMM yyyy, h:mma').format(finance.createdAt);
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 6), // smaller gap
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Dimensions.inputFieldBorderRadius),
+      ),
+      elevation: 1,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(Dimensions.inputFieldBorderRadius),
+        onTap: () {
+          Get.toNamed(RouteHelper.getEntityHistoryRoute('Payment', finance.id.toString()));
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10), // compact height
+          child: Row(
+            children: [
+              // Compact circular icon
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        formatPrice(finance.amount),
-                        style: textTheme.titleMedium?.copyWith(
-                          color: color,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+              const SizedBox(width: 10),
+
+              // Amount + Date
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      formatPrice(finance.amount),
+                      style: textTheme.titleMedium?.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        dateStr,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    credit ? 'Credit' : 'Debit',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 11,
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      dateStr,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: Colors.grey[600],
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Type badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  typeLabel,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-      );
-    }
+      ),
+    );
   }
-
+}
