@@ -6,6 +6,7 @@ class HistoryLog {
   final int entityId;
   final String action;
   final int changedByUserId;
+  final String changedByUserName;
   final DateTime timestamp;
   final Map<String, dynamic> dataSnapshot;
 
@@ -15,6 +16,7 @@ class HistoryLog {
     required this.entityId,
     required this.action,
     required this.changedByUserId,
+    required this.changedByUserName,
     required this.timestamp,
     required this.dataSnapshot,
   });
@@ -32,6 +34,7 @@ class HistoryLog {
       entityId:        json['entity_id'] as int,
       action:          json['action'] as String,
       changedByUserId: json['changed_by_user_id'] as int,
+      changedByUserName: json['changed_by_user_name'] as String,
       timestamp:       DateTime.parse(json['timestamp'] as String),
       dataSnapshot:    snapshot,
     );

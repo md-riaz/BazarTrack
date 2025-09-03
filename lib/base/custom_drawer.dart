@@ -26,7 +26,7 @@ class CustomDrawer extends StatelessWidget {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.chat_sharp, color: AppColors.primary,),
+              leading: const Icon(Icons.share, color: AppColors.primary,),
               title: Text(AppStrings.shareApp),
               onTap: () {
                 SharePlus.instance.share(ShareParams(text: AppStrings.playStoreLink));

@@ -1,14 +1,18 @@
-// lib/features/history/controller/history_controller.dart
-
+import 'package:flutter_boilerplate/features/auth/service/auth_service.dart';
 import 'package:get/get.dart';
+import '../../auth/model/role.dart';
 import '../model/history_log.dart';
 import '../repository/history_repo.dart';
 
 class HistoryController extends GetxController {
   final HistoryRepo historyRepo;
+  final AuthService authService;
   static const _pageSize = 30;
 
-  HistoryController({ required this.historyRepo });
+  HistoryController({ required this.historyRepo, required this.authService});
+
+  late bool isOwner;
+  late int changedById;
 
   // Data lists
   var allLogs      = <HistoryLog>[].obs;
@@ -44,6 +48,8 @@ class HistoryController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    isOwner = authService.currentUser?.role == UserRole.owner;
+    changedById = int.parse(authService.currentUser!.id);
     _loadAll(initial: true);
     _loadOrders(initial: true);
     _loadItems(initial: true);
@@ -52,7 +58,7 @@ class HistoryController extends GetxController {
 
   // -- ALL --
 
-  Future<void> _loadAll({ bool initial = false }) async {
+  Future<void> _loadAll({ bool initial = false,}) async {
     if (initial) {
       allHasMore.value = true;
       allCursor.value = null;
@@ -63,6 +69,7 @@ class HistoryController extends GetxController {
     isLoadingAll.value = initial;
     allLoadingMore.value = !initial;
     final page = await historyRepo.getAll(
+      changedBy: !isOwner? changedById: null,
       limit:  _pageSize,
       cursor: allCursor.value,
     );
@@ -89,6 +96,7 @@ class HistoryController extends GetxController {
     isLoadingOrder.value = initial;
     orderLoadingMore.value = !initial;
     final page = await historyRepo.getByEntity(
+      changedBy: !isOwner? changedById: null,
       'order',
       limit:  _pageSize,
       cursor: orderCursor.value,
@@ -116,6 +124,7 @@ class HistoryController extends GetxController {
     isLoadingItem.value = initial;
     itemLoadingMore.value = !initial;
     final page = await historyRepo.getByEntity(
+      changedBy: !isOwner? changedById: null,
       'order_item',
       limit:  _pageSize,
       cursor: itemCursor.value,
@@ -143,6 +152,7 @@ class HistoryController extends GetxController {
     isLoadingPayment.value = initial;
     paymentLoadingMore.value = !initial;
     final page = await historyRepo.getByEntity(
+      changedBy: !isOwner? changedById: null,
       'payment',
       limit:  _pageSize,
       cursor: paymentCursor.value,

@@ -26,9 +26,12 @@ class HistoryRepo {
     String entity, {
     int limit = 30,
     int? cursor,
+    int? changedBy,
   }) async {
     final query = <String, dynamic>{'limit': limit};
     if (cursor != null) query['cursor'] = cursor;
+    if (changedBy != null) query['changed_by'] = changedBy;
+
 
     final res = await api.historyByEntity(entity, query: query);
     if (!res.isOk || res.body is! List) return [];
