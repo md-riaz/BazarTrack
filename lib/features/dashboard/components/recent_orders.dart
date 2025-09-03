@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_boilerplate/util/colors.dart';
 import 'package:get/get.dart';
-import '../../../base/empty_state.dart';
 import '../../../util/dimensions.dart';
 import '../../orders/components/order_card.dart';
 
@@ -27,10 +26,7 @@ class RecentOrdersList<T> extends StatelessWidget {
       }
 
       if (recentOrders.isEmpty) {
-        return EmptyState(
-          icon: Icons.inbox,
-          message: 'No recent orders.',
-        );
+        return Container();
       }
       final recent = recentOrders.take(5).toList();
       return Padding(

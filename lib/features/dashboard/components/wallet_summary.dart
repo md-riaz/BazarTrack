@@ -5,14 +5,11 @@
 // Date: August 10, 2025
 // Time: 10:22 AM
 */
-
 import 'package:flutter/material.dart';
 import 'package:flutter_boilerplate/base/custom_divider.dart';
-import 'package:get/get.dart';
 import '../../../base/price_format.dart';
 import '../../../util/dimensions.dart';
 import '../../finance/model/assistant.dart';
-import '../assistant_dashboard_details_screen.dart';
 
 // WalletSummary showing ALL assistants inside a single full-width card.
 class WalletSummary extends StatelessWidget {
@@ -97,7 +94,7 @@ class WalletSummary extends StatelessWidget {
                         theme: theme,
                         initials: _initials(assistant.name),
                         onPressed: (){
-                          Get.to(() => AssistantDashboardDetails(assistant: assistant));
+                          // Get.to(() => AssistantDashboardDetails(assistant: assistant));
                         }
                       ),
                       if (i < assistants.length - 1)

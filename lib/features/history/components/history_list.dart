@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_boilerplate/util/app_format.dart';
 import 'package:flutter_boilerplate/util/colors.dart';
 import 'package:get/get.dart';
+import '../../../base/empty_state.dart';
 import '../../../util/dimensions.dart';
 import '../model/history_log.dart';
 import '../model/history_log_item.dart';
@@ -31,7 +32,10 @@ class HistoryList extends StatelessWidget {
         return const Center(child: CircularProgressIndicator(color: AppColors.primary,));
       }
       if (logs.isEmpty) {
-        return const Center(child: Text('No history entries.'));
+        return EmptyState(
+          icon: Icons.history,
+          message: 'No history entries.',
+        );
       }
       return RefreshIndicator(
         color: AppColors.primary,

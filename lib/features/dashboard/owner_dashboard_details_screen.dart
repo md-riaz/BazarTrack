@@ -30,6 +30,8 @@ class OwnerDashboardDetails extends StatelessWidget {
             await ctrl.refreshAll();
           },
           child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            primary: true,
             padding: const EdgeInsets.all(Dimensions.scaffoldPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

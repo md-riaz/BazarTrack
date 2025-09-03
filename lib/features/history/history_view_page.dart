@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_boilerplate/base/custom_app_bar.dart';
 import 'package:flutter_boilerplate/util/app_format.dart';
 import 'package:get/get.dart';
+import '../../base/empty_state.dart';
 import '../../util/colors.dart';
 import 'controller/history_controller.dart';
 import 'model/history_log_item.dart';
@@ -37,7 +38,10 @@ class HistoryViewPage extends StatelessWidget {
           }
         
           if (ctrl.logs.isEmpty) {
-            return const Center(child: Text('No history found.'));
+            return EmptyState(
+              icon: Icons.history,
+              message: 'No history found.',
+            );
           }
         
           return ListView.builder(

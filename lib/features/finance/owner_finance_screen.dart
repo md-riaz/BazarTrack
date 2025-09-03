@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_boilerplate/base/custom_button.dart';
+import 'package:flutter_boilerplate/features/finance/components/owners_finance_tile.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../util/input_decoration.dart';
 import '../../../util/colors.dart';
-import '../../base/custom_finance_tile.dart';
 import '../../base/empty_state.dart';
 import '../../util/dimensions.dart';
 import 'components/assistant_summary_card.dart';
@@ -92,11 +92,11 @@ class OwnerFinancePage extends StatelessWidget {
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                           (_, i) {
-                        final f = ctrl.payments[i];
+                        final finance = ctrl.payments[i];
                         return Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 2),
-                          child: CustomFinanceTile(finance: f),
+                          child: OwnersFinanceTile(finance: finance),
                         );
                       },
                       childCount: ctrl.payments.length,
@@ -323,8 +323,7 @@ class OwnerFinancePage extends StatelessWidget {
                 decoration: AppInputDecorations.generalInputDecoration(
                   label: 'Amount',
                   hint: 'Enter amount',
-                  prefixIcon: Icons.attach_money,
-                ),
+                  prefixText: '৳ ',                ),
               ),
             ],
           ),

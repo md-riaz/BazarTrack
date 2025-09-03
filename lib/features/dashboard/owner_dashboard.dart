@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_boilerplate/base/custom_app_bar.dart';
+import 'package:flutter_boilerplate/base/custom_drawer.dart';
 import 'package:flutter_boilerplate/features/history/history_center_page.dart';
 import 'package:flutter_boilerplate/features/profile/profile_screen.dart';
 import 'package:get/get.dart';
@@ -56,7 +57,6 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
         title: _titles[_currentIndex].tr,
         // optional actions: search / notifications
         actions: [
-
           IconButton(
             tooltip: 'profile'.tr,
             icon: const Icon(CupertinoIcons.profile_circled),
@@ -71,6 +71,8 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
 
         ],
       ),
+      drawer: CustomDrawer(),
+
       // keep children alive and preserve scroll positions
       body: SafeArea(
         child: PageStorage(
