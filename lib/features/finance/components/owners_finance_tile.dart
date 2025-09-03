@@ -12,8 +12,7 @@ class OwnersFinanceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final credit = finance.type == 'credit';
-    final color = credit ? Colors.red : Colors.green;
+    final color = finance.amount > 0 ? Colors.red : Colors.green;
     final dateStr = DateFormat('d MMM yyyy h:mma').format(finance.createdAt);
 
     // Get TextTheme (make sure Get.context is not null in your app)
@@ -39,7 +38,7 @@ class OwnersFinanceTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(Dimensions.inputFieldBorderRadius),
                 ),
                 child: Icon(
-                  credit ? Icons.arrow_upward : Icons.arrow_downward,
+                  finance.amount > 0 ? Icons.arrow_downward : Icons.arrow_upward,
                   color: color,
                   size: 20,
                 ),

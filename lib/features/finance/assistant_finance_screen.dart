@@ -376,7 +376,7 @@ Future<void> _showDebitDialog(
                 decoration: AppInputDecorations.generalInputDecoration(
                   label: 'Amount',
                   hint: 'Enter amount',
-                  prefixIcon: Icons.attach_money,
+                  prefixText: '৳ ',
                 ),
               ),
             ],

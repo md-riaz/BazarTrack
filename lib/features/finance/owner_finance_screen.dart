@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../util/input_decoration.dart';
 import '../../../util/colors.dart';
+import '../../base/custom_divider.dart';
 import '../../base/empty_state.dart';
 import '../../util/dimensions.dart';
 import 'components/assistant_summary_card.dart';
@@ -145,7 +146,18 @@ class OwnerFinancePage extends StatelessWidget {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
-          title: const Text('Filter Transactions'),
+          title: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Icon(Icons.filter_list_outlined),
+                  const Text('Filter Payments'),
+                ],
+              ),
+              CustomDivider.defaultDivider,
+            ],
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -171,19 +183,19 @@ class OwnerFinancePage extends StatelessWidget {
               const SizedBox(height: 12),
 
               // Type
-              DropdownButtonFormField<String?>(
-                initialValue: selectedType,
-                decoration: AppInputDecorations.generalInputDecoration(
-                  label: 'Type',
-                  prefixIcon: Icons.swap_horiz,
-                ),
-                items: [
-                  const DropdownMenuItem(value: null, child: Text('All')),
-                  const DropdownMenuItem(value: 'credit', child: Text('Credit')),
-                  const DropdownMenuItem(value: 'debit',  child: Text('Debit')),
-                ],
-                onChanged: (v) => setState(() => selectedType = v),
-              ),
+              // DropdownButtonFormField<String?>(
+              //   initialValue: selectedType,
+              //   decoration: AppInputDecorations.generalInputDecoration(
+              //     label: 'Type',
+              //     prefixIcon: Icons.swap_horiz,
+              //   ),
+              //   items: [
+              //     const DropdownMenuItem(value: null, child: Text('All')),
+              //     const DropdownMenuItem(value: 'credit', child: Text('Credit')),
+              //     const DropdownMenuItem(value: 'debit',  child: Text('Debit')),
+              //   ],
+              //   onChanged: (v) => setState(() => selectedType = v),
+              // ),
 
               const SizedBox(height: 12),
 
