@@ -99,7 +99,6 @@ class _OrderListScreenState extends State<OrderListScreen> {
                         return Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: Dimensions.scaffoldPadding,
-                            vertical: 4,
                           ),
                           child: OrderCard(order: order),
                         );

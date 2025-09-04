@@ -96,7 +96,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Future<void> _onEditItem(OrderItem item) async {
-    final updated = showModalBottomSheet<OrderItem?>(
+    final updated = await showModalBottomSheet<OrderItem?>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_boilerplate/base/price_format.dart';
 import 'package:flutter_boilerplate/util/app_format.dart';
 import 'package:flutter_boilerplate/util/colors.dart';
 import 'package:get/get.dart';
@@ -7,12 +8,6 @@ import '../../../util/dimensions.dart';
 import '../model/history_log.dart';
 import '../model/history_log_item.dart';
 
-/// Enhanced and more professional HistoryList widget.
-/// Improvements made:
-/// - Fixed 'load more' sentinel item and scrolling trigger.
-/// - Cleaner, responsive header with colored badge and preserved expansion state.
-/// - Improved DataTable layout and styling for readability.
-/// - Small accessibility and overflow guards.
 class HistoryList extends StatelessWidget {
   final RxBool loading;
   final RxBool loadingMore;
@@ -38,17 +33,12 @@ class HistoryList extends StatelessWidget {
     return Obx(() {
       if (loading.value) {
         return const Center(
-          child: CircularProgressIndicator(
-            color: AppColors.primary,
-          ),
+          child: CircularProgressIndicator(color: AppColors.primary),
         );
       }
 
       if (logs.isEmpty) {
-        return EmptyState(
-          icon: Icons.history,
-          message: 'No history entries.',
-        );
+        return EmptyState(icon: Icons.history, message: 'No history entries.');
       }
 
       // add 1 extra item for the loading indicator when there's more
@@ -69,93 +59,146 @@ class HistoryList extends StatelessWidget {
             return false;
           },
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12), // standard outer padding
             itemCount: itemCount,
             itemBuilder: (context, index) {
               // sentinel loading item at the end
               if (index == logs.length) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Center(
-                    child: SizedBox(
-                      width: 36,
-                      height: 36,
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                      ),
-                    ),
+                return Center(
+                  child: SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: CircularProgressIndicator(),
                   ),
                 );
               }
 
               final log = logs[index];
+              final tileUniqueId = '${log.entityType}_${log.id}_$index';
+              final actionColor = _actionColor(log.action);
 
               return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                elevation: 3,
+                margin: const EdgeInsets.only(bottom: 10),
+                elevation: 1.8,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                 ),
                 clipBehavior: Clip.antiAlias,
-                key: ValueKey('${log.entityType}_${log.id}'),
-                child: Theme(
-                  // make ExpansionTile use our card background for ripple
-                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                  child: ExpansionTile(
-                    key: PageStorageKey('exp_${log.entityType}_${log.id}'),
-                    initiallyExpanded: false,
-                    tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    childrenPadding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
-                    collapsedBackgroundColor: Colors.white,
-                    backgroundColor: Colors.white,
-                    maintainState: true,
-                    // Custom header content for a cleaner, professional look
-                    title: Row(
-                      children: [
-                        _EntityBadge(type: log.entityType),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                key: ValueKey('history_tile_$tileUniqueId'),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // content (ExpansionTile) with professional padding
+                    Expanded(
+                      child: Theme(
+                        data: Theme.of(context).copyWith(
+                          dividerColor: Colors.transparent,
+                          listTileTheme: ListTileThemeData(
+                            dense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 4),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ),
+                        child: ExpansionTile(
+                          key: PageStorageKey('exp_$tileUniqueId'),
+                          initiallyExpanded: false,
+                          backgroundColor: Colors.white,
+                          collapsedBackgroundColor: Colors.white,
+                          maintainState: true,
+
+                          childrenPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+
+                          // leading: proper icon colored by action
+                          leading: _EntityIcon(
+                            type: log.entityType,
+                            size: 36,
+                            color: actionColor,
+                          ),
+
+
+                          // Title: 'type:' (raw) followed by neutral entity text (no material pill)
+                          title: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                log.action,
-                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
+                              Flexible(
+                                child: Text(
+                                  "Type: ${log.entityType.capitalizeFirst}",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: Colors.grey[800],                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
                               ),
-                              const SizedBox(height: 2),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      log.changedByUserName,
-                                      style: Theme.of(context).textTheme.bodySmall,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: actionColor.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  log.action.capitalizeFirst!,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 11,
+                                    color: actionColor,
                                   ),
-                                  Text(
-                                    fmt.format(log.timestamp),
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                ],
+                                ),
                               ),
                             ],
                           ),
+
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    log.changedByUserName,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                      color: Colors.grey[700],
+                                      fontSize: 12,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  fmt.format(log.timestamp),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          children: [
+                            _buildSnapshot(log.dataSnapshot, id: tileUniqueId),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-
-                    expandedAlignment: Alignment.centerLeft,
-
-                    children: [
-                      _buildSnapshot(log.dataSnapshot),
-                    ],
-                  ),
+                  ],
                 ),
               );
             },
@@ -165,7 +208,8 @@ class HistoryList extends StatelessWidget {
     });
   }
 
-  Widget _buildSnapshot(Map<String, dynamic> snapshot) {
+  Widget _buildSnapshot(Map<String, dynamic> snapshot,
+      {required String id}) {
     if (snapshot.isEmpty) return const Text('No snapshot data');
 
     // keep a predictable order: show simple fields first (alphabetical)
@@ -189,10 +233,10 @@ class HistoryList extends StatelessWidget {
           DataRow(
             cells: [
               DataCell(
-                Text(key, style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(key, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
               ),
               DataCell(
-                Text(': ${value ?? ''}', overflow: TextOverflow.visible),
+                Text(': ${value ?? ''}', overflow: TextOverflow.visible,style: TextStyle(fontSize: 12)),
               ),
             ],
           ),
@@ -205,26 +249,30 @@ class HistoryList extends StatelessWidget {
       children: [
         // wrap the table so it can compress on small screens
         SingleChildScrollView(
-          key: PageStorageKey('history_items_table_scroll_${snapshot.length}'),
+          // include the tile id in the PageStorageKey to avoid duplicate key collisions
+          key: PageStorageKey(
+              'history_items_table_scroll_${id}_${snapshot.length}'),
           scrollDirection: Axis.horizontal,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minWidth: 280),
             child: DataTable(
-              dataRowHeight: 30,
-              headingRowHeight: 34,
-              horizontalMargin: 8,
-              columnSpacing: 16,
+              dataRowHeight: 24,
+              headingRowHeight: 24,
+              horizontalMargin: 0,
+              columnSpacing: 10,
               columns: const [
                 DataColumn(
                   label: Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('Name', style: TextStyle(fontWeight: FontWeight.w700)),
+                    child:
+                    Text('Name', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
                   ),
                 ),
                 DataColumn(
                   label: Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('Value', style: TextStyle(fontWeight: FontWeight.w700)),
+                    child:
+                    Text('Value', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
                   ),
                 ),
               ],
@@ -233,14 +281,17 @@ class HistoryList extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
 
-        if (items.isNotEmpty) _buildItemsTable(items) else const SizedBox.shrink(),
+        if (items.isNotEmpty)
+          _buildItemsTable(items, id: id)
+        else
+          const SizedBox.shrink(),
       ],
     );
   }
 
-  Widget _buildItemsTable(List<HistoryLogItem> items) {
+  Widget _buildItemsTable(List<HistoryLogItem> items, {required String id}) {
     if (items.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 8),
@@ -249,7 +300,9 @@ class HistoryList extends StatelessWidget {
     }
 
     return SingleChildScrollView(
-      key: PageStorageKey('history_items_table_scroll_${items.length}'),
+      // include the tile id here too to keep this key unique
+      key: PageStorageKey(
+          'history_items_table_scroll_items_${id}_${items.length}'),
       scrollDirection: Axis.horizontal,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,82 +311,101 @@ class HistoryList extends StatelessWidget {
             padding: EdgeInsets.only(bottom: 6),
             child: Text(
               "Items:",
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
             ),
           ),
-          ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 420),
-            child: DataTable(
-              dataRowHeight: 30,
-              headingRowHeight: 34,
-              horizontalMargin: 8,
-              columnSpacing: 16,
-              columns: const [
-                DataColumn(label: Text('Product')),
-                DataColumn(label: Text('Qty')),
-                DataColumn(label: Text('Unit')),
-                DataColumn(label: Text('Est. Cost')),
-                DataColumn(label: Text('Act. Cost')),
-                DataColumn(label: Text('Status')),
-              ],
-              rows: items.map((it) {
-                return DataRow(cells: [
-                  DataCell(Text(it.productName)),
-                  DataCell(Text(it.quantity.toString())),
-                  DataCell(Text(it.unit)),
-                  DataCell(Text(it.estimatedCost?.toStringAsFixed(2) ?? '-')),
-                  DataCell(Text(it.actualCost?.toStringAsFixed(2) ?? '-')),
-                  DataCell(Text(it.status)),
-                ]);
-              }).toList(),
-            ),
+          DataTable(
+            dataRowHeight: 24,
+            headingRowHeight: 24,
+            horizontalMargin: 0,
+            columnSpacing: 10,
+            columns: const [
+              DataColumn(label: Text('Product', style: TextStyle(fontSize: 12))),
+              DataColumn(label: Text('Qty',style: TextStyle(fontSize: 12))),
+              DataColumn(label: Text('Unit',style: TextStyle(fontSize: 12)),),
+              DataColumn(label: Text('Est. Cost',style: TextStyle(fontSize: 12))),
+              DataColumn(label: Text('Act. Cost',style: TextStyle(fontSize: 12))),
+              DataColumn(
+                label: Text('Status',style: TextStyle(fontSize: 12)),
+                headingRowAlignment: MainAxisAlignment.end,
+              ),
+            ],
+            rows: items.map((it) {
+              return DataRow(
+                cells: [
+                  DataCell(Text(it.productName,style: TextStyle(fontSize: 12))),
+                  DataCell(Text(it.quantity.toString(),style: TextStyle(fontSize: 12))),
+                  DataCell(Text(it.unit,style: TextStyle(fontSize: 12))),
+                  DataCell(Text(formatPrice(it.estimatedCost),style: TextStyle(fontSize: 12))),
+                  DataCell(Text(formatPrice(it.actualCost),style: TextStyle(fontSize: 12))),
+                  DataCell(Text(it.status,style: TextStyle(fontSize: 12))),
+                ],
+              );
+            }).toList(),
           ),
         ],
       ),
     );
   }
 
+  Color _actionColor(String action) {
+    switch (action.toLowerCase()) {
+      case 'created':
+      case 'create':
+        return Colors.green;
+      case 'updated':
+      case 'edit':
+        return Colors.blue;
+      case 'deleted':
+      case 'remove':
+        return Colors.red;
+      default:
+        return Colors.orange;
+    }
+  }
 }
 
-/// A small badge used on each tile showing entity type
-class _EntityBadge extends StatelessWidget {
+/// Icon widget for entity type (colored by action)
+class _EntityIcon extends StatelessWidget {
   final String type;
-  const _EntityBadge({required this.type});
+  final double size;
+  final Color color;
+  const _EntityIcon({required this.type, this.size = 36, required this.color});
 
   @override
   Widget build(BuildContext context) {
-    final color = _colorFor(type);
-    final initial = (type.isEmpty ? '?' : type[0].toUpperCase());
-
+    final icon = _iconFor(type);
     return Container(
-      width: 36,
-      height: 36,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       alignment: Alignment.center,
-      child: Text(
-        initial,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w800,
-          fontSize: 14,
-        ),
+      child: Icon(
+        icon,
+        color: color,
       ),
     );
   }
 
-  Color _colorFor(String t) {
+  IconData _iconFor(String t) {
     switch (t.toLowerCase()) {
       case 'order':
-        return const Color(0xFF6D5DF6);
+        return Icons.receipt_long;
       case 'order_item':
-        return const Color(0xFF2DBD7E);
+      case 'orderitem':
+      case 'order-item':
+        return Icons.shopping_cart;
       case 'payment':
-        return const Color(0xFFFFA726);
+        return Icons.payment;
+      case 'user':
+        return Icons.person;
+      case 'product':
+        return Icons.inventory_2;
       default:
-        return const Color(0xFF9E9E9E);
+        return Icons.device_unknown;
     }
   }
 }

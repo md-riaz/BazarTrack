@@ -164,6 +164,7 @@ class OrderController extends GetxController {
       final created = await orderRepo.createOrderWithItems(order, newItems);
       loadInitial();
       Get.find<AnalyticsController>().refreshAll();
+      newItems.clear();
       Get.back(result: created);
     } catch (e) {
       Get.snackbar('Error', 'Failed to save order: $e');

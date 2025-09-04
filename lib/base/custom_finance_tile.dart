@@ -14,7 +14,7 @@ class CustomFinanceTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isCredit = finance.type == 'credit';
     final color = isCredit ? Colors.green : Colors.red;
-    final icon = isCredit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
+    final icon = isCredit ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded;
     final typeLabel = isCredit ? 'Credit' : 'Debit';
 
     final dateStr = DateFormat('d MMM yyyy, h:mma').format(finance.createdAt);
