@@ -360,7 +360,7 @@ Future<void> _showDebitDialog(
                 color: AppColors.primary,
               ),
               const SizedBox(width: 8),
-              Text('Debit Expense', style: Theme.of(ctx).textTheme.titleLarge),
+              Text('Refund to Owner', style: Theme.of(ctx).textTheme.titleLarge),
             ],
           ),
           content: Column(

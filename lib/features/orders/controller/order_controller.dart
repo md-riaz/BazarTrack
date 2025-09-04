@@ -157,14 +157,13 @@ class OrderController extends GetxController {
       createdBy: authService.currentUser!.id.toString(), //for owner
       assignedTo: assignedToUserId.value?.toString(),
       status: OrderStatus.pending,
-      createdAt: DateTime.now(),
     );
 
     try {
       final created = await orderRepo.createOrderWithItems(order, newItems);
       loadInitial();
       Get.find<AnalyticsController>().refreshAll();
-      newItems.clear();
+      onCreateOrderTapped();
       Get.back(result: created);
     } catch (e) {
       Get.snackbar('Error', 'Failed to save order: $e');

@@ -3,10 +3,8 @@ import 'package:get/get.dart';
 import 'package:flutter_boilerplate/util/colors.dart';
 import 'package:flutter_boilerplate/util/dimensions.dart';
 import 'package:flutter_boilerplate/features/auth/controller/auth_controller.dart';
-import 'package:flutter_boilerplate/features/auth/model/role.dart';
 import 'package:flutter_boilerplate/features/orders/controller/order_controller.dart';
 import 'package:flutter_boilerplate/base/empty_state.dart';
-import 'package:flutter_boilerplate/helper/route_helper.dart';
 import 'components/filter_bar.dart';
 import 'components/order_card.dart';
 
@@ -95,22 +93,6 @@ class _AssistantOrderListScreenState extends State<AssistantOrderListScreen>
           ),
         ],
       ),
-
-      floatingActionButton: Obx(() {
-        final isOwner = authCtrl.user.value?.role == UserRole.owner;
-        if (!isOwner) return const SizedBox.shrink();
-
-        return FloatingActionButton.extended(
-          heroTag: 'add_order',
-          backgroundColor: AppColors.primary,
-          icon: const Icon(Icons.add),
-          label: const Text('New Order'),
-          onPressed: () {
-            orderCtrl.onCreateOrderTapped();
-            Get.toNamed(RouteHelper.orderCreate);
-          },
-        );
-      }),
     );
   }
 
@@ -144,7 +126,7 @@ class _AssistantOrderListScreenState extends State<AssistantOrderListScreen>
           return ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: Dimensions.scaffoldPadding),
             itemCount: orders.length + (orderCtrl.hasMore.value ? 1 : 0),
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, __) => const SizedBox(height: 2),
             itemBuilder: (ctx, index) {
               if (index >= orders.length) {
                 return const Padding(

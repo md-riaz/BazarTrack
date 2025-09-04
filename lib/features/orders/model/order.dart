@@ -12,7 +12,7 @@ class Order {
   final String? assignedUserName;
   String? assignedTo;
   OrderStatus status;
-  final DateTime createdAt;
+  DateTime? createdAt;
   DateTime? completedAt;
 
   /// Constructor for existing (fetched) orders
@@ -32,7 +32,7 @@ class Order {
     required String createdBy,
     String? assignedTo,
     OrderStatus status = OrderStatus.pending,
-    required DateTime createdAt,
+    DateTime? createdAt,
     DateTime? completedAt,
   }) => Order(
     orderId: null,
@@ -79,7 +79,7 @@ class Order {
     'created_by': createdBy,
     'assigned_to': assignedTo,
     'status': status.toApi(),
-    'created_at': DateConverter.formatApiDate(createdAt),
+    'created_at': DateConverter.formatApiDate(createdAt!),
     'completed_at':
         completedAt != null ? DateConverter.formatApiDate(completedAt!) : null,
   };
@@ -89,7 +89,6 @@ class Order {
     final Map<String, dynamic> map = {
       'created_by': int.tryParse(createdBy) ?? createdBy,
       'status': status.toApi(),
-      'created_at': createdAt.toIso8601String(),
       'items': items.map((i) => i.toJsonForCreate()).toList(),
     };
 

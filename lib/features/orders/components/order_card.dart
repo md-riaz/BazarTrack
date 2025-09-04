@@ -82,7 +82,6 @@ class OrderCard extends StatelessWidget {
                                     ),
                                   ),
 
-                                  const SizedBox(width: 8),
 
                                   // status chip (compact)
                                   Container(
@@ -117,7 +116,7 @@ class OrderCard extends StatelessWidget {
                                 ],
                               ),
 
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 3),
 
                               // Secondary row: created by + assigned (compact icons)
                               Row(
@@ -133,6 +132,7 @@ class OrderCard extends StatelessWidget {
                                             createdBy ?? 'Unknown',
                                             style: theme.textTheme.bodySmall?.copyWith(
                                               fontSize: 12,
+                                                color: Colors.grey.shade800
                                             ),
                                             overflow: TextOverflow.ellipsis,
                                           ),
@@ -141,16 +141,17 @@ class OrderCard extends StatelessWidget {
                                     ),
                                   ),
 
-                                  if (assigned != null && assigned.isNotEmpty) ...[
+                                  if (true) ...[
                                     const SizedBox(width: 10),
                                     Row(
                                       children: [
                                         const Icon(Icons.person_outline, size: 13),
                                         const SizedBox(width: 6),
                                         Text(
-                                          assigned,
+                                          assigned == "null"?"Unassigned":assigned,
                                           style: theme.textTheme.bodySmall?.copyWith(
                                             fontSize: 12,
+                                              color: Colors.grey.shade800
                                           ),
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -160,8 +161,7 @@ class OrderCard extends StatelessWidget {
                                 ],
                               ),
 
-                              // Small gap before bottom row
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 2),
 
                               // Bottom row: date on bottom-left, chevron on bottom-right
                               Row(
@@ -175,6 +175,7 @@ class OrderCard extends StatelessWidget {
                                         date,
                                         style: theme.textTheme.bodySmall?.copyWith(
                                           fontSize: 11,
+                                          color: Colors.grey.shade800
                                         ),
                                       ),
                                     ],
@@ -216,7 +217,7 @@ class OrderCard extends StatelessWidget {
         return AppColors.tertiary; // blue
       case 'completed':
       case 'done':
-        return const Color(0xFF08C677); // green
+        return const Color(0xFF08A840); // green
       case 'cancelled':
       case 'canceled':
         return const Color(0xFFC62828); // red

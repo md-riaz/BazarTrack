@@ -338,7 +338,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               _buildTableRow(
                                 Icons.schedule,
                                 'Created at',
-                                dateFmt.format(order.createdAt),
+                                dateFmt.format(order.createdAt!),
                               ),
                               _buildTableRow(
                                 Icons.check_circle,
