@@ -45,7 +45,7 @@ class HistoryViewPage extends StatelessWidget {
             color: AppColors.primary,
             onRefresh: () async => await ctrl.loadByEntityId(entity, entityId),
             child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
               itemCount: logs.length,
               separatorBuilder: (_, __) => const SizedBox(height: 4),
               itemBuilder: (context, index) {

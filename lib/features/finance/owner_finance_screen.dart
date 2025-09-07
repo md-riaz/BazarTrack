@@ -342,15 +342,17 @@ class OwnerFinancePage extends StatelessWidget {
           actions: [
             CustomButton(
               btnColor: Colors.redAccent,
-              height: MediaQuery.of(context).size.height * .04,
-              width: MediaQuery.of(context).size.width * .25,
+              // height: MediaQuery.of(context).size.height * .04,
+              // width: MediaQuery.of(context).size.width * .25,
+              shrink: true,
               onPressed: () => Navigator.pop(context),
               buttonText: 'Cancel',
             ),
             CustomButton(
               btnColor: AppColors.primary,
-              height: MediaQuery.of(context).size.height * .04,
-              width: MediaQuery.of(context).size.width * .25,
+              // height: MediaQuery.of(context).size.height * .04,
+              // width: MediaQuery.of(context).size.width * .25,
+              shrink: true,
               onPressed: () {
                 final amt = double.tryParse(amtCtrl.text.trim()) ?? 0.0;
                 if (amt > 0) {

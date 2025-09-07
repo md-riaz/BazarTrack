@@ -55,15 +55,8 @@ class Order {
       assignedUserName:
           (json['assigned_user_name'] ?? json['assignedUserName']).toString(),
       status: OrderStatusExtension.fromString(json['status'] ?? 'pending'),
-      createdAt: DateConverter.parseApiDate(
-        json['created_at'] ?? json['createdAt'],
-      ),
-      completedAt:
-          json['completed_at'] != null
-              ? DateConverter.parseApiDate(json['completed_at'])
-              : (json['completedAt'] != null
-                  ? DateConverter.parseApiDate(json['completedAt'])
-                  : null),
+      createdAt: DateConverter.parseApiDate(json['created_at'] ?? json['createdAt']),
+      completedAt: DateConverter.parseApiDate(json['completed_at'] ?? json['completedAt']),
     );
   }
 

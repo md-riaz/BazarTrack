@@ -375,8 +375,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         if (isOwner)
                           CustomButton(
                             icon: Icons.add,
-                            height: MediaQuery.of(context).size.height * .04,
-                            width: MediaQuery.of(context).size.width * .3,
+                            shrink: true,
+                            // height: MediaQuery.of(context).size.height * .04,
+                            // width: MediaQuery.of(context).size.width * .3,
                             buttonText: 'Add Item',
                             onPressed: _onAddItem,
                           ),

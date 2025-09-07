@@ -77,6 +77,7 @@ class OrderController extends GetxController {
 
     if (page.length < _pageSize) hasMore.value = false;
     orders.addAll(page);
+    print("Date debug ====> ${orders.first.createdAt}");
   }
 
 
