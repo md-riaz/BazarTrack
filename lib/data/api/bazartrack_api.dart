@@ -1,5 +1,5 @@
-import 'package:flutter_boilerplate/data/api/api_client.dart';
-import 'package:flutter_boilerplate/data/api/endpoints.dart';
+import 'package:BazarTrack/data/api/api_client.dart';
+import 'package:BazarTrack/data/api/endpoints.dart';
 import 'package:get/get.dart';
 
 class BazarTrackApi {

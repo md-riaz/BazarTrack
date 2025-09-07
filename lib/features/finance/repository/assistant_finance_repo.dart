@@ -1,4 +1,4 @@
-import 'package:flutter_boilerplate/data/api/bazartrack_api.dart';
+import 'package:BazarTrack/data/api/bazartrack_api.dart';
 import '../model/finance.dart';
 import '../model/owner.dart';
 

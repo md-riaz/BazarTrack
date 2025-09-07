@@ -1,5 +1,5 @@
-import 'package:flutter_boilerplate/base/custom_snackbar.dart';
-import 'package:flutter_boilerplate/controller/splash_controller.dart';
+import 'package:BazarTrack/base/custom_snackbar.dart';
+import 'package:BazarTrack/controller/splash_controller.dart';
 import 'package:get/get.dart';
 
 class ApiChecker {

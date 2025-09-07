@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/features/finance/controller/assistant_finance_controller.dart';
+import 'package:BazarTrack/features/finance/controller/assistant_finance_controller.dart';
 import 'package:get/get.dart';
 import '../../../util/dimensions.dart';
 import '../../../util/input_decoration.dart';

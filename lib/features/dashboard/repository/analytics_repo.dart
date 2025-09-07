@@ -1,4 +1,4 @@
-import 'package:flutter_boilerplate/data/api/bazartrack_api.dart';
+import 'package:BazarTrack/data/api/bazartrack_api.dart';
 import '../model/assistant_analytics.dart';
 import '../model/dashboard_metrics.dart';
 import '../model/monthly_report.dart';

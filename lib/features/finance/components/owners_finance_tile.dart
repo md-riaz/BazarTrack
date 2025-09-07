@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/base/price_format.dart';
+import 'package:BazarTrack/base/price_format.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../helper/route_helper.dart';

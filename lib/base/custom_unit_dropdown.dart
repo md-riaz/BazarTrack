@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/util/input_decoration.dart';
+import 'package:BazarTrack/util/input_decoration.dart';
 
 class Unit {
   final String short;

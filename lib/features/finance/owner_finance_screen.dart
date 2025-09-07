@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/base/custom_button.dart';
-import 'package:flutter_boilerplate/features/finance/components/owners_finance_tile.dart';
+import 'package:BazarTrack/base/custom_button.dart';
+import 'package:BazarTrack/features/finance/components/owners_finance_tile.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../util/input_decoration.dart';

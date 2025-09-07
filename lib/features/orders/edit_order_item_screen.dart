@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/base/custom_button.dart';
-import 'package:flutter_boilerplate/features/auth/controller/auth_controller.dart';
+import 'package:BazarTrack/base/custom_button.dart';
+import 'package:BazarTrack/features/auth/controller/auth_controller.dart';
 import 'package:get/get.dart';
-import 'package:flutter_boilerplate/base/custom_app_bar.dart';
+import 'package:BazarTrack/base/custom_app_bar.dart';
 import '../../util/input_decoration.dart';
 import '../../helper/route_helper.dart';
 import '../auth/model/role.dart';

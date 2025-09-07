@@ -5,7 +5,7 @@
     <application
         android:label="BazarTrack"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icons">
 
         <activity
             android:name=".MainActivity"

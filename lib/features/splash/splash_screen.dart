@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'package:flutter_boilerplate/features/auth/service/auth_service.dart';
-import 'package:flutter_boilerplate/features/auth/sign_in_screen.dart';
-import 'package:flutter_boilerplate/features/dashboard/assistant_dashboard.dart';
-import 'package:flutter_boilerplate/features/dashboard/owner_dashboard.dart';
-import 'package:flutter_boilerplate/features/auth/model/role.dart';
-import 'package:flutter_boilerplate/util/images.dart';
+import 'package:BazarTrack/features/auth/service/auth_service.dart';
+import 'package:BazarTrack/features/auth/sign_in_screen.dart';
+import 'package:BazarTrack/features/dashboard/assistant_dashboard.dart';
+import 'package:BazarTrack/features/dashboard/owner_dashboard.dart';
+import 'package:BazarTrack/features/auth/model/role.dart';
+import 'package:BazarTrack/util/images.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

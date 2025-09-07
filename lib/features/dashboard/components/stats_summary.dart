@@ -6,7 +6,7 @@
 // Time: 9:55 AM
 */
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/util/colors.dart';
+import 'package:BazarTrack/util/colors.dart';
 
 import '../../../base/price_format.dart';
 

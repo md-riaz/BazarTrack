@@ -1,4 +1,4 @@
-import 'package:flutter_boilerplate/features/finance/model/wallet.dart';
+import 'package:BazarTrack/features/finance/model/wallet.dart';
 import 'role.dart';
 
 class UserModel {

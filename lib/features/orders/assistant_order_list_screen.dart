@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_boilerplate/util/colors.dart';
-import 'package:flutter_boilerplate/util/dimensions.dart';
-import 'package:flutter_boilerplate/features/auth/controller/auth_controller.dart';
-import 'package:flutter_boilerplate/features/orders/controller/order_controller.dart';
-import 'package:flutter_boilerplate/base/empty_state.dart';
+import 'package:BazarTrack/util/colors.dart';
+import 'package:BazarTrack/util/dimensions.dart';
+import 'package:BazarTrack/features/auth/controller/auth_controller.dart';
+import 'package:BazarTrack/features/orders/controller/order_controller.dart';
+import 'package:BazarTrack/base/empty_state.dart';
 import 'components/filter_bar.dart';
 import 'components/order_card.dart';
 

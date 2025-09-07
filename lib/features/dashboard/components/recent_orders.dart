@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/util/colors.dart';
+import 'package:BazarTrack/util/colors.dart';
 import 'package:get/get.dart';
 import '../../../util/dimensions.dart';
 import '../../orders/components/order_card.dart';

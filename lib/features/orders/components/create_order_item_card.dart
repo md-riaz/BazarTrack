@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/util/colors.dart';
+import 'package:BazarTrack/util/colors.dart';
 import '../../../base/custom_squre_badge.dart';
 import '../../../base/price_format.dart';
 import '../../../util/dimensions.dart';

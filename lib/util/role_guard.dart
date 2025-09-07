@@ -1,4 +1,4 @@
-import 'package:flutter_boilerplate/features/auth/controller/auth_controller.dart';
+import 'package:BazarTrack/features/auth/controller/auth_controller.dart';
 import 'package:get/get.dart';
 
 class RoleGuard {

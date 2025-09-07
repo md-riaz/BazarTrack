@@ -1,4 +1,4 @@
-import 'package:flutter_boilerplate/util/app_constants.dart';
+import 'package:BazarTrack/util/app_constants.dart';
 
 class Endpoints {
   static const login = '${AppConstants.baseUrl}/api/auth/login';

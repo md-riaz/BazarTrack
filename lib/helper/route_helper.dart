@@ -1,12 +1,12 @@
-import 'package:flutter_boilerplate/features/dashboard/assistant_dashboard.dart';
-import 'package:flutter_boilerplate/features/dashboard/owner_dashboard.dart';
-import 'package:flutter_boilerplate/features/auth/signup_screen.dart';
-import 'package:flutter_boilerplate/features/history/history_view_page.dart';
-import 'package:flutter_boilerplate/features/orders/create_order_screen.dart';
-import 'package:flutter_boilerplate/features/profile/profile_screen.dart';
-import 'package:flutter_boilerplate/features/splash/splash_screen.dart';
-import 'package:flutter_boilerplate/features/orders/order_list_screen.dart';
-import 'package:flutter_boilerplate/features/orders/order_detail_screen.dart';
+import 'package:BazarTrack/features/dashboard/assistant_dashboard.dart';
+import 'package:BazarTrack/features/dashboard/owner_dashboard.dart';
+import 'package:BazarTrack/features/auth/signup_screen.dart';
+import 'package:BazarTrack/features/history/history_view_page.dart';
+import 'package:BazarTrack/features/orders/create_order_screen.dart';
+import 'package:BazarTrack/features/profile/profile_screen.dart';
+import 'package:BazarTrack/features/splash/splash_screen.dart';
+import 'package:BazarTrack/features/orders/order_list_screen.dart';
+import 'package:BazarTrack/features/orders/order_detail_screen.dart';
 import 'package:get/get.dart';
 
 class RouteHelper {

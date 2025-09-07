@@ -6,7 +6,7 @@
 // Time: 04:24 PM
 */
 
-import 'package:flutter_boilerplate/data/api/bazartrack_api.dart';
+import 'package:BazarTrack/data/api/bazartrack_api.dart';
 import '../model/assistant.dart';
 import '../model/finance.dart';
 

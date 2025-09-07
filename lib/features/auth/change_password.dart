@@ -1,10 +1,10 @@
 // lib/features/auth/screens/change_password_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/base/custom_button.dart';
+import 'package:BazarTrack/base/custom_button.dart';
 import 'package:get/get.dart';
-import 'package:flutter_boilerplate/base/custom_app_bar.dart';
-import 'package:flutter_boilerplate/util/dimensions.dart';
+import 'package:BazarTrack/base/custom_app_bar.dart';
+import 'package:BazarTrack/util/dimensions.dart';
 import '../../base/custom_snackbar.dart';
 import 'controller/auth_controller.dart';
 

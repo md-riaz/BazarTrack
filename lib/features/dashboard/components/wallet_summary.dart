@@ -6,7 +6,7 @@
 // Time: 10:22 AM
 */
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/base/custom_divider.dart';
+import 'package:BazarTrack/base/custom_divider.dart';
 import '../../../base/price_format.dart';
 import '../../../util/dimensions.dart';
 import '../../finance/model/assistant.dart';

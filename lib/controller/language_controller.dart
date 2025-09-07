@@ -1,5 +1,5 @@
-import 'package:flutter_boilerplate/data/model/response/language_model.dart';
-import 'package:flutter_boilerplate/util/app_constants.dart';
+import 'package:BazarTrack/data/model/response/language_model.dart';
+import 'package:BazarTrack/util/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';

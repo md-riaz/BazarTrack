@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/controller/localization_controller.dart';
-import 'package:flutter_boilerplate/controller/theme_controller.dart';
-import 'package:flutter_boilerplate/util/app_constants.dart';
-import 'package:flutter_boilerplate/util/messages.dart';
-import 'package:flutter_boilerplate/util/theme_data.dart';
+import 'package:BazarTrack/controller/localization_controller.dart';
+import 'package:BazarTrack/controller/theme_controller.dart';
+import 'package:BazarTrack/util/app_constants.dart';
+import 'package:BazarTrack/util/messages.dart';
+import 'package:BazarTrack/util/theme_data.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'helper/get_di.dart' as di;

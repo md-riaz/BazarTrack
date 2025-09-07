@@ -1,5 +1,5 @@
-import 'package:flutter_boilerplate/data/model/response/language_model.dart';
-import 'package:flutter_boilerplate/util/images.dart';
+import 'package:BazarTrack/data/model/response/language_model.dart';
+import 'package:BazarTrack/util/images.dart';
 
 class AppConstants {
   static const String appName = 'BazarTrack';

@@ -1,5 +1,5 @@
-import 'package:flutter_boilerplate/data/api/api_client.dart';
-import 'package:flutter_boilerplate/util/app_constants.dart';
+import 'package:BazarTrack/data/api/api_client.dart';
+import 'package:BazarTrack/util/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashRepo {

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_boilerplate/base/custom_button.dart';
-import 'package:flutter_boilerplate/base/custom_app_bar.dart';
-import 'package:flutter_boilerplate/features/auth/change_password.dart';
-import 'package:flutter_boilerplate/features/auth/create_user_screen.dart';
-import 'package:flutter_boilerplate/features/auth/controller/auth_controller.dart';
-import 'package:flutter_boilerplate/util/colors.dart';
-import 'package:flutter_boilerplate/util/dimensions.dart';
+import 'package:BazarTrack/base/custom_button.dart';
+import 'package:BazarTrack/base/custom_app_bar.dart';
+import 'package:BazarTrack/features/auth/change_password.dart';
+import 'package:BazarTrack/features/auth/create_user_screen.dart';
+import 'package:BazarTrack/features/auth/controller/auth_controller.dart';
+import 'package:BazarTrack/util/colors.dart';
+import 'package:BazarTrack/util/dimensions.dart';
 import '../auth/model/role.dart';
 
 /// Symmetric, modern ProfileScreen replacement.
@@ -266,7 +266,6 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),

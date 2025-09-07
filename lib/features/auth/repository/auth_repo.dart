@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter_boilerplate/data/api/bazartrack_api.dart';
-import 'package:flutter_boilerplate/util/app_constants.dart';
+import 'package:BazarTrack/data/api/bazartrack_api.dart';
+import 'package:BazarTrack/util/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 import '../model/user.dart';

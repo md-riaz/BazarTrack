@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/features/dashboard/components/reports_chart.dart';
+import 'package:BazarTrack/features/dashboard/components/reports_chart.dart';
 import '../model/monthly_report.dart';
 
 class ReportsSummary extends StatelessWidget {

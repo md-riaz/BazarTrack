@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/base/custom_app_bar.dart';
-import 'package:flutter_boilerplate/features/auth/service/auth_service.dart';
-import 'package:flutter_boilerplate/features/dashboard/controller/assistant_analytics_controller.dart';
-import 'package:flutter_boilerplate/features/dashboard/repository/analytics_repo.dart';
-import 'package:flutter_boilerplate/features/finance/model/assistant.dart';
-import 'package:flutter_boilerplate/features/orders/repository/order_repo.dart';
+import 'package:BazarTrack/base/custom_app_bar.dart';
+import 'package:BazarTrack/features/auth/service/auth_service.dart';
+import 'package:BazarTrack/features/dashboard/controller/assistant_analytics_controller.dart';
+import 'package:BazarTrack/features/dashboard/repository/analytics_repo.dart';
+import 'package:BazarTrack/features/finance/model/assistant.dart';
+import 'package:BazarTrack/features/orders/repository/order_repo.dart';
 import 'package:get/get.dart';
 import '../../util/colors.dart';
 import '../auth/model/role.dart';

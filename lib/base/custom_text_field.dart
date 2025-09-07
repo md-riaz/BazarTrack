@@ -1,5 +1,5 @@
-import 'package:flutter_boilerplate/util/dimensions.dart';
-import 'package:flutter_boilerplate/util/styles.dart';
+import 'package:BazarTrack/util/dimensions.dart';
+import 'package:BazarTrack/util/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

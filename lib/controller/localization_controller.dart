@@ -1,4 +1,4 @@
-import 'package:flutter_boilerplate/util/app_constants.dart';
+import 'package:BazarTrack/util/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';

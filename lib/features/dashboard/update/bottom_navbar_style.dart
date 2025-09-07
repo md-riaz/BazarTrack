@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/base/custom_app_bar.dart';
-import 'package:flutter_boilerplate/features/auth/service/auth_service.dart';
-import 'package:flutter_boilerplate/features/dashboard/assistant_dashboard_details_screen.dart';
-import 'package:flutter_boilerplate/features/finance/assistant_finance_screen.dart';
-import 'package:flutter_boilerplate/features/finance/model/assistant.dart';
-import 'package:flutter_boilerplate/features/history/history_center_page.dart';
-import 'package:flutter_boilerplate/features/orders/assistant_order_list_screen.dart';
-import 'package:flutter_boilerplate/features/profile/profile_screen.dart';
+import 'package:BazarTrack/base/custom_app_bar.dart';
+import 'package:BazarTrack/features/auth/service/auth_service.dart';
+import 'package:BazarTrack/features/dashboard/assistant_dashboard_details_screen.dart';
+import 'package:BazarTrack/features/finance/assistant_finance_screen.dart';
+import 'package:BazarTrack/features/finance/model/assistant.dart';
+import 'package:BazarTrack/features/history/history_center_page.dart';
+import 'package:BazarTrack/features/orders/assistant_order_list_screen.dart';
+import 'package:BazarTrack/features/profile/profile_screen.dart';
 import 'package:get/get.dart';
 
 class AssistantDashboard extends StatefulWidget {

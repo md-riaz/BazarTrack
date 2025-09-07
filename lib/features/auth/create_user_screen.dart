@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/features/auth/created_profile_screen.dart';
-import 'package:flutter_boilerplate/features/auth/widget/auth_header.dart';
-import 'package:flutter_boilerplate/features/finance/controller/finance_controller.dart';
-import 'package:flutter_boilerplate/features/orders/controller/order_controller.dart';
-import 'package:flutter_boilerplate/util/colors.dart';
-import 'package:flutter_boilerplate/util/input_decoration.dart';
+import 'package:BazarTrack/features/auth/created_profile_screen.dart';
+import 'package:BazarTrack/features/auth/widget/auth_header.dart';
+import 'package:BazarTrack/features/finance/controller/finance_controller.dart';
+import 'package:BazarTrack/features/orders/controller/order_controller.dart';
+import 'package:BazarTrack/util/colors.dart';
+import 'package:BazarTrack/util/input_decoration.dart';
 import 'package:get/get.dart';
 import '../../base/custom_app_bar.dart';
 import '../../base/custom_button.dart'; // <- custom button

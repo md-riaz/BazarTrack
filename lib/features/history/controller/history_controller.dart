@@ -1,4 +1,4 @@
-import 'package:flutter_boilerplate/features/auth/service/auth_service.dart';
+import 'package:BazarTrack/features/auth/service/auth_service.dart';
 import 'package:get/get.dart';
 import '../../auth/model/role.dart';
 import '../model/history_log.dart';

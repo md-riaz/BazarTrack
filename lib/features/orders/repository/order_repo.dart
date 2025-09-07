@@ -1,8 +1,8 @@
 // File: lib/features/orders/repository/order_repo.dart
 
-import 'package:flutter_boilerplate/data/api/bazartrack_api.dart';
-import 'package:flutter_boilerplate/features/orders/model/order.dart';
-import 'package:flutter_boilerplate/features/orders/model/order_status.dart';
+import 'package:BazarTrack/data/api/bazartrack_api.dart';
+import 'package:BazarTrack/features/orders/model/order.dart';
+import 'package:BazarTrack/features/orders/model/order_status.dart';
 import 'package:get/get.dart';
 import '../model/order_item.dart';
 

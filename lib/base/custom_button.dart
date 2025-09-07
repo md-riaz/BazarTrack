@@ -1,5 +1,5 @@
-import 'package:flutter_boilerplate/util/colors.dart';
-import 'package:flutter_boilerplate/util/styles.dart';
+import 'package:BazarTrack/util/colors.dart';
+import 'package:BazarTrack/util/styles.dart';
 import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
