@@ -34,9 +34,9 @@ class CustomDrawer extends StatelessWidget {
             ),
             ListTile(
               onTap: () {
-                Get.to(() => const SupportPage(),
-                    transition: Transition.rightToLeft,
-                    duration: const Duration(milliseconds: 250));
+                // Get.to(() => const SupportPage(),
+                //     transition: Transition.rightToLeft,
+                //     duration: const Duration(milliseconds: 250));
               },
               leading: const Icon(Icons.support,color: AppColors.primary),
               title: Text(AppStrings.support),
