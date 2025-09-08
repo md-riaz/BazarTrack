@@ -208,6 +208,7 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
 
   Future<void> _showCreditDialog(BuildContext context, FinanceController ctrl) async {
     final amtCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
     int selectedId = ctrl.assistants.isNotEmpty ? ctrl.assistants.first.id : 0;
 
     await showDialog<void>(
@@ -227,34 +228,57 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
               ),
             ],
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<int>(
-                initialValue: selectedId,
-                decoration: AppInputDecorations.generalInputDecoration(
-                  label: 'Select Assistant',
-                  prefixIcon: Icons.person,
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<int>(
+                  initialValue: selectedId,
+                  decoration: AppInputDecorations.generalInputDecoration(
+                    label: 'Select Assistant',
+                    prefixIcon: Icons.person,
+                  ),
+                  items: ctrl.assistants.map((a) => DropdownMenuItem(
+                    value: a.id,
+                    child: Text(a.name),
+                  )).toList(),
+                  onChanged: (v) => setState(() => selectedId = v ?? selectedId),
+                  validator: (v) {
+                    if (v == null || v == 0) {
+                      return 'Please select an assistant';
+                    }
+                    return null;
+                  },
                 ),
-                items: ctrl.assistants.map((a) => DropdownMenuItem(
-                  value: a.id,
-                  child: Text(a.name),
-                )).toList(),
-                onChanged: (v) => setState(() => selectedId = v!),
-              ),
-
-              const SizedBox(height: 16),
-
-              TextFormField(
-                controller: amtCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: AppInputDecorations.generalInputDecoration(
-                  label: 'Amount',
-                  hint: 'Enter amount',
-                  prefixText: '৳ ',
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: amtCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: AppInputDecorations.generalInputDecoration(
+                    label: 'Amount',
+                    hint: 'Enter amount',
+                    prefixText: '৳ ',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Amount is required';
+                    }
+                    final parsed = double.tryParse(value.trim());
+                    if (parsed == null) {
+                      return 'Enter a valid number';
+                    }
+                    if (parsed <= 0) {
+                      return 'Amount must be greater than zero';
+                    }
+                    if (parsed > 1000000) {
+                      return 'Amount exceeds allowed limit';
+                    }
+                    return null;
+                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           actions: [
             CustomButton(
@@ -267,9 +291,10 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
               btnColor: AppColors.primary,
               shrink: true,
               onPressed: () {
-                final amt = double.tryParse(amtCtrl.text.trim()) ?? 0.0;
-                if (amt > 0) {
-                  ctrl.addCreditForAssistant(selectedId, amt).then((_) => Navigator.pop(context));
+                if (formKey.currentState?.validate() ?? false) {
+                  final amt = double.parse(amtCtrl.text.trim());
+                  ctrl.addCreditForAssistant(selectedId, amt)
+                      .then((_) => Navigator.pop(context));
                 }
               },
               buttonText: 'Save',
