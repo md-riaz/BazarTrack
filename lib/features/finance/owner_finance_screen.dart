@@ -11,136 +11,78 @@ import '../../util/dimensions.dart';
 import 'components/assistant_summary_card.dart';
 import 'controller/finance_controller.dart';
 
-class OwnerFinancePage extends StatelessWidget {
+class OwnerFinancePage extends StatefulWidget {
   const OwnerFinancePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final ctrl  = Get.find<FinanceController>();
+  State<OwnerFinancePage> createState() => _OwnerFinancePageState();
+}
 
-    return Obx(() {
-      // 1) Show a full‐screen spinner while we fetch the first page
-      if (ctrl.isInitialLoading.value || ctrl.isLoadingAssistants.value) {
-        return const Scaffold(
-          body: Center(child: CircularProgressIndicator(color: AppColors.primary)),
-        );
+class _OwnerFinancePageState extends State<OwnerFinancePage> {
+  late final FinanceController ctrl;
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    ctrl = Get.find<FinanceController>();
+
+    _scrollController = ScrollController()..addListener(_onScroll);
+
+    // Initial load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        ctrl.loadAssistants();
+        ctrl.clearFilters();
+      } catch (e) {
+        debugPrint('OwnerFinancePage init error: $e');
       }
-
-      // 2) Once the first page is in, show the slivers
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Assistant Wallets & Transactions'),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh_rounded),
-              tooltip: 'Refresh',
-              onPressed: (){
-                ctrl.loadAssistants();
-                ctrl.clearFilters();
-              },
-            ),
-          ],
-        ),
-        body: RefreshIndicator(
-          color: AppColors.primary,
-          onRefresh: () async {
-            ctrl.loadAssistants();
-            ctrl.clearFilters();
-          },
-          child: NotificationListener<ScrollNotification>(
-            onNotification: (sn) {
-              if (sn.metrics.pixels >= sn.metrics.maxScrollExtent - 100) {
-                ctrl.loadMorePayments();
-              }
-              return false;
-            },
-            child: CustomScrollView(
-              slivers: [
-                // Assistants Summary
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  sliver: SliverToBoxAdapter(
-                    child: AssistantSummaryCard(
-                      assistants: ctrl.assistants,
-                    ),
-                  ),
-                ),
-
-                // Transactions Header (Filter / Clear)
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _HeaderDelegate(
-                    height: 56,
-                    child: _TransactionsHeader(
-                      hasFilter: ctrl.hasActiveFilters,
-                      onFilter:  () => _showFilterDialog(context, ctrl),
-                      onClear:   ctrl.clearFilters,
-                    ),
-                  ),
-                ),
-
-                // 3) Now that initial load is done, check if we have items
-                if (ctrl.payments.isEmpty)
-                  const SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: EmptyState(
-                      icon: Icons.receipt_long,
-                      message: 'No transactions yet.',
-                    ),
-                  )
-                else
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                          (_, i) {
-                        final finance = ctrl.payments[i];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 2),
-                          child: OwnersFinanceTile(finance: finance),
-                        );
-                      },
-                      childCount: ctrl.payments.length,
-                    ),
-                  ),
-
-                // 4) Always show a loader at the bottom when paging
-                if (ctrl.isLoadingMore.value)
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-
-        floatingActionButton: FloatingActionButton.extended(
-          heroTag: 'owner_add',
-          icon: const Icon(Icons.account_balance_wallet),
-          label: const Text('Credit'),
-          backgroundColor: AppColors.primary,
-          onPressed: () => _showCreditDialog(
-            context,
-            Get.find<FinanceController>(),
-          ),
-        ),
-      );
     });
   }
 
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-  Future<void> _showFilterDialog(
-      BuildContext context,
-      FinanceController ctrl,
-      ) async {
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final threshold = 200.0;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final current = _scrollController.position.pixels;
+
+    if (current >= maxScroll - threshold &&
+        !ctrl.isLoadingMore.value &&
+        ctrl.hasMore.value) {
+      ctrl.loadMorePayments();
+    }
+  }
+
+  Future<void> _onRefresh() async {
+    try {
+      await ctrl.loadAssistants();
+      ctrl.clearFilters();
+
+    } catch (e) {
+      Get.snackbar(
+        'Unable to refresh',
+        'Check your internet connection and try again.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent.withValues(alpha: 0.9),
+        colorText: Colors.white,
+      );
+      debugPrint('Refresh failed: $e');
+    }
+  }
+
+  Future<void> _showFilterDialog(BuildContext context, FinanceController ctrl) async {
     final df = DateFormat('yyyy-MM-dd');
-    int?     selectedUser = ctrl.filterUserId.value;
-    String?  selectedType = ctrl.filterType.value;
-    DateTime? fromDate    = ctrl.filterFrom.value;
-    DateTime? toDate      = ctrl.filterTo.value;
+    int? selectedUser = ctrl.filterUserId.value;
+    String? selectedType = ctrl.filterType.value;
+    DateTime? fromDate = ctrl.filterFrom.value;
+    DateTime? toDate = ctrl.filterTo.value;
 
     await showDialog<void>(
       context: context,
@@ -151,7 +93,7 @@ class OwnerFinancePage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Icon(Icons.filter_list_outlined),
+                  const Icon(Icons.filter_list_outlined),
                   const Text('Filter Payments'),
                 ],
               ),
@@ -173,7 +115,7 @@ class OwnerFinancePage extends StatelessWidget {
                   ...ctrl.assistants.map(
                         (a) => DropdownMenuItem(
                       value: a.id,
-                      child: Text(a.name, overflow:TextOverflow.ellipsis,),
+                      child: Text(a.name, overflow: TextOverflow.ellipsis),
                     ),
                   ),
                 ],
@@ -181,21 +123,6 @@ class OwnerFinancePage extends StatelessWidget {
               ),
 
               const SizedBox(height: 12),
-
-              // Type
-              // DropdownButtonFormField<String?>(
-              //   initialValue: selectedType,
-              //   decoration: AppInputDecorations.generalInputDecoration(
-              //     label: 'Type',
-              //     prefixIcon: Icons.swap_horiz,
-              //   ),
-              //   items: [
-              //     const DropdownMenuItem(value: null, child: Text('All')),
-              //     const DropdownMenuItem(value: 'credit', child: Text('Credit')),
-              //     const DropdownMenuItem(value: 'debit',  child: Text('Debit')),
-              //   ],
-              //   onChanged: (v) => setState(() => selectedType = v),
-              // ),
 
               const SizedBox(height: 12),
 
@@ -279,14 +206,9 @@ class OwnerFinancePage extends StatelessWidget {
     );
   }
 
-  Future<void> _showCreditDialog(
-      BuildContext context,
-      FinanceController ctrl,
-      ) async {
+  Future<void> _showCreditDialog(BuildContext context, FinanceController ctrl) async {
     final amtCtrl = TextEditingController();
-    int selectedId = ctrl.assistants.isNotEmpty
-        ? ctrl.assistants.first.id
-        : 0;
+    int selectedId = ctrl.assistants.isNotEmpty ? ctrl.assistants.first.id : 0;
 
     await showDialog<void>(
       context: context,
@@ -297,15 +219,11 @@ class OwnerFinancePage extends StatelessWidget {
           ),
           title: Row(
             children: [
-              const Icon(Icons.account_balance_wallet_rounded,
-                  color: AppColors.primary),
+              const Icon(Icons.account_balance_wallet_rounded, color: AppColors.primary),
               const SizedBox(width: 8),
               Text(
                 'Credit Assistant',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -318,12 +236,10 @@ class OwnerFinancePage extends StatelessWidget {
                   label: 'Select Assistant',
                   prefixIcon: Icons.person,
                 ),
-                items: ctrl.assistants
-                    .map((a) => DropdownMenuItem(
+                items: ctrl.assistants.map((a) => DropdownMenuItem(
                   value: a.id,
                   child: Text(a.name),
-                ))
-                    .toList(),
+                )).toList(),
                 onChanged: (v) => setState(() => selectedId = v!),
               ),
 
@@ -335,38 +251,151 @@ class OwnerFinancePage extends StatelessWidget {
                 decoration: AppInputDecorations.generalInputDecoration(
                   label: 'Amount',
                   hint: 'Enter amount',
-                  prefixText: '৳ ',                ),
+                  prefixText: '৳ ',
+                ),
               ),
             ],
           ),
           actions: [
             CustomButton(
               btnColor: Colors.redAccent,
-              // height: MediaQuery.of(context).size.height * .04,
-              // width: MediaQuery.of(context).size.width * .25,
               shrink: true,
               onPressed: () => Navigator.pop(context),
               buttonText: 'Cancel',
             ),
             CustomButton(
               btnColor: AppColors.primary,
-              // height: MediaQuery.of(context).size.height * .04,
-              // width: MediaQuery.of(context).size.width * .25,
               shrink: true,
               onPressed: () {
                 final amt = double.tryParse(amtCtrl.text.trim()) ?? 0.0;
                 if (amt > 0) {
-                  ctrl.addCreditForAssistant(selectedId, amt)
-                      .then((_) => Navigator.pop(context));
+                  ctrl.addCreditForAssistant(selectedId, amt).then((_) => Navigator.pop(context));
                 }
               },
-              buttonText:'Save',
+              buttonText: 'Save',
             ),
           ],
           actionsAlignment: MainAxisAlignment.spaceAround,
         ),
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      // Keep RefreshIndicator visible always. If everything is still loading and we have no items,
+      // render a scrollable spinner so user can pull-to-refresh. Otherwise render the full list
+      // and display a subtle loading overlay when initial reloads happen.
+      final isInitial = ctrl.isInitialLoading.value || ctrl.isLoadingAssistants.value;
+      final hasPayments = ctrl.payments.isNotEmpty;
+
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Assistant Wallets & Transactions'),
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded),
+              tooltip: 'Refresh',
+              onPressed: _onRefresh,
+            ),
+          ],
+        ),
+        body: RefreshIndicator(
+          color: AppColors.primary,
+          onRefresh: _onRefresh,
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // Assistants Summary
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                sliver: SliverToBoxAdapter(
+                  child: AssistantSummaryCard(
+                    assistants: ctrl.assistants,
+                  ),
+                ),
+              ),
+
+              // Transactions Header (Filter / Clear)
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _HeaderDelegate(
+                  height: 56,
+                  child: _TransactionsHeader(
+                    hasFilter: ctrl.hasActiveFilters,
+                    onFilter: () => _showFilterDialog(context, ctrl),
+                    onClear: ctrl.clearFilters,
+                  ),
+                ),
+              ),
+
+              // If initial & no items -> show an in-scroll spinner (so pull-to-refresh works)
+              if (isInitial && !hasPayments)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        CircularProgressIndicator(color: AppColors.primary),
+                        SizedBox(height: 12),
+                        Text('Loading transactions...'),
+                      ],
+                    ),
+                  ),
+                )
+
+              // No items (but not initial) -> empty state (still scrollable)
+              else if (!hasPayments)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: EmptyState(
+                    icon: Icons.receipt_long,
+                    message: 'No transactions yet.',
+                  ),
+                )
+
+              // Items present -> list
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                        (_, i) {
+                      final finance = ctrl.payments[i];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                        child: OwnersFinanceTile(finance: finance),
+                      );
+                    },
+                    childCount: ctrl.payments.length,
+                  ),
+                ),
+
+              // Bottom loader for paging
+              if (ctrl.isLoadingMore.value)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                  ),
+                ),
+
+              // provide bottom spacing so last item is scrollable above FAB
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            ],
+          ),
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          heroTag: 'owner_add',
+          icon: const Icon(Icons.account_balance_wallet),
+          label: const Text('Credit'),
+          backgroundColor: AppColors.primary,
+          onPressed: () => _showCreditDialog(context, ctrl),
+        ),
+      );
+    });
   }
 }
 

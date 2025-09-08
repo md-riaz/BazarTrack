@@ -1,11 +1,14 @@
+// File: lib/features/orders/screens/order_list_screen.dart
+
 import 'package:flutter/material.dart';
-import 'package:BazarTrack/features/auth/controller/auth_controller.dart';
-import 'package:BazarTrack/util/dimensions.dart';
 import 'package:get/get.dart';
+import 'package:BazarTrack/util/dimensions.dart';
 import 'package:BazarTrack/util/colors.dart';
+import 'package:BazarTrack/features/auth/controller/auth_controller.dart';
 import 'package:BazarTrack/features/orders/controller/order_controller.dart';
 import 'package:BazarTrack/features/orders/model/order_status.dart';
 import 'package:BazarTrack/features/auth/model/role.dart';
+import '../../base/custom_snackbar.dart';
 import '../../base/empty_state.dart';
 import '../../helper/route_helper.dart';
 import 'components/filter_bar.dart';
@@ -26,108 +29,177 @@ class OrderListScreen extends StatefulWidget {
 }
 
 class _OrderListScreenState extends State<OrderListScreen> {
-
-  late OrderController orderCtrl ;
-  late AuthController authController;
-
+  late final OrderController orderCtrl;
+  late final AuthController authController;
+  late final ScrollController _scrollController;
+  bool _didApplyInitialFilters = false;
 
   @override
   void initState() {
-     orderCtrl = Get.find<OrderController>();
-     orderCtrl.isOwner = true;
-     authController = Get.find<AuthController>();
-     //function call
-     orderCtrl.getAllAssistants();
-     orderCtrl.loadInitial();
     super.initState();
+
+    orderCtrl = Get.find<OrderController>();
+    orderCtrl.isOwner = true;
+
+    authController = Get.find<AuthController>();
+
+    // Scroll controller used for infinite scroll detection
+    _scrollController = ScrollController()..addListener(_onScroll);
+
+    // Perform one-time loads and apply incoming filters.
+    // Use addPostFrameCallback so any dependent widget/context is ready.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // apply initial filters first (if any)
+      if (!_didApplyInitialFilters) {
+        if (widget.initialStatus != null) {
+          orderCtrl.setStatusFilter(widget.initialStatus);
+        }
+        if (widget.initialAssignedTo != null) {
+          orderCtrl.setAssignedToFilter(widget.initialAssignedTo);
+        }
+        _didApplyInitialFilters = true;
+      }
+
+      // load assistants and initial page (wrapped in try/catch to avoid unhandled)
+      try {
+        orderCtrl.getAllAssistants();
+        orderCtrl.loadInitial();
+      } catch (e) {
+        // optional: show a small non-blocking message or just log
+        debugPrint('OrderList init error: $e');
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    // When user scrolls near the bottom, load more if allowed
+    if (!_scrollController.hasClients) return;
+
+    final threshold = 200.0; // pixels from bottom to trigger load
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final current = _scrollController.position.pixels;
+
+    if (current >= maxScroll - threshold &&
+        !orderCtrl.isLoadingMore.value &&
+        orderCtrl.hasMore.value) {
+      orderCtrl.loadMore();
+    }
+  }
+
+  Future<void> _onRefresh() async {
+    try {
+      await orderCtrl.getAllAssistants();
+      await orderCtrl.loadInitial();
+      // optional: return success
+    } catch (e) {
+      // show friendly feedback
+      showCustomSnackBar(
+        title: 'Unable to refresh',
+        'Check your internet connection and try again.',
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isOwner = authController.user.value?.role == UserRole.owner;
 
-    // apply initial filters once
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.initialStatus != null) orderCtrl.setStatusFilter(widget.initialStatus);
-      if (widget.initialAssignedTo != null) orderCtrl.setAssignedToFilter(widget.initialAssignedTo);
-    });
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: RefreshIndicator(
         color: AppColors.primary,
-        onRefresh: ()async{
-          orderCtrl.getAllAssistants();
-          orderCtrl.loadInitial();
-        },
-        child: NotificationListener<ScrollNotification>(
-          onNotification: (scrollInfo) {
-            if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 100 &&
-                !orderCtrl.isLoadingMore.value &&
-                orderCtrl.hasMore.value) {
-              orderCtrl.loadMore();
-            }
-            return false;
-          },
-          child: Obx(() {
-            if (orderCtrl.isInitialLoading.value) {
-              return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-            }
+        onRefresh: _onRefresh,
+        child: Obx(() {
+          // We still show the filter bar even if content is loading.
+          return CustomScrollView(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _FilterBarDelegate(
+                  child: FilterBar(ctrl: orderCtrl, isOwner: isOwner),
+                  height: 72,
+                ),
+              ),
 
-            return CustomScrollView(
-              slivers: [
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _FilterBarDelegate(
-                    child: FilterBar(ctrl: orderCtrl, isOwner: isOwner),
-                    height: 72,
+              // initial loading: show a tall loading area, but keep it inside the scroll view
+              if (orderCtrl.isInitialLoading.value)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        CircularProgressIndicator(color: AppColors.primary),
+                        SizedBox(height: 12),
+                        Text('Loading orders...'),
+                      ],
+                    ),
+                  ),
+                )
+
+              // no data: show friendly empty state (still inside scroll view so pull-to-refresh works)
+              else if (orderCtrl.orders.isEmpty)
+                const SliverFillRemaining(
+                  child: EmptyState(
+                    icon: Icons.inbox,
+                    message: 'No orders found.\nPull down to refresh.',
+                  ),
+                )
+
+              // data present: show list
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                      final order = orderCtrl.orders[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: Dimensions.scaffoldPadding,
+                        ),
+                        child: OrderCard(order: order),
+                      );
+                    },
+                    childCount: orderCtrl.orders.length,
                   ),
                 ),
 
-                if (orderCtrl.orders.isEmpty)
-                  const SliverFillRemaining(
-                    child: EmptyState(
-                      icon: Icons.inbox,
-                      message: 'No orders found.',
-                    ),
-                  )
-                else
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                        final order = orderCtrl.orders[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: Dimensions.scaffoldPadding,
-                          ),
-                          child: OrderCard(order: order),
-                        );
-                      },
-                      childCount: orderCtrl.orders.length,
+              // bottom loader for pagination
+              if (orderCtrl.isLoadingMore.value)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: CircularProgressIndicator(color: AppColors.primary),
                     ),
                   ),
-
-                // Loader at bottom
-                if (orderCtrl.isLoadingMore.value)
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
-                    ),
-                  ),
-              ],
-            );
-          }),
-        ),
+                ),
+              // small bottom padding so the last card is scrollable above FAB
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            ],
+          );
+        }),
       ),
+
       floatingActionButton: isOwner
           ? FloatingActionButton.extended(
         heroTag: 'add_order',
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add),
         label: const Text('New Order'),
-        onPressed: (){
-          orderCtrl.onCreateOrderTapped;
+        onPressed: () {
+          // call the controller method (don't just reference it)
+          try {
+            orderCtrl.onCreateOrderTapped();
+          } catch (_) {}
           Get.toNamed(RouteHelper.orderCreate);
         },
       )
@@ -162,4 +234,3 @@ class _FilterBarDelegate extends SliverPersistentHeaderDelegate {
     return child != old.child || height != old.height;
   }
 }
-

@@ -20,9 +20,6 @@ class OwnerDashboardDetails extends StatelessWidget {
 
     return Scaffold(
       body: Obx(() {
-        if (ctrl.isLoading.value) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary,));
-        }
         return RefreshIndicator(
           color: AppColors.primary,
           onRefresh: () async {
@@ -33,40 +30,53 @@ class OwnerDashboardDetails extends StatelessWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             primary: true,
             padding: const EdgeInsets.all(Dimensions.scaffoldPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+            child:
+                ctrl.isLoading.value
+                    ? SizedBox(
+                  height: Get.height * .75,
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    )
+                    : Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // ─── Stats ────────────────────────────
+                        StatsSummary(
+                          totalOrders: ctrl.dashboard.value!.totalOrders,
+                          totalUsers: ctrl.dashboard.value!.totalUsers,
+                          totalPayments: ctrl.dashboard.value!.totalPayments,
+                          balance: ctrl.dashboard.value!.totalExpense,
+                          theme: theme,
+                        ),
 
-                // ─── Stats ────────────────────────────
-                StatsSummary(
-                  totalOrders: ctrl.dashboard.value!.totalOrders,
-                  totalUsers: ctrl.dashboard.value!.totalUsers,
-                  totalPayments: ctrl.dashboard.value!.totalPayments,
-                  balance: ctrl.dashboard.value!.totalExpense,
-                  theme: theme,
-                ),
+                        const SizedBox(height: 8),
+                        // ─── Wallet Summary ───────────────────
+                        WalletSummary(
+                          theme: theme,
+                          assistants: financeCtrl.assistants,
+                        ),
 
-                const SizedBox(height: 8),
-                // ─── Wallet Summary ───────────────────
-                WalletSummary(theme: theme, assistants: financeCtrl.assistants),
-
-                const SizedBox(height: 8),
-                // ─── Reports ──────────────────────────
-                ReportsSummary(reports: ctrl.reports.value!, theme: theme),
-                // ─── Recent Orders Carousel ───────────
-                const SizedBox(height: 12),
-                RecentOrdersList(
-                  isOwner: true,
-                  recentOrders: ctrl.recentOrders,
-                  isLoadingRecent: ctrl.isLoadingRecent,
-                ),
-
-              ],
-            ),
+                        const SizedBox(height: 8),
+                        // ─── Reports ──────────────────────────
+                        ReportsSummary(
+                          reports: ctrl.reports.value!,
+                          theme: theme,
+                        ),
+                        // ─── Recent Orders Carousel ───────────
+                        const SizedBox(height: 12),
+                        RecentOrdersList(
+                          isOwner: true,
+                          recentOrders: ctrl.recentOrders,
+                          isLoadingRecent: ctrl.isLoadingRecent,
+                        ),
+                      ],
+                    ),
           ),
         );
       }),
     );
   }
 }
-

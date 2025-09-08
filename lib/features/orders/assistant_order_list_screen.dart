@@ -1,3 +1,5 @@
+// File: lib/features/orders/screens/assistant_order_list_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BazarTrack/util/colors.dart';
@@ -22,6 +24,10 @@ class _AssistantOrderListScreenState extends State<AssistantOrderListScreen>
   late final AuthController authCtrl;
   late final TabController tabCtrl;
 
+  // separate scroll controllers for each tab view
+  late final ScrollController _myOrdersScrollCtrl;
+  late final ScrollController _unassignedScrollCtrl;
+
   @override
   void initState() {
     super.initState();
@@ -29,25 +35,71 @@ class _AssistantOrderListScreenState extends State<AssistantOrderListScreen>
     authCtrl = Get.find<AuthController>();
 
     tabCtrl = TabController(length: 2, vsync: this)
-      ..addListener(() {
-        // Only act when a new index is being selected by the user (start of change)
-        if (!tabCtrl.indexIsChanging) return;
+      ..addListener(_onTabChanged);
 
-        if (tabCtrl.index == 0) {
-          orderCtrl.setMyOrdersFilter();
-        } else {
-          orderCtrl.setUnassignedFilter();
-        }
-      });
+    _myOrdersScrollCtrl = ScrollController()..addListener(() => _onScroll(_myOrdersScrollCtrl));
+    _unassignedScrollCtrl = ScrollController()..addListener(() => _onScroll(_unassignedScrollCtrl));
 
-    orderCtrl.getAllAssistants();
-    orderCtrl.setMyOrdersFilter();
+    // initial setup: get assistants and default filter (my orders)
+    // wrap in postFrame to ensure context is ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      orderCtrl.getAllAssistants();
+      orderCtrl.setMyOrdersFilter();
+      orderCtrl.loadInitial();
+    });
   }
 
   @override
   void dispose() {
+    tabCtrl.removeListener(_onTabChanged);
     tabCtrl.dispose();
+    _myOrdersScrollCtrl.removeListener(() => _onScroll(_myOrdersScrollCtrl));
+    _unassignedScrollCtrl.removeListener(() => _onScroll(_unassignedScrollCtrl));
+    _myOrdersScrollCtrl.dispose();
+    _unassignedScrollCtrl.dispose();
     super.dispose();
+  }
+
+  void _onTabChanged() {
+    // respond once when the tab selection starts changing
+    if (!tabCtrl.indexIsChanging) return;
+
+    if (tabCtrl.index == 0) {
+      orderCtrl.setMyOrdersFilter();
+    } else {
+      orderCtrl.setUnassignedFilter();
+    }
+    // reload the list for the newly selected filter
+    orderCtrl.loadInitial();
+  }
+
+  void _onScroll(ScrollController sc) {
+    if (!sc.hasClients) return;
+
+    final threshold = 200.0;
+    final maxScroll = sc.position.maxScrollExtent;
+    final current = sc.position.pixels;
+
+    if (current >= maxScroll - threshold &&
+        !orderCtrl.isLoadingMore.value &&
+        orderCtrl.hasMore.value) {
+      orderCtrl.loadMore();
+    }
+  }
+
+  Future<void> _onRefresh() async {
+    try {
+      await orderCtrl.getAllAssistants();
+      await orderCtrl.loadInitial();
+    } catch (e) {
+      Get.snackbar(
+        'Unable to refresh',
+        'Check your internet connection and try again.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withValues(alpha: 0.9),
+        colorText: Colors.white,
+      );
+    }
   }
 
   @override
@@ -78,15 +130,28 @@ class _AssistantOrderListScreenState extends State<AssistantOrderListScreen>
             child: TabBarView(
               controller: tabCtrl,
               children: [
+                // My Orders tab
                 Column(
                   children: [
                     FilterBar(ctrl: orderCtrl, isOwner: false),
-                    Expanded(child: _buildOrderList()),
+                    Expanded(
+                      child: _buildOrderList(scrollController: _myOrdersScrollCtrl),
+                    ),
                   ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: _buildOrderList(),
+
+                // Unassigned tab
+                Column(
+                  children: [
+                    // keep same FilterBar for consistency (or hide as desired)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: FilterBar(ctrl: orderCtrl, isOwner: false),
+                    ),
+                    Expanded(
+                      child: _buildOrderList(scrollController: _unassignedScrollCtrl),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -96,49 +161,65 @@ class _AssistantOrderListScreenState extends State<AssistantOrderListScreen>
     );
   }
 
-  Widget _buildOrderList() {
+  /// Builds a refreshable order list that:
+  /// - always supports pull-to-refresh (even when empty or initially loading)
+  /// - shows a non-blocking spinner when loading, allowing pull
+  Widget _buildOrderList({required ScrollController scrollController}) {
     return RefreshIndicator(
       color: AppColors.primary,
-      onRefresh: () async => orderCtrl.loadInitial(),
-      child: NotificationListener<ScrollNotification>(
-        onNotification: (scrollInfo) {
-          if (scrollInfo.metrics.pixels >=
-              scrollInfo.metrics.maxScrollExtent - 100 &&
-              !orderCtrl.isLoadingMore.value &&
-              orderCtrl.hasMore.value) {
-            orderCtrl.loadMore();
-          }
-          return false;
-        },
-        child: Obx(() {
-          if (orderCtrl.isInitialLoading.value) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-          }
-          final orders = orderCtrl.orders;
-          if (orders.isEmpty) {
-            return const Center(
-              child: EmptyState(
-                icon: Icons.inbox,
-                message: 'No orders found.',
+      onRefresh: _onRefresh,
+      child: Obx(() {
+        final isInitialLoading = orderCtrl.isInitialLoading.value;
+        final orders = orderCtrl.orders;
+
+        // 1) If initial loading and no items yet -> show a scrollable area so pull-to-refresh works.
+        if (isInitialLoading && orders.isEmpty) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
-            );
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: Dimensions.scaffoldPadding),
-            itemCount: orders.length + (orderCtrl.hasMore.value ? 1 : 0),
-            separatorBuilder: (_, __) => const SizedBox(height: 2),
-            itemBuilder: (ctx, index) {
-              if (index >= orders.length) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
-                );
-              }
-              return OrderCard(order: orders[index]);
-            },
+            ),
           );
-        }),
-      ),
+        }
+
+        // 2) No data -> show empty state but still allow pull-to-refresh
+        if (orders.isEmpty) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: const Center(
+                child: EmptyState(
+                  icon: Icons.inbox,
+                  message: 'No orders found.',
+                ),
+              ),
+            ),
+          );
+        }
+
+        // 3) Data present -> ListView with pagination support and AlwaysScrollablePhysics
+        return ListView.separated(
+          controller: scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: Dimensions.scaffoldPadding, vertical: 8),
+          itemCount: orders.length + (orderCtrl.hasMore.value ? 1 : 0),
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (ctx, index) {
+            if (index >= orders.length) {
+              // bottom loader
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              );
+            }
+            return OrderCard(order: orders[index]);
+          },
+        );
+      }),
     );
   }
 }

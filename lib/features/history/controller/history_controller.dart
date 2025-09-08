@@ -1,3 +1,5 @@
+// File: lib/features/history/controller/history_controller.dart
+
 import 'package:BazarTrack/features/auth/service/auth_service.dart';
 import 'package:get/get.dart';
 import '../../auth/model/role.dart';
@@ -50,6 +52,7 @@ class HistoryController extends GetxController {
     super.onInit();
     isOwner = authService.currentUser?.role == UserRole.owner;
     changedById = int.parse(authService.currentUser!.id);
+    // initial parallel loads
     _loadAll(initial: true);
     _loadOrders(initial: true);
     _loadItems(initial: true);
@@ -58,7 +61,7 @@ class HistoryController extends GetxController {
 
   // -- ALL --
 
-  Future<void> _loadAll({ bool initial = false,}) async {
+  Future<void> _loadAll({ bool initial = false, }) async {
     if (initial) {
       allHasMore.value = true;
       allCursor.value = null;
@@ -68,20 +71,33 @@ class HistoryController extends GetxController {
 
     isLoadingAll.value = initial;
     allLoadingMore.value = !initial;
-    final page = await historyRepo.getAll(
-      changedBy: !isOwner? changedById: null,
-      limit:  _pageSize,
-      cursor: allCursor.value,
-    );
-    allLogs.addAll(page);
-    if (page.length < _pageSize) allHasMore.value = false;
-    allCursor.value = page.isNotEmpty ? page.last.id : allCursor.value;
-    isLoadingAll.value = false;
-    allLoadingMore.value = false;
+
+    try {
+      final page = await historyRepo.getAll(
+        changedBy: !isOwner ? changedById : null,
+        limit: _pageSize,
+        cursor: allCursor.value,
+      );
+      if (initial) {
+        allLogs.value = page;
+      } else {
+        allLogs.addAll(page);
+      }
+
+      if (page.length < _pageSize) allHasMore.value = false;
+      allCursor.value = page.isNotEmpty ? page.last.id : allCursor.value;
+    } catch (e) {
+      // Log or handle the error; keep flags consistent in finally
+      rethrow;
+    } finally {
+      isLoadingAll.value = false;
+      allLoadingMore.value = false;
+    }
   }
 
+  /// Public methods
   void loadMoreAll() => _loadAll(initial: false);
-  void refreshAll()  => _loadAll(initial: true);
+  Future<void> refreshAll() async => await _loadAll(initial: true);
 
   // -- ORDERS --
 
@@ -95,21 +111,32 @@ class HistoryController extends GetxController {
 
     isLoadingOrder.value = initial;
     orderLoadingMore.value = !initial;
-    final page = await historyRepo.getByEntity(
-      changedBy: !isOwner? changedById: null,
-      'order',
-      limit:  _pageSize,
-      cursor: orderCursor.value,
-    );
-    orderLogs.addAll(page);
-    if (page.length < _pageSize) orderHasMore.value = false;
-    orderCursor.value = page.isNotEmpty ? page.last.id : orderCursor.value;
-    isLoadingOrder.value = false;
-    orderLoadingMore.value = false;
+
+    try {
+      final page = await historyRepo.getByEntity(
+        changedBy: !isOwner ? changedById : null,
+        'order',
+        limit: _pageSize,
+        cursor: orderCursor.value,
+      );
+      if (initial) {
+        orderLogs.value = page;
+      } else {
+        orderLogs.addAll(page);
+      }
+
+      if (page.length < _pageSize) orderHasMore.value = false;
+      orderCursor.value = page.isNotEmpty ? page.last.id : orderCursor.value;
+    } catch (e) {
+      rethrow;
+    } finally {
+      isLoadingOrder.value = false;
+      orderLoadingMore.value = false;
+    }
   }
 
   void loadMoreOrders() => _loadOrders(initial: false);
-  void refreshOrders()  => _loadOrders(initial: true);
+  Future<void> refreshOrders() async => await _loadOrders(initial: true);
 
   // -- ITEMS --
 
@@ -123,21 +150,32 @@ class HistoryController extends GetxController {
 
     isLoadingItem.value = initial;
     itemLoadingMore.value = !initial;
-    final page = await historyRepo.getByEntity(
-      changedBy: !isOwner? changedById: null,
-      'order_item',
-      limit:  _pageSize,
-      cursor: itemCursor.value,
-    );
-    itemLogs.addAll(page);
-    if (page.length < _pageSize) itemHasMore.value = false;
-    itemCursor.value = page.isNotEmpty ? page.last.id : itemCursor.value;
-    isLoadingItem.value = false;
-    itemLoadingMore.value = false;
+
+    try {
+      final page = await historyRepo.getByEntity(
+        changedBy: !isOwner ? changedById : null,
+        'order_item',
+        limit: _pageSize,
+        cursor: itemCursor.value,
+      );
+      if (initial) {
+        itemLogs.value = page;
+      } else {
+        itemLogs.addAll(page);
+      }
+
+      if (page.length < _pageSize) itemHasMore.value = false;
+      itemCursor.value = page.isNotEmpty ? page.last.id : itemCursor.value;
+    } catch (e) {
+      rethrow;
+    } finally {
+      isLoadingItem.value = false;
+      itemLoadingMore.value = false;
+    }
   }
 
   void loadMoreItems() => _loadItems(initial: false);
-  void refreshItems()  => _loadItems(initial: true);
+  Future<void> refreshItems() async => await _loadItems(initial: true);
 
   // -- PAYMENTS --
 
@@ -151,31 +189,49 @@ class HistoryController extends GetxController {
 
     isLoadingPayment.value = initial;
     paymentLoadingMore.value = !initial;
-    final page = await historyRepo.getByEntity(
-      changedBy: !isOwner? changedById: null,
-      'payment',
-      limit:  _pageSize,
-      cursor: paymentCursor.value,
-    );
-    paymentLogs.addAll(page);
-    if (page.length < _pageSize) paymentHasMore.value = false;
-    paymentCursor.value = page.isNotEmpty ? page.last.id : paymentCursor.value;
-    isLoadingPayment.value = false;
-    paymentLoadingMore.value = false;
+
+    try {
+      final page = await historyRepo.getByEntity(
+        changedBy: !isOwner ? changedById : null,
+        'payment',
+        limit: _pageSize,
+        cursor: paymentCursor.value,
+      );
+      if (initial) {
+        paymentLogs.value = page;
+      } else {
+        paymentLogs.addAll(page);
+      }
+
+      if (page.length < _pageSize) paymentHasMore.value = false;
+      paymentCursor.value = page.isNotEmpty ? page.last.id : paymentCursor.value;
+    } catch (e) {
+      rethrow;
+    } finally {
+      isLoadingPayment.value = false;
+      paymentLoadingMore.value = false;
+    }
   }
 
   void loadMorePayments() => _loadPayments(initial: false);
-  void refreshPayments()  => _loadPayments(initial: true);
+  Future<void> refreshPayments() async => await _loadPayments(initial: true);
 
+  // helper entity loaders
   Future<void> loadByEntity(String entity) async {
     isLoading.value = true;
-    logs.value = await historyRepo.getByEntity(entity);
-    isLoading.value = false;
+    try {
+      logs.value = await historyRepo.getByEntity(entity);
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> loadByEntityId(String entity, int id) async {
     isLoading.value = true;
-    logs.value = await historyRepo.getByEntityId(entity, id);
-    isLoading.value = false;
+    try {
+      logs.value = await historyRepo.getByEntityId(entity, id);
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

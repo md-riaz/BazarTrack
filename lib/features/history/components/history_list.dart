@@ -3,7 +3,6 @@ import 'package:BazarTrack/base/price_format.dart';
 import 'package:BazarTrack/util/app_format.dart';
 import 'package:BazarTrack/util/colors.dart';
 import 'package:get/get.dart';
-import '../../../base/empty_state.dart';
 import '../../../util/dimensions.dart';
 import '../model/history_log.dart';
 import '../model/history_log_item.dart';
@@ -37,9 +36,6 @@ class HistoryList extends StatelessWidget {
         );
       }
 
-      if (logs.isEmpty) {
-        return EmptyState(icon: Icons.history, message: 'No history entries.');
-      }
 
       // add 1 extra item for the loading indicator when there's more
       final itemCount = logs.length + (hasMore.value ? 1 : 0);
