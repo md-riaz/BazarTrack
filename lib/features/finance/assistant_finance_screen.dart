@@ -31,14 +31,16 @@ class _AssistantFinancePageState extends State<AssistantFinancePage> {
   }
 
   late AssistantFinanceController ctrl;
-  late AuthService auth;
+  late final AuthService auth;
+
   @override
   void initState() {
+    super.initState();
     ctrl = Get.find<AssistantFinanceController>();
     auth = ctrl.auth;
     ctrl.assistantId = widget.assistant!.id;
+    // prepareAndLoadingPayments now returns a Future; run it but do not block init
     ctrl.prepareAndLoadingPayments();
-    super.initState();
   }
 
   @override
@@ -50,174 +52,196 @@ class _AssistantFinancePageState extends State<AssistantFinancePage> {
     final ts = theme.textTheme;
 
     return Obx(() {
-      // FULL-SCREEN LOADER on first page or balance load
-      if (ctrl.isInitialLoading.value || ctrl.isLoadingBalance.value) {
-        return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary,)));
-      }
-
-      // ACTUAL PAGE
+      // Keep RefreshIndicator always present. onRefresh awaits controller.refreshAll()
       return Scaffold(
-        appBar:
-            isOwner
-                ? CustomAppBar(
-                  title: "$displayName’s Wallet",
-                  actions: [
-                    IconButton(
-                      icon: const Icon(Icons.refresh_rounded),
-                      tooltip: 'Refresh',
-                      onPressed: ctrl.clearFilters,
-                    ),
-                  ],
-                )
-                : null,
+        appBar: isOwner
+            ? CustomAppBar(
+          title: "$displayName’s Wallet",
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded),
+              tooltip: 'Refresh',
+              onPressed: () => ctrl.refreshAll(),
+            ),
+          ],
+        )
+            : null,
         body: RefreshIndicator(
           color: AppColors.primary,
-          onRefresh: () async => ctrl.clearFilters(),
-          child: NotificationListener<ScrollNotification>(
-            onNotification: (sn) {
-              if (sn.metrics.pixels >= sn.metrics.maxScrollExtent - 100) {
-                ctrl.loadMoreTransactions();
-              }
-              return false;
-            },
-            child: CustomScrollView(
-              slivers: [
-                // ── SUMMARY CARD ───────────────────
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  sliver: SliverToBoxAdapter(
-                    child: Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 28,
-                              backgroundColor: theme.primaryColor.withValues(
-                                alpha: 0.12,
-                              ),
-                              child: Text(
-                                _getInitials(displayName),
-                                style: ts.titleLarge?.copyWith(
-                                  color: theme.primaryColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    displayName,
-                                    style: ts.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Current balance',
-                                    style: ts.bodySmall?.copyWith(
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  formatPrice(ctrl.balance.value),
-                                  style: ts.headlineSmall?.copyWith(
-                                    color: theme.primaryColor,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Available',
-                                  style: ts.bodySmall?.copyWith(
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+          onRefresh: () async => ctrl.refreshAll(),
+          child: _buildBody(context, ts, theme, displayName, isOwner),
+        ),
+        floatingActionButton: !isOwner
+            ? FloatingActionButton.extended(
+          heroTag: 'refund',
+          icon: const Icon(Icons.replay),
+          label: const Text('Refund'),
+          backgroundColor: AppColors.primary,
+          onPressed: () => _showDebitDialog(context, ctrl, ctrl.assistantId),
+        )
+            : null,
+      );
+    });
+  }
 
-                // ── FILTER HEADER ────────────────────
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _HeaderDelegate(
-                    height: 56,
-                    child: _TransactionsHeader(
-                      onFilter: () => _showFilterDialog(context, ctrl),
-                      onClear: ctrl.clearFilters,
-                      showClear: ctrl.hasFilter,
-                    ),
-                  ),
-                ),
-
-                // ── TRANSACTIONS LIST ───────────────
-                if (ctrl.transactions.isEmpty)
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: const EmptyState(
-                      icon: Icons.receipt_long,
-                      message: 'No transactions yet.',
-                    ),
-                  )
-                else
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (ctx, i) => Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 2,
-                        ),
-                        child: CustomFinanceTile(finance: ctrl.transactions[i]),
-                      ),
-                      childCount: ctrl.transactions.length,
-                    ),
-                  ),
-
-                // ── BOTTOM LOADER ───────────────────
-                if (ctrl.isLoadingMore.value)
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Center(child: CircularProgressIndicator(color: AppColors.primary,)),
-                    ),
-                  ),
+  Widget _buildBody(BuildContext context, TextTheme ts, ThemeData theme, String displayName, bool isOwner) {
+    // Use AlwaysScrollableScrollPhysics so pull works even when content is short
+    if (ctrl.isInitialLoading.value && ctrl.transactions.isEmpty) {
+      // show a scrollable spinner so pull-to-refresh works
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                CircularProgressIndicator(color: AppColors.primary),
+                SizedBox(height: 12),
+                Text('Loading transactions...'),
               ],
             ),
           ),
         ),
-
-        // ── DEBIT FAB ─────────────────────────
-        floatingActionButton:
-            !isOwner
-                ? FloatingActionButton.extended(
-                  heroTag: 'refund',
-                  icon: const Icon(Icons.replay),
-                  label: const Text('Refund'),
-                  backgroundColor: AppColors.primary,
-                  onPressed:
-                      () => _showDebitDialog(context, ctrl, ctrl.assistantId),
-                )
-                : null,
       );
-    });
+    }
+
+    return NotificationListener<ScrollNotification>(
+      onNotification: (sn) {
+        if (sn.metrics.pixels >= sn.metrics.maxScrollExtent - 100) {
+          ctrl.loadMoreTransactions();
+        }
+        return false;
+      },
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          // ── SUMMARY CARD ───────────────────
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            sliver: SliverToBoxAdapter(
+              child: Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 28,
+                        backgroundColor: theme.primaryColor.withValues(alpha: 0.12),
+                        child: Text(
+                          _getInitials(displayName),
+                          style: ts.titleLarge?.copyWith(
+                            color: theme.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              displayName,
+                              style: ts.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Current balance',
+                              style: ts.bodySmall?.copyWith(
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Obx(() => Text(
+                            formatPrice(ctrl.balance.value),
+                            style: ts.headlineSmall?.copyWith(
+                              color: theme.primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Available',
+                            style: ts.bodySmall?.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // ── FILTER HEADER ────────────────────
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _HeaderDelegate(
+              height: 56,
+              child: _TransactionsHeader(
+                onFilter: () => _showFilterDialog(context, ctrl),
+                onClear: ctrl.clearFilters,
+                showClear: ctrl.hasFilter,
+              ),
+            ),
+          ),
+
+          // ── TRANSACTIONS LIST ───────────────
+          if (!ctrl.isInitialLoading.value && ctrl.transactions.isEmpty)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: const Center(
+                child: EmptyState(
+                  icon: Icons.receipt_long,
+                  message: 'No transactions yet.',
+                ),
+              ),
+            )
+          else
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                    (ctx, i) => Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 2,
+                  ),
+                  child: CustomFinanceTile(
+                    finance: ctrl.transactions[i],
+                  ),
+                ),
+                childCount: ctrl.transactions.length,
+              ),
+            ),
+
+          // ── BOTTOM LOADER ───────────────────
+          if (ctrl.isLoadingMore.value)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
+              ),
+            ),
+          // bottom spacing so list is fully scrollable above FAB
+          const SliverToBoxAdapter(child: SizedBox(height: 80)),
+        ],
+      ),
+    );
   }
 }
 
@@ -331,7 +355,6 @@ Future<void> _showFilterDialog(
                   ),
                 ],
                 actionsAlignment: MainAxisAlignment.spaceAround,
-
               ),
         ),
   );
@@ -360,7 +383,10 @@ Future<void> _showDebitDialog(
                 color: AppColors.primary,
               ),
               const SizedBox(width: 8),
-              Text('Refund to Owner', style: Theme.of(ctx).textTheme.titleLarge),
+              Text(
+                'Refund to Owner',
+                style: Theme.of(ctx).textTheme.titleLarge,
+              ),
             ],
           ),
           content: Column(
@@ -372,7 +398,9 @@ Future<void> _showDebitDialog(
 
               TextFormField(
                 controller: amtCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: AppInputDecorations.generalInputDecoration(
                   label: 'Amount',
                   hint: 'Enter amount',
@@ -404,7 +432,6 @@ Future<void> _showDebitDialog(
             ),
           ],
           actionsAlignment: MainAxisAlignment.spaceAround,
-
         ),
   );
 }

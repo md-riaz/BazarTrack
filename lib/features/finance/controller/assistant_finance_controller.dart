@@ -1,4 +1,5 @@
 import 'package:BazarTrack/features/auth/service/auth_service.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../model/finance.dart';
 import '../model/owner.dart';
@@ -12,12 +13,8 @@ class AssistantFinanceController extends GetxController {
   AssistantFinanceController({required this.repo, required this.auth});
 
   late int _assistantId;
-
   int get assistantId => _assistantId;
-
-  set assistantId(int value) {
-    _assistantId = value;
-  }
+  set assistantId(int value) => _assistantId = value;
 
   var owners = <Owner>[].obs;
 
@@ -38,58 +35,90 @@ class AssistantFinanceController extends GetxController {
   var hasFilter = false.obs;
   var assignedToOwnerId = Rxn<int>();
 
-
-  Future<void> prepareAndLoadingPayments() async {
-    loadOwners();
-    _loadBalance();
-    _loadInitialTransactions();
+  /// Public entry to (re)load everything and be awaited by RefreshIndicator.
+  Future<void> refreshAll() async {
+    isInitialLoading.value = true;
+    try {
+      await loadOwners();
+      await _loadBalance();
+      await _loadInitialTransactions();
+    } finally {
+      isInitialLoading.value = false;
+    }
   }
 
-  Future<void> loadOwners() async {
-    final ownerlist = await repo.getOwners();
-    owners.assignAll(ownerlist);
+  /// Legacy name kept for compatibility, but now awaited internally.
+  Future<void> prepareAndLoadingPayments() => refreshAll();
+
+  /// Loads the list of owners (safe).
+  Future<List<Owner>> loadOwners() async {
+    try {
+      final ownerlist = await repo.getOwners();
+      owners.assignAll(ownerlist);
+      return ownerlist;
+    } catch (e, st) {
+      debugPrint('Error loading owners: $e\n$st');
+      owners.clear();
+      return <Owner>[];
+    }
   }
 
-
+  /// Loads balance safely.
   Future<void> _loadBalance() async {
     isLoadingBalance.value = true;
     try {
       balance.value = await repo.getWalletBalance(_assistantId);
+    } catch (e, st) {
+      debugPrint('Error loading balance: $e\n$st');
+      balance.value = 0.0;
     } finally {
       isLoadingBalance.value = false;
     }
   }
 
+  /// Reset pagination and load first page.
   Future<void> _loadInitialTransactions() async {
     hasMore.value = true;
     transactions.clear();
-    isInitialLoading.value = true;
     await _fetchPage(reset: true);
-    isInitialLoading.value = false;
   }
 
+  /// Load more (pagination) — safe to call multiple times, guarded by flags.
   Future<void> loadMoreTransactions() async {
     if (!hasMore.value || isLoadingMore.value) return;
     isLoadingMore.value = true;
-    await _fetchPage();
-    isLoadingMore.value = false;
+    try {
+      await _fetchPage();
+    } finally {
+      isLoadingMore.value = false;
+    }
   }
 
+  /// Fetch a page from repo. Handles reset and error cases.
   Future<void> _fetchPage({bool reset = false}) async {
     final cursor = reset || transactions.isEmpty ? null : transactions.last.id;
+    try {
+      final page = await repo.getTransactions(
+        userId: _assistantId,
+        type: filterType.value,
+        from: filterFrom.value,
+        to: filterTo.value,
+        limit: _pageSize,
+        cursor: cursor,
+      );
 
-    final page = await repo.getTransactions(
-      userId: _assistantId,
-      type: filterType.value,
-      from: filterFrom.value,
-      to: filterTo.value,
-      limit: _pageSize,
-      cursor: cursor,
-    );
+      if (reset) {
+        transactions.value = page;
+      } else {
+        transactions.addAll(page);
+      }
 
-    transactions.addAll(page);
-    if (page.length < _pageSize) {
-      hasMore.value = false;
+      if (page.length < _pageSize) {
+        hasMore.value = false;
+      }
+    } catch (e, st) {
+      debugPrint('Error fetching transactions page: $e\n$st');
+      // on error, don't change `hasMore` so user can retry
     }
   }
 
@@ -98,6 +127,7 @@ class AssistantFinanceController extends GetxController {
     filterFrom.value = from;
     filterTo.value = to;
     hasFilter.value = type != null || from != null || to != null;
+    // reload and await so UI can await refresh if needed
     _loadInitialTransactions();
   }
 
@@ -117,8 +147,12 @@ class AssistantFinanceController extends GetxController {
       type: 'wallet',
       createdAt: DateTime.now(),
     );
-    await repo.createPayment(f);
-    await _loadBalance();
-    await _loadInitialTransactions();
+    try {
+      await repo.createPayment(f);
+      await _loadBalance();
+      await _loadInitialTransactions();
+    } catch (e) {
+      rethrow;
+    }
   }
 }
