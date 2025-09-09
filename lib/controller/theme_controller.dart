@@ -1,4 +1,4 @@
-import 'package:BazarTrack/util/app_constants.dart';
+import 'package:bazar_track/util/app_constants.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

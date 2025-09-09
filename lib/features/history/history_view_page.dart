@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:BazarTrack/base/custom_app_bar.dart';
-import 'package:BazarTrack/util/app_format.dart';
+import 'package:bazar_track/base/custom_app_bar.dart';
+import 'package:bazar_track/util/app_format.dart';
 import 'package:get/get.dart';
 
 import '../../base/empty_state.dart';

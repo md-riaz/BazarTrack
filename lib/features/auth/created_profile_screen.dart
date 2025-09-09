@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:BazarTrack/features/auth/model/user.dart';
+import 'package:bazar_track/features/auth/model/user.dart';
 import 'package:get/get.dart';
-import 'package:BazarTrack/base/custom_app_bar.dart';
-import 'package:BazarTrack/util/colors.dart';
-import 'package:BazarTrack/util/dimensions.dart';
+import 'package:bazar_track/base/custom_app_bar.dart';
+import 'package:bazar_track/util/colors.dart';
+import 'package:bazar_track/util/dimensions.dart';
 
 class CreatedProfileScreen extends StatelessWidget {
   final UserModel createdUser;

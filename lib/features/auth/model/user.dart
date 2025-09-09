@@ -1,4 +1,4 @@
-import 'package:BazarTrack/features/finance/model/wallet.dart';
+import 'package:bazar_track/features/finance/model/wallet.dart';
 import 'role.dart';
 
 class UserModel {

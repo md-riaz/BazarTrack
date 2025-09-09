@@ -1,6 +1,6 @@
 // File: lib/features/history/controller/history_controller.dart
 
-import 'package:BazarTrack/features/auth/service/auth_service.dart';
+import 'package:bazar_track/features/auth/service/auth_service.dart';
 import 'package:get/get.dart';
 import '../../auth/model/role.dart';
 import '../model/history_log.dart';

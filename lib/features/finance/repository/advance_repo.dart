@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:BazarTrack/features/finance/model/advance.dart';
+import 'package:bazar_track/features/finance/model/advance.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AdvanceRepo {

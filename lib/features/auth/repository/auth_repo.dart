@@ -1,9 +1,8 @@
 import 'dart:convert';
-
-import 'package:BazarTrack/data/api/bazartrack_api.dart';
-import 'package:BazarTrack/util/app_constants.dart';
+import 'package:bazar_track/util/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
+import '../../../data/api/bazartrack_api.dart';
 import '../model/user.dart';
 class AuthRepo {
   final BazarTrackApi api;

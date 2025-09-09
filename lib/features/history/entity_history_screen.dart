@@ -1,5 +1,5 @@
 // import 'package:flutter/material.dart';
-// import 'package:BazarTrack/features/history/controller/history_controller.dart';
+// import 'package:bazar_track/features/history/controller/history_controller.dart';
 // import 'package:get/get.dart';
 //
 // class EntityHistoryScreen extends StatelessWidget {

@@ -1,5 +1,5 @@
-import 'package:BazarTrack/features/auth/service/auth_service.dart';
-import 'package:BazarTrack/features/orders/repository/order_repo.dart';
+import 'package:bazar_track/features/auth/service/auth_service.dart';
+import 'package:bazar_track/features/orders/repository/order_repo.dart';
 import 'package:get/get.dart';
 import '../../orders/model/order.dart';
 import '../model/dashboard_metrics.dart';

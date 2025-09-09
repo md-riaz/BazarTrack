@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:BazarTrack/util/images.dart';
+import 'package:bazar_track/util/images.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import '../features/drawer_pages/support_page.dart';

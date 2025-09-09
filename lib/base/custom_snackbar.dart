@@ -1,4 +1,4 @@
-import 'package:BazarTrack/util/dimensions.dart';
+import 'package:bazar_track/util/dimensions.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

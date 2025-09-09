@@ -1,5 +1,5 @@
-import 'package:BazarTrack/data/api/api_client.dart';
-import 'package:BazarTrack/util/app_constants.dart';
+import 'package:bazar_track/data/api/api_client.dart';
+import 'package:bazar_track/util/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashRepo {

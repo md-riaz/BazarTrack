@@ -1,4 +1,4 @@
-import 'package:BazarTrack/features/auth/service/auth_service.dart';
+import 'package:bazar_track/features/auth/service/auth_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../model/finance.dart';

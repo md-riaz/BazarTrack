@@ -1,5 +1,5 @@
-import 'package:BazarTrack/data/api/api_client.dart';
-import 'package:BazarTrack/data/api/endpoints.dart';
+import 'package:bazar_track/data/api/api_client.dart';
+import 'package:bazar_track/data/api/endpoints.dart';
 import 'package:get/get.dart';
 
 class BazarTrackApi {

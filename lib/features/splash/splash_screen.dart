@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'package:BazarTrack/features/auth/service/auth_service.dart';
-import 'package:BazarTrack/features/auth/sign_in_screen.dart';
-import 'package:BazarTrack/features/dashboard/assistant_dashboard.dart';
-import 'package:BazarTrack/features/dashboard/owner_dashboard.dart';
-import 'package:BazarTrack/features/auth/model/role.dart';
-import 'package:BazarTrack/util/images.dart';
+import 'package:bazar_track/features/auth/service/auth_service.dart';
+import 'package:bazar_track/features/auth/sign_in_screen.dart';
+import 'package:bazar_track/features/dashboard/assistant_dashboard.dart';
+import 'package:bazar_track/features/dashboard/owner_dashboard.dart';
+import 'package:bazar_track/features/auth/model/role.dart';
+import 'package:bazar_track/util/images.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

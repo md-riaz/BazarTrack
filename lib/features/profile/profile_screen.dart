@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:BazarTrack/base/custom_button.dart';
-import 'package:BazarTrack/base/custom_app_bar.dart';
-import 'package:BazarTrack/features/auth/change_password.dart';
-import 'package:BazarTrack/features/auth/create_user_screen.dart';
-import 'package:BazarTrack/features/auth/controller/auth_controller.dart';
-import 'package:BazarTrack/util/colors.dart';
-import 'package:BazarTrack/util/dimensions.dart';
+import 'package:bazar_track/base/custom_button.dart';
+import 'package:bazar_track/base/custom_app_bar.dart';
+import 'package:bazar_track/features/auth/change_password.dart';
+import 'package:bazar_track/features/auth/create_user_screen.dart';
+import 'package:bazar_track/features/auth/controller/auth_controller.dart';
+import 'package:bazar_track/util/colors.dart';
+import 'package:bazar_track/util/dimensions.dart';
 import '../auth/model/role.dart';
 
 /// Symmetric, modern ProfileScreen replacement.

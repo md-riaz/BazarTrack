@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:BazarTrack/base/custom_app_bar.dart';
-import 'package:BazarTrack/features/history/history_center_page.dart';
-import 'package:BazarTrack/features/profile/profile_screen.dart';
+import 'package:bazar_track/base/custom_app_bar.dart';
+import 'package:bazar_track/features/history/history_center_page.dart';
+import 'package:bazar_track/features/profile/profile_screen.dart';
 import 'package:get/get.dart';
 import '../finance/owner_finance_screen.dart';
 import '../orders/order_list_screen.dart';

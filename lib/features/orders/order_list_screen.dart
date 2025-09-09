@@ -2,12 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:BazarTrack/util/dimensions.dart';
-import 'package:BazarTrack/util/colors.dart';
-import 'package:BazarTrack/features/auth/controller/auth_controller.dart';
-import 'package:BazarTrack/features/orders/controller/order_controller.dart';
-import 'package:BazarTrack/features/orders/model/order_status.dart';
-import 'package:BazarTrack/features/auth/model/role.dart';
+import 'package:bazar_track/util/dimensions.dart';
+import 'package:bazar_track/util/colors.dart';
+import 'package:bazar_track/features/auth/controller/auth_controller.dart';
+import 'package:bazar_track/features/orders/controller/order_controller.dart';
+import 'package:bazar_track/features/orders/model/order_status.dart';
+import 'package:bazar_track/features/auth/model/role.dart';
 import '../../base/custom_snackbar.dart';
 import '../../base/empty_state.dart';
 import '../../helper/route_helper.dart';

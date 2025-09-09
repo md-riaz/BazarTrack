@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:BazarTrack/util/dimensions.dart';
-import 'package:BazarTrack/util/colors.dart';
+import 'package:bazar_track/util/dimensions.dart';
+import 'package:bazar_track/util/colors.dart';
 import '../finance/controller/finance_controller.dart';
 import 'components/recent_orders.dart';
 import 'components/reports_summary.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:BazarTrack/base/price_format.dart';
+import 'package:bazar_track/base/price_format.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../features/finance/model/finance.dart';

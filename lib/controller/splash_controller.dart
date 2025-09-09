@@ -1,4 +1,4 @@
-import 'package:BazarTrack/data/repository/splash_repo.dart';
+import 'package:bazar_track/data/repository/splash_repo.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 

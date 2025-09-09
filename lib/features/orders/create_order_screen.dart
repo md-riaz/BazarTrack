@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:BazarTrack/features/orders/components/draggable_info_head.dart';
-import 'package:BazarTrack/util/colors.dart';
+import 'package:bazar_track/features/orders/components/draggable_info_head.dart';
+import 'package:bazar_track/util/colors.dart';
 import 'package:get/get.dart';
-import 'package:BazarTrack/base/custom_app_bar.dart';
-import 'package:BazarTrack/features/orders/controller/order_controller.dart';
-import 'package:BazarTrack/features/orders/model/order_item.dart';
+import 'package:bazar_track/base/custom_app_bar.dart';
+import 'package:bazar_track/features/orders/controller/order_controller.dart';
+import 'package:bazar_track/features/orders/model/order_item.dart';
 import '../../base/custom_button.dart';
 import '../../base/custom_unit_dropdown.dart';
 import '../../base/empty_state.dart';

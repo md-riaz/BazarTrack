@@ -1,4 +1,4 @@
-import 'package:BazarTrack/data/api/bazartrack_api.dart';
+import '../../../data/api/bazartrack_api.dart';
 import '../model/finance.dart';
 import '../model/owner.dart';
 

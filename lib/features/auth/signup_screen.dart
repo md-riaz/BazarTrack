@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:BazarTrack/base/custom_app_bar.dart';
-import 'package:BazarTrack/base/custom_button.dart';
-import 'package:BazarTrack/base/custom_text_field.dart';
-import 'package:BazarTrack/features/auth/controller/auth_controller.dart';
-import 'package:BazarTrack/features/auth/model/role.dart';
-import 'package:BazarTrack/features/auth/model/user.dart';
-import 'package:BazarTrack/features/auth/widget/auth_header.dart';
-import 'package:BazarTrack/features/dashboard/assistant_dashboard.dart';
-import 'package:BazarTrack/features/dashboard/owner_dashboard.dart';
+import 'package:bazar_track/base/custom_app_bar.dart';
+import 'package:bazar_track/base/custom_button.dart';
+import 'package:bazar_track/base/custom_text_field.dart';
+import 'package:bazar_track/features/auth/controller/auth_controller.dart';
+import 'package:bazar_track/features/auth/model/role.dart';
+import 'package:bazar_track/features/auth/model/user.dart';
+import 'package:bazar_track/features/auth/widget/auth_header.dart';
+import 'package:bazar_track/features/dashboard/assistant_dashboard.dart';
+import 'package:bazar_track/features/dashboard/owner_dashboard.dart';
 import 'package:get/get.dart';
 
 class SignUpScreen extends StatefulWidget {

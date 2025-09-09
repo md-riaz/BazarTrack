@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:BazarTrack/base/price_format.dart';
-import 'package:BazarTrack/util/app_format.dart';
-import 'package:BazarTrack/util/colors.dart';
+import 'package:bazar_track/base/price_format.dart';
+import 'package:bazar_track/util/app_format.dart';
+import 'package:bazar_track/util/colors.dart';
 import 'package:get/get.dart';
 import '../../../util/dimensions.dart';
 import '../model/history_log.dart';

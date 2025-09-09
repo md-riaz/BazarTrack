@@ -1,4 +1,4 @@
-import 'package:BazarTrack/data/api/bazartrack_api.dart';
+import 'package:bazar_track/data/api/bazartrack_api.dart';
 import '../model/history_log.dart';
 
 class HistoryRepo {

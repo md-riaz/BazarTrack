@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:BazarTrack/features/auth/service/auth_service.dart';
+import 'package:bazar_track/features/auth/service/auth_service.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../util/input_decoration.dart';

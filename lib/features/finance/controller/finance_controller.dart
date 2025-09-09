@@ -6,7 +6,7 @@
 // Time: 05:17 PM
 */
 
-import 'package:BazarTrack/features/finance/repository/finance_repo.dart';
+import 'package:bazar_track/features/finance/repository/finance_repo.dart';
 import 'package:get/get.dart';
 import '../model/finance.dart';
 import '../model/assistant.dart';

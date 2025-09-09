@@ -1,31 +1,31 @@
 import 'dart:convert';
-import 'package:BazarTrack/controller/language_controller.dart';
-import 'package:BazarTrack/controller/localization_controller.dart';
-import 'package:BazarTrack/controller/splash_controller.dart';
-import 'package:BazarTrack/controller/theme_controller.dart';
-import 'package:BazarTrack/data/repository/language_repo.dart';
-import 'package:BazarTrack/data/repository/splash_repo.dart';
-import 'package:BazarTrack/data/api/api_client.dart';
-import 'package:BazarTrack/data/api/bazartrack_api.dart';
-import 'package:BazarTrack/features/auth/controller/auth_controller.dart';
-import 'package:BazarTrack/features/auth/repository/auth_repo.dart';
-import 'package:BazarTrack/features/auth/service/auth_service.dart';
-import 'package:BazarTrack/features/finance/controller/finance_controller.dart';
+import 'package:bazar_track/controller/language_controller.dart';
+import 'package:bazar_track/controller/localization_controller.dart';
+import 'package:bazar_track/controller/splash_controller.dart';
+import 'package:bazar_track/controller/theme_controller.dart';
+import 'package:bazar_track/data/repository/language_repo.dart';
+import 'package:bazar_track/data/repository/splash_repo.dart';
+import 'package:bazar_track/data/api/api_client.dart';
+import 'package:bazar_track/features/auth/controller/auth_controller.dart';
+import 'package:bazar_track/features/auth/repository/auth_repo.dart';
+import 'package:bazar_track/features/auth/service/auth_service.dart';
+import 'package:bazar_track/features/finance/controller/finance_controller.dart';
 
-import 'package:BazarTrack/features/finance/repository/assistant_finance_repo.dart';
-import 'package:BazarTrack/features/finance/repository/finance_repo.dart';
+import 'package:bazar_track/features/finance/repository/assistant_finance_repo.dart';
+import 'package:bazar_track/features/finance/repository/finance_repo.dart';
 
-import 'package:BazarTrack/features/orders/controller/order_controller.dart';
-import 'package:BazarTrack/features/orders/repository/order_repo.dart';
-import 'package:BazarTrack/features/history/repository/history_repo.dart';
-import 'package:BazarTrack/features/history/controller/history_controller.dart';
+import 'package:bazar_track/features/orders/controller/order_controller.dart';
+import 'package:bazar_track/features/orders/repository/order_repo.dart';
+import 'package:bazar_track/features/history/repository/history_repo.dart';
+import 'package:bazar_track/features/history/controller/history_controller.dart';
 
-import 'package:BazarTrack/util/app_constants.dart';
-import 'package:BazarTrack/data/model/response/language_model.dart';
+import 'package:bazar_track/util/app_constants.dart';
+import 'package:bazar_track/data/model/response/language_model.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 
+import '../data/api/bazartrack_api.dart';
 import '../features/dashboard/controller/analytics_controller.dart';
 import '../features/dashboard/repository/analytics_repo.dart';
 import '../features/finance/controller/assistant_finance_controller.dart';

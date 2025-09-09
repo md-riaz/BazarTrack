@@ -1,11 +1,11 @@
-name: BazarTrack
-description: "On-demand groceries. Real-time tracking. Instant payments."
-publish_to: 'none'
+name: bazar_track
+description: "A new Productivity Application"
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.0+2
+version: 1.0.0+3
 
 environment:
-  sdk: ^3.7.2
+  sdk: ^3.9.0
 
 dependencies:
   flutter:
@@ -33,7 +33,6 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/image/logo.png"
   min_sdk_android: 21
-
 
 dev_dependencies:
   flutter_test:

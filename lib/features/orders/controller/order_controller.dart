@@ -1,9 +1,9 @@
-import 'package:BazarTrack/features/dashboard/controller/analytics_controller.dart';
-import 'package:BazarTrack/features/finance/repository/finance_repo.dart';
-import 'package:BazarTrack/features/orders/model/order.dart';
-import 'package:BazarTrack/features/orders/model/order_item.dart';
-import 'package:BazarTrack/features/orders/model/order_status.dart';
-import 'package:BazarTrack/features/orders/repository/order_repo.dart';
+import 'package:bazar_track/features/dashboard/controller/analytics_controller.dart';
+import 'package:bazar_track/features/finance/repository/finance_repo.dart';
+import 'package:bazar_track/features/orders/model/order.dart';
+import 'package:bazar_track/features/orders/model/order_item.dart';
+import 'package:bazar_track/features/orders/model/order_status.dart';
+import 'package:bazar_track/features/orders/repository/order_repo.dart';
 import 'package:get/get.dart';
 import '../../auth/service/auth_service.dart';
 import '../../finance/model/assistant.dart';

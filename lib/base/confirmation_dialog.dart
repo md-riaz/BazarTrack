@@ -1,6 +1,6 @@
-import 'package:BazarTrack/base/custom_button.dart';
-import 'package:BazarTrack/util/dimensions.dart';
-import 'package:BazarTrack/util/styles.dart';
+import 'package:bazar_track/base/custom_button.dart';
+import 'package:bazar_track/util/dimensions.dart';
+import 'package:bazar_track/util/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
