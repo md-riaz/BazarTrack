@@ -4,6 +4,7 @@ import 'package:bazar_track/features/orders/model/order.dart';
 import 'package:bazar_track/features/orders/model/order_item.dart';
 import 'package:bazar_track/features/orders/model/order_status.dart';
 import 'package:bazar_track/features/orders/repository/order_repo.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../../auth/service/auth_service.dart';
 import '../../finance/model/assistant.dart';
@@ -52,32 +53,57 @@ class OrderController extends GetxController {
     hasMore.value = true;
     orders.clear();
     isInitialLoading.value = true;
-    await _fetchPage(reset: true);
-    isInitialLoading.value = false;
+    try {
+      await _fetchPage(reset: true);
+    } catch (e, st) {
+      // handle or report the error, so controller doesn't stay in loading state
+      debugPrint('OrderController.loadInitial error: $e\n$st');
+      // optionally show a non-blocking feedback
+      Get.snackbar('Error', 'Failed to load orders. Check your connection.');
+    } finally {
+      isInitialLoading.value = false;
+    }
   }
 
   Future<void> loadMore() async {
     if (!hasMore.value || isLoadingMore.value) return;
     isLoadingMore.value = true;
-    await _fetchPage();
-    isLoadingMore.value = false;
+    try {
+      await _fetchPage();
+    } catch (e, st) {
+      debugPrint('OrderController.loadMore error: $e\n$st');
+      // optionally keep hasMore = false to prevent continuous retries if needed:
+      // hasMore.value = false;
+    } finally {
+      isLoadingMore.value = false;
+    }
   }
 
   Future<void> _fetchPage({ bool reset = false }) async {
-    final cursor = reset || orders.isEmpty ? null : orders.last.id;
+    try {
+      final cursor = reset || orders.isEmpty ? null : orders.last.id;
 
-    final page = await orderRepo.getOrders(
-      ownerId:     isOwner ? int.parse(authService.currentUser!.id) : null,
-      status:      filterStatus.value,
-      assignedTo:  filterAssignedTo.value,
-      unassigned:  isUnassignedTab.value,  // PASS FLAG
-      limit:       _pageSize,
-      cursor:      cursor,
-    );
+      final page = await orderRepo.getOrders(
+        ownerId:     isOwner ? int.parse(authService.currentUser!.id) : null,
+        status:      filterStatus.value,
+        assignedTo:  filterAssignedTo.value,
+        unassigned:  isUnassignedTab.value,
+        limit:       _pageSize,
+        cursor:      cursor,
+      );
 
-    if (page.length < _pageSize) hasMore.value = false;
-    orders.addAll(page);
-    print("Date debug ====> ${orders.first.createdAt}");
+      // Ensure page is not null (repo should return empty list if no items)
+      final pageList = page;
+
+      if (pageList.length < _pageSize) hasMore.value = false;
+      orders.addAll(pageList);
+      if (orders.isEmpty) {
+        // nothing to do — UI will show the empty state
+      }
+    } catch (e) {
+      // bubble up so callers' try/catch/finally handle flags too
+      rethrow;
+    }
   }
 
 

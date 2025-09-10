@@ -48,25 +48,29 @@ class _OrderListScreenState extends State<OrderListScreen> {
 
     // Perform one-time loads and apply incoming filters.
     // Use addPostFrameCallback so any dependent widget/context is ready.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // apply initial filters first (if any)
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // apply initial filters without triggering loadInitial immediately
       if (!_didApplyInitialFilters) {
         if (widget.initialStatus != null) {
-          orderCtrl.setStatusFilter(widget.initialStatus);
+          orderCtrl.filterStatus.value = widget.initialStatus;
         }
         if (widget.initialAssignedTo != null) {
-          orderCtrl.setAssignedToFilter(widget.initialAssignedTo);
+          orderCtrl.filterAssignedTo.value = widget.initialAssignedTo;
         }
         _didApplyInitialFilters = true;
       }
 
-      // load assistants and initial page (wrapped in try/catch to avoid unhandled)
+      // load assistants and the initial page (await so flags are correct)
       try {
-        orderCtrl.getAllAssistants();
-        orderCtrl.loadInitial();
+        await orderCtrl.getAllAssistants();
+        await orderCtrl.loadInitial();
       } catch (e) {
-        // optional: show a small non-blocking message or just log
         debugPrint('OrderList init error: $e');
+        // optionally show a non-blocking message
+        showCustomSnackBar(
+          title: 'Unable to load orders',
+          'Please check your internet connection.',
+        );
       }
     });
   }

@@ -26,7 +26,6 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
   void initState() {
     super.initState();
     ctrl = Get.find<FinanceController>();
-
     _scrollController = ScrollController()..addListener(_onScroll);
 
     // Initial load

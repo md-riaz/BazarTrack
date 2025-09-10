@@ -6,6 +6,7 @@
 // Time: 05:17 PM
 */
 
+import 'package:bazar_track/features/auth/service/auth_service.dart';
 import 'package:bazar_track/features/finance/repository/finance_repo.dart';
 import 'package:get/get.dart';
 import '../model/finance.dart';
@@ -13,11 +14,15 @@ import '../model/assistant.dart';
 
 class FinanceController extends GetxController {
   final FinanceRepo financeRepo;
+  final AuthService authService;
   static const _pageSize = 30;
 
   FinanceController({
     required this.financeRepo,
+    required this.authService,
   });
+
+  late int ownerId;
 
   // Owner flows
   var assistants = <Assistant>[].obs;
@@ -41,6 +46,7 @@ class FinanceController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    ownerId = int.parse(authService.currentUser!.id);
     loadAssistantsAndPayments();
   }
 
@@ -58,6 +64,7 @@ class FinanceController extends GetxController {
     isLoading.value = true;
     try {
       final list = await financeRepo.getPayments(
+        ownerId: ownerId,
         userId: filterUserId.value,
         type: filterType.value,
         from: filterFrom.value,
@@ -133,6 +140,7 @@ class FinanceController extends GetxController {
   Future<void> _fetchPage({ bool reset = false }) async {
     final cursor = reset || payments.isEmpty ? null : payments.last.id;
     final page = await financeRepo.getPayments(
+      ownerId: ownerId,
       userId: filterUserId.value,
       type:   filterType.value,
       from:   filterFrom.value,

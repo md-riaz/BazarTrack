@@ -15,9 +15,10 @@ class FinanceRepo {
   FinanceRepo({ required this.api });
 
 
-  Future<List<Finance>> getPayments({int? userId, String? type, DateTime? from, DateTime? to, int limit = 30, int? cursor,}) async {
+  Future<List<Finance>> getPayments({int? userId, int? ownerId, String? type, DateTime? from, DateTime? to, int limit = 30, int? cursor,}) async {
     final q = <String, dynamic>{};
     if (userId != null) q['user_id'] = userId;
+    if (ownerId != null) q['owner_id'] = ownerId;
     if (type   != null) q['type']    = type;
     if (from   != null) q['from']    = from.toIso8601String().split('T').first;
     if (to     != null) q['to']      = to  .toIso8601String().split('T').first;
