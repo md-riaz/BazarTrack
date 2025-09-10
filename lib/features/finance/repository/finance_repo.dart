@@ -27,7 +27,7 @@ class FinanceRepo {
 
     final res = await api.payments(query: q);
     if (!res.isOk || res.body is! List) {
-      throw Exception('Failed to load payments');
+      throw Exception('No internet connection');
     }
     return (res.body as List)
         .map((e) => Finance.fromJson(e as Map<String, dynamic>))

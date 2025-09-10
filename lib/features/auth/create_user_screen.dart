@@ -312,7 +312,7 @@ class _CreateUserPageState extends State<CreateUserPage> {
       _confirmPasswordCtrl.clear();
       // Show success and navigate
       Get.off(() => CreatedProfileScreen(createdUser: created));
-      showCustomSnackBar('User ${created.name} created', isError: false);
+      showCustomSnackBar(isError: false,'User ${created.name} created');
       Get.find<AnalyticsController>().loadDashboardUserInfo();
       if (created.role == UserRole.assistant) {
         Get.find<OrderController>().getAllAssistants();

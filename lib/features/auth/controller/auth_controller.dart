@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../base/custom_snackbar.dart';
 import '../model/role.dart';
 import '../model/user.dart';
 import '../repository/auth_repo.dart';
@@ -44,8 +45,7 @@ class AuthController extends GetxController {
       // Optionally, you could refresh some list of users here
       return newUser;
     } catch (e) {
-      Get.snackbar('Error', e.toString(),
-          snackPosition: SnackPosition.BOTTOM);
+      showCustomSnackBar(        isError: true, title: 'Error', e.toString(),);
       return null;
     } finally {
       isCreatingUser.value = false;
@@ -87,8 +87,7 @@ class AuthController extends GetxController {
       );
       return true;
     } catch (e) {
-      Get.snackbar('Error', e.toString(),
-          snackPosition: SnackPosition.BOTTOM);
+      showCustomSnackBar(isError: true, title: 'Error', e.toString(),);
       return false;
     } finally {
       isLoading.value = false;

@@ -7,6 +7,7 @@ import 'package:bazar_track/util/dimensions.dart';
 import 'package:bazar_track/features/auth/controller/auth_controller.dart';
 import 'package:bazar_track/features/orders/controller/order_controller.dart';
 import 'package:bazar_track/base/empty_state.dart';
+import '../../base/custom_snackbar.dart';
 import 'components/filter_bar.dart';
 import 'components/order_card.dart';
 
@@ -92,13 +93,8 @@ class _AssistantOrderListScreenState extends State<AssistantOrderListScreen>
       await orderCtrl.getAllAssistants();
       await orderCtrl.loadInitial();
     } catch (e) {
-      Get.snackbar(
-        'Unable to refresh',
-        'Check your internet connection and try again.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withValues(alpha: 0.9),
-        colorText: Colors.white,
-      );
+      showCustomSnackBar(isError: true,title: 'Unable to refresh', 'Please check your internet connection and try again.');
+
     }
   }
 

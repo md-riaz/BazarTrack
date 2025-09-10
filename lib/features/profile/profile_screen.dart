@@ -67,7 +67,7 @@ class ProfileScreen extends StatelessWidget {
                       btnColor: AppColors.tertiary,
 
                       icon: Icons.security,
-                      buttonText: 'Change Password',
+                      buttonText: 'Change Pass',
                       onPressed: () => Get.to(() => ChangePasswordScreen()),
                     ),
                   ),

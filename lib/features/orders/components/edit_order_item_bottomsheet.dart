@@ -7,6 +7,7 @@ import 'package:bazar_track/base/custom_button.dart';
 import 'package:bazar_track/features/auth/model/role.dart';
 import 'package:bazar_track/features/orders/controller/order_controller.dart';
 import 'package:bazar_track/features/orders/model/order_item.dart';
+import '../../../base/custom_snackbar.dart';
 import '../../../base/custom_unit_dropdown.dart';
 import '../../../helper/route_helper.dart';
 class EditOrderItemBottomSheet extends StatefulWidget {
@@ -128,8 +129,11 @@ class _EditOrderItemBottomSheetState extends State<EditOrderItemBottomSheet> {
         Navigator.pop(context, updated); // return updated
       }
     } catch (e) {
-      Get.snackbar('Error', 'Could not save item: $e',
-          snackPosition: SnackPosition.BOTTOM);
+      showCustomSnackBar(
+        title: 'Error',
+        'Could not save item: $e',
+        isError: true
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -156,9 +160,14 @@ class _EditOrderItemBottomSheetState extends State<EditOrderItemBottomSheet> {
     try {
       await _orderController.deleteOrderItem(widget.item);
       Navigator.pop(context); // close sheet after delete
-      Get.snackbar('Deleted', 'Item removed', snackPosition: SnackPosition.BOTTOM);
+      showCustomSnackBar(
+        title: 'Deleted',
+        'Item removed.',
+      );
     } catch (e) {
-      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      showCustomSnackBar(
+        isError: true,
+        title: 'Error', e.toString(),);
     }
   }
 

@@ -9,6 +9,7 @@
 import 'package:bazar_track/features/auth/service/auth_service.dart';
 import 'package:bazar_track/features/finance/repository/finance_repo.dart';
 import 'package:get/get.dart';
+import '../../../base/custom_snackbar.dart';
 import '../model/finance.dart';
 import '../model/assistant.dart';
 
@@ -57,7 +58,7 @@ class FinanceController extends GetxController {
           filterTo.value     != null;
 
   void _showError(String title, Object error, [StackTrace? st]) {
-    Get.snackbar(title, error.toString(), snackPosition: SnackPosition.BOTTOM);
+    showCustomSnackBar(isError: true,title: title, error.toString(),);
   }
 
   Future<void> loadPayments() async {

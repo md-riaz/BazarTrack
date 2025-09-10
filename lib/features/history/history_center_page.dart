@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../base/custom_snackbar.dart';
 import '../../base/empty_state.dart';
 import '../../util/colors.dart';
 import 'components/history_list.dart';
@@ -49,13 +50,7 @@ class _HistoryCenterPageState extends State<HistoryCenterPage>
       try {
         await onRefresh();
       } catch (e) {
-        Get.snackbar(
-          'Unable to refresh',
-          'Please check your internet connection and try again.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.redAccent.withValues(alpha: 0.9),
-          colorText: Colors.white,
-        );
+        showCustomSnackBar(isError: true,title: 'Unable to refresh', 'Please check your internet connection and try again.');
       }
     }
 

@@ -6,6 +6,7 @@ import 'package:bazar_track/features/orders/model/order_status.dart';
 import 'package:bazar_track/features/orders/repository/order_repo.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import '../../../base/custom_snackbar.dart';
 import '../../auth/service/auth_service.dart';
 import '../../finance/model/assistant.dart';
 
@@ -59,7 +60,8 @@ class OrderController extends GetxController {
       // handle or report the error, so controller doesn't stay in loading state
       debugPrint('OrderController.loadInitial error: $e\n$st');
       // optionally show a non-blocking feedback
-      Get.snackbar('Error', 'Failed to load orders. Check your connection.');
+      showCustomSnackBar(isError: true,title: 'Error', 'Failed to load orders. Check your connection.');
+
     } finally {
       isInitialLoading.value = false;
     }
@@ -122,7 +124,7 @@ class OrderController extends GetxController {
     try {
       await orderRepo.assignOrder(orderId, userId);
     } catch (e) {
-      Get.snackbar('Error', 'Failed to assign user: $e');
+      showCustomSnackBar(isError: true,title: 'Error', 'Failed to assign user: $e');
     }
   }
 
@@ -176,7 +178,7 @@ class OrderController extends GetxController {
 
   Future<void> saveNewOrder() async {
     if (newItems.isEmpty) {
-      Get.snackbar('Error', 'Add at least one item.');
+      showCustomSnackBar(isError: true,title: 'Error', 'Add at least one item.');
       return;
     }
 
@@ -193,7 +195,7 @@ class OrderController extends GetxController {
       onCreateOrderTapped();
       Get.back(result: created);
     } catch (e) {
-      Get.snackbar('Error', 'Failed to save order: $e');
+      showCustomSnackBar(isError: true,title: 'Error', 'Failed to save order: $e');
     }
   }
 

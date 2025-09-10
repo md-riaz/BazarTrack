@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../util/input_decoration.dart';
 import '../../../util/colors.dart';
 import '../../base/custom_divider.dart';
+import '../../base/custom_snackbar.dart';
 import '../../base/empty_state.dart';
 import '../../util/dimensions.dart';
 import 'components/assistant_summary_card.dart';
@@ -63,20 +64,17 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
     try {
       await ctrl.loadAssistants();
       ctrl.clearFilters();
-
     } catch (e) {
-      Get.snackbar(
-        'Unable to refresh',
-        'Check your internet connection and try again.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent.withValues(alpha: 0.9),
-        colorText: Colors.white,
-      );
+      showCustomSnackBar(isError: true,title: 'Unable to refresh', 'Check your internet connection and try again.',);
+
       debugPrint('Refresh failed: $e');
     }
   }
 
-  Future<void> _showFilterDialog(BuildContext context, FinanceController ctrl) async {
+  Future<void> _showFilterDialog(
+    BuildContext context,
+    FinanceController ctrl,
+  ) async {
     final df = DateFormat('yyyy-MM-dd');
     int? selectedUser = ctrl.filterUserId.value;
     String? selectedType = ctrl.filterType.value;
@@ -112,7 +110,7 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
                 items: [
                   const DropdownMenuItem(value: null, child: Text('All')),
                   ...ctrl.assistants.map(
-                        (a) => DropdownMenuItem(
+                    (a) => DropdownMenuItem(
                       value: a.id,
                       child: Text(a.name, overflow: TextOverflow.ellipsis),
                     ),
@@ -178,14 +176,14 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
           actions: [
             CustomButton(
               btnColor: Colors.redAccent,
-              height: MediaQuery.of(context).size.height * .04,
+              shrink: true,
               width: MediaQuery.of(context).size.width * .25,
               onPressed: () => Navigator.pop(ctx),
               buttonText: 'Cancel',
             ),
             CustomButton(
               btnColor: AppColors.primary,
-              height: MediaQuery.of(context).size.height * .04,
+              shrink: true,
               width: MediaQuery.of(context).size.width * .25,
               onPressed: () {
                 ctrl.setFilters(
@@ -205,7 +203,10 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
     );
   }
 
-  Future<void> _showCreditDialog(BuildContext context, FinanceController ctrl) async {
+  Future<void> _showCreditDialog(
+    BuildContext context,
+    FinanceController ctrl,
+  ) async {
     final amtCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
     int selectedId = ctrl.assistants.isNotEmpty ? ctrl.assistants.first.id : 0;
@@ -215,15 +216,22 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
       builder: (ctx) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Dimensions.inputFieldBorderRadius),
+            borderRadius: BorderRadius.circular(
+              Dimensions.inputFieldBorderRadius,
+            ),
           ),
           title: Row(
             children: [
-              const Icon(Icons.account_balance_wallet_rounded, color: AppColors.primary),
+              const Icon(
+                Icons.account_balance_wallet_rounded,
+                color: AppColors.primary,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Credit Assistant',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -238,11 +246,14 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
                     label: 'Select Assistant',
                     prefixIcon: Icons.person,
                   ),
-                  items: ctrl.assistants.map((a) => DropdownMenuItem(
-                    value: a.id,
-                    child: Text(a.name),
-                  )).toList(),
-                  onChanged: (v) => setState(() => selectedId = v ?? selectedId),
+                  items: ctrl.assistants
+                      .map(
+                        (a) =>
+                            DropdownMenuItem(value: a.id, child: Text(a.name)),
+                      )
+                      .toList(),
+                  onChanged: (v) =>
+                      setState(() => selectedId = v ?? selectedId),
                   validator: (v) {
                     if (v == null || v == 0) {
                       return 'Please select an assistant';
@@ -253,7 +264,9 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: amtCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   decoration: AppInputDecorations.generalInputDecoration(
                     label: 'Amount',
                     hint: 'Enter amount',
@@ -292,7 +305,8 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
               onPressed: () {
                 if (formKey.currentState?.validate() ?? false) {
                   final amt = double.parse(amtCtrl.text.trim());
-                  ctrl.addCreditForAssistant(selectedId, amt)
+                  ctrl
+                      .addCreditForAssistant(selectedId, amt)
                       .then((_) => Navigator.pop(context));
                 }
               },
@@ -311,7 +325,8 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
       // Keep RefreshIndicator visible always. If everything is still loading and we have no items,
       // render a scrollable spinner so user can pull-to-refresh. Otherwise render the full list
       // and display a subtle loading overlay when initial reloads happen.
-      final isInitial = ctrl.isInitialLoading.value || ctrl.isLoadingAssistants.value;
+      final isInitial =
+          ctrl.isInitialLoading.value || ctrl.isLoadingAssistants.value;
       final hasPayments = ctrl.payments.isNotEmpty;
 
       return Scaffold(
@@ -337,9 +352,7 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 sliver: SliverToBoxAdapter(
-                  child: AssistantSummaryCard(
-                    assistants: ctrl.assistants,
-                  ),
+                  child: AssistantSummaryCard(assistants: ctrl.assistants),
                 ),
               ),
 
@@ -371,7 +384,6 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
                     ),
                   ),
                 )
-
               // No items (but not initial) -> empty state (still scrollable)
               else if (!hasPayments)
                 const SliverFillRemaining(
@@ -381,20 +393,19 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
                     message: 'No transactions yet.',
                   ),
                 )
-
               // Items present -> list
               else
                 SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                        (_, i) {
-                      final finance = ctrl.payments[i];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                        child: OwnersFinanceTile(finance: finance),
-                      );
-                    },
-                    childCount: ctrl.payments.length,
-                  ),
+                  delegate: SliverChildBuilderDelegate((_, i) {
+                    final finance = ctrl.payments[i];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 2,
+                      ),
+                      child: OwnersFinanceTile(finance: finance),
+                    );
+                  }, childCount: ctrl.payments.length),
                 ),
 
               // Bottom loader for paging
@@ -402,7 +413,11 @@ class _OwnerFinancePageState extends State<OwnerFinancePage> {
                 const SliverToBoxAdapter(
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    ),
                   ),
                 ),
 
@@ -431,7 +446,11 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
   _HeaderDelegate({required this.child, this.height = 56});
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Material(
       elevation: overlapsContent ? 4 : 0,
       child: SizedBox.expand(child: child),

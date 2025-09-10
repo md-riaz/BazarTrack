@@ -12,6 +12,7 @@ import 'package:bazar_track/features/orders/model/order.dart';
 import 'package:bazar_track/features/orders/model/order_item.dart';
 import 'package:bazar_track/features/orders/model/order_status.dart';
 import 'package:bazar_track/helper/route_helper.dart';
+import '../../base/custom_snackbar.dart';
 import '../../base/empty_state.dart';
 import '../../base/price_format.dart';
 import '../finance/model/assistant.dart';
@@ -220,10 +221,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       if (selectedAssistantId != null) {
         await orderCtrl.assignOrder(widget.orderId, selectedAssistantId);
         await _reloadOrder();
-        Get.snackbar('Success', 'Assistant assigned');
+        showCustomSnackBar(isError: false,title: 'Success', 'Assistant assigned');
       }
     } catch (e) {
-      Get.snackbar('Error', 'Could not assign assistant: $e');
+      showCustomSnackBar(isError: true,title: 'Error', 'Could not assign assistant: $e');
     }
   }
 
@@ -231,9 +232,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     try {
       await orderCtrl.selfAssign(widget.orderId);
       await _reloadOrder();
-      Get.snackbar('Success', 'Assigned to you');
+      showCustomSnackBar(isError: false,title: 'Success', 'Assigned to you');
     } catch (e) {
-      Get.snackbar('Error', 'Could not self-assign: $e');
+      showCustomSnackBar(isError: true,title: 'Error', 'Could not self-assign: $e');
     }
   }
 
@@ -241,9 +242,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     try {
       await orderCtrl.completeOrder(widget.orderId);
       await _reloadOrder();
-      Get.snackbar('Success', 'Order marked completed');
+      showCustomSnackBar(isError: false,title: 'Success', 'Order marked completed');
     } catch (e) {
-      Get.snackbar('Error', 'Could not complete order: $e');
+      showCustomSnackBar(isError: true,title: 'Error', 'Could not complete order: $e');
     }
   }
 

@@ -68,6 +68,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
         debugPrint('OrderList init error: $e');
         // optionally show a non-blocking message
         showCustomSnackBar(
+          isError: true,
           title: 'Unable to load orders',
           'Please check your internet connection.',
         );
@@ -105,6 +106,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
     } catch (e) {
       // show friendly feedback
       showCustomSnackBar(
+        isError: true,
         title: 'Unable to refresh',
         'Check your internet connection and try again.',
       );

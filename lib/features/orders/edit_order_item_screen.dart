@@ -3,6 +3,7 @@ import 'package:bazar_track/base/custom_button.dart';
 import 'package:bazar_track/features/auth/controller/auth_controller.dart';
 import 'package:get/get.dart';
 import 'package:bazar_track/base/custom_app_bar.dart';
+import '../../base/custom_snackbar.dart';
 import '../../util/input_decoration.dart';
 import '../../helper/route_helper.dart';
 import '../auth/model/role.dart';
@@ -106,8 +107,7 @@ class _EditOrderItemScreenState extends State<EditOrderItemScreen> {
         Get.back(result: updated);
       }
     } catch (e) {
-      Get.snackbar('Error', 'Could not save item: $e',
-          snackPosition: SnackPosition.BOTTOM);
+      showCustomSnackBar(isError: true,title: 'Error', 'Could not save item: $e');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -134,10 +134,9 @@ class _EditOrderItemScreenState extends State<EditOrderItemScreen> {
     try {
       await _controller.deleteOrderItem(widget.item);
       Get.back(); // pop edit screen
-      Get.snackbar('Deleted', 'Item removed',
-          snackPosition: SnackPosition.BOTTOM);
+      showCustomSnackBar(isError: false,title: 'Deleted', 'Item removed');
     } catch (e) {
-      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      showCustomSnackBar(isError: true,title: 'Error', e.toString());
     }
   }
 

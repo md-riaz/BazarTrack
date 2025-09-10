@@ -9,6 +9,8 @@ import 'package:bazar_track/features/dashboard/owner_dashboard.dart';
 import 'package:bazar_track/features/auth/model/role.dart';
 import 'package:get/get.dart';
 
+import '../../base/custom_snackbar.dart';
+
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
 
@@ -68,11 +70,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       _passwordController.text.trim(),
                     );
                     if (!success) {
-                      Get.snackbar(
-                        'Login Failed',
-                        'Invalid credentials.',
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
+                      showCustomSnackBar(isError: true,title: 'Login Failed', 'Invalid credentials.',);
                       return;
                     }
                     final user = authController.user.value!;
