@@ -60,7 +60,7 @@ class OrderController extends GetxController {
       // handle or report the error, so controller doesn't stay in loading state
       debugPrint('OrderController.loadInitial error: $e\n$st');
       // optionally show a non-blocking feedback
-      showCustomSnackBar(isError: true,title: 'Error', 'Failed to load orders. Check your connection.');
+      showCustomSnackBar(isError: true,title: 'Failed to load orders!', 'Check your internet connection.');
 
     } finally {
       isInitialLoading.value = false;
