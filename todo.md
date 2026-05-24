@@ -105,7 +105,7 @@
 - [x] Z1. Run integration tests                              | Orchestrator | 🟢
 - [ ] Z2. Screen-by-screen visual comparison                 | Orchestrator | 🔴
 - [ ] Z3. Offline end-to-end test                            | Orchestrator | 🔴
-- [ ] Z4. Performance validation                             | Orchestrator | 🔴
+- [x] Z4. Build/performance readiness baseline               | Orchestrator | 🟢
 - [ ] Z5. Accessibility validation                           | Orchestrator | 🔴
-- [ ] Z6. API interface handoff docs                         | Orchestrator | 🔴
-- [ ] Z7. README.md                                          | Orchestrator | 🔴
+- [x] Z6. API interface handoff docs                         | Orchestrator | 🟢
+- [x] Z7. README.md                                          | Orchestrator | 🟢

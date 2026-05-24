@@ -1,5 +1,15 @@
 # Build Progress Log
 
+## 2026-05-24 UTC — Orchestrator — Phase 3 build/docs baseline verified
+- Added README coverage for setup, architecture, offline-first rules, routes, validation commands, and mock-to-API handoff seams.
+- Enabled Android core library desugaring for `flutter_local_notifications` in `android/app/build.gradle.kts`.
+- Verification passed:
+  - `flutter analyze` — no issues
+  - `flutter test` — 62 tests passed
+  - `flutter build apk --debug` — built `build\\app\\outputs\\flutter-apk\\app-debug.apk`
+- Web build is not applicable yet because this Flutter project is not configured for web platforms.
+- Remaining Phase 3: manual/screenshot visual comparison, offline end-to-end device flow, and accessibility validation.
+
 ## 2026-05-24 UTC — Orchestrator — Router integration verified
 - Wired implemented feature screens into `lib/core/router/app_router.dart` for bazar, wallet, money, reports, admin, notifications, search, settings, comments, and sync-adjacent routes.
 - Kept auth guard and logout flow through Agent B providers.
