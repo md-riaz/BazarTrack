@@ -25,7 +25,7 @@ void main() {
           _wrap(const BazarCommentsScreen(), container: container),
         );
 
-        expect(find.text('মন্তব্য'), findsOneWidget);
+        expect(find.text('মন্তব্য'), findsWidgets);
         expect(find.text('CEO PERSONAL বাজার'), findsOneWidget);
         expect(find.textContaining('অডিট নোট'), findsOneWidget);
         expect(find.text('CEO'), findsNWidgets(2));

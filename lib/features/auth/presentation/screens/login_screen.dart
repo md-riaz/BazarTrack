@@ -177,7 +177,10 @@ class _LoginField extends StatelessWidget {
             obscureText: obscureText,
             keyboardType: keyboardType,
             style: AppTextStyles.bodyStrong,
-            decoration: InputDecoration(hintText: placeholder),
+            decoration: InputDecoration(
+              labelText: label,
+              hintText: placeholder,
+            ),
           ),
         ],
       ),

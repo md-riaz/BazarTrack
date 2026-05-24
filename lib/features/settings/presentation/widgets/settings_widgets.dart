@@ -162,43 +162,57 @@ class HMenuRow extends StatelessWidget {
 }
 
 class HSwitch extends StatelessWidget {
-  const HSwitch({required this.value, required this.onChanged, super.key});
+  const HSwitch({
+    required this.value,
+    required this.onChanged,
+    this.semanticLabel,
+    super.key,
+  });
 
   final bool value;
   final ValueChanged<bool> onChanged;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
       toggled: value,
+      label: semanticLabel,
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () => onChanged(!value),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          width: 44,
-          height: 26,
-          decoration: BoxDecoration(
-            color: value ? AppColors.primary : AppColors.surface3,
-            borderRadius: BorderRadius.circular(13),
-          ),
-          child: AnimatedAlign(
-            duration: const Duration(milliseconds: 180),
-            alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-            child: Container(
-              width: 20,
-              height: 20,
-              margin: const EdgeInsets.all(3),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Color.fromRGBO(0, 0, 0, 0.2),
-                    blurRadius: 3,
-                    offset: Offset(0, 1),
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: 44,
+              height: 26,
+              decoration: BoxDecoration(
+                color: value ? AppColors.primary : AppColors.surface3,
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: AnimatedAlign(
+                duration: const Duration(milliseconds: 180),
+                alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  margin: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color.fromRGBO(0, 0, 0, 0.2),
+                        blurRadius: 3,
+                        offset: Offset(0, 1),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),

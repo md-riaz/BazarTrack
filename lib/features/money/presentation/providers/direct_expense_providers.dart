@@ -5,6 +5,8 @@ import 'package:uuid/uuid.dart';
 import '../../../../bootstrap.dart';
 import '../../../../core/database/app_database.dart' as db;
 import '../../domain/entities/direct_expense.dart' as domain;
+import '../../domain/repositories/money_entry_repository.dart';
+import 'money_providers.dart';
 
 final directExpenseLocalDataSourceProvider =
     Provider<DirectExpenseLocalDataSource>((ref) {
@@ -13,9 +15,7 @@ final directExpenseLocalDataSourceProvider =
 
 final directExpenseControllerProvider =
     StateNotifierProvider<DirectExpenseController, AsyncValue<void>>((ref) {
-      return DirectExpenseController(
-        ref.watch(directExpenseLocalDataSourceProvider),
-      );
+      return DirectExpenseController(ref.watch(moneyEntryRepositoryProvider));
     });
 
 class DirectExpenseLocalDataSource {
@@ -90,9 +90,9 @@ class DirectExpenseLocalDataSource {
 }
 
 class DirectExpenseController extends StateNotifier<AsyncValue<void>> {
-  DirectExpenseController(this._dataSource) : super(const AsyncData(null));
+  DirectExpenseController(this._repository) : super(const AsyncData(null));
 
-  final DirectExpenseLocalDataSource _dataSource;
+  final MoneyEntryRepository _repository;
 
   Future<domain.DirectExpense?> createDirectExpense({
     required String walletId,
@@ -105,7 +105,7 @@ class DirectExpenseController extends StateNotifier<AsyncValue<void>> {
   }) async {
     state = const AsyncLoading();
     try {
-      final expense = await _dataSource.createDirectExpense(
+      final expense = await _repository.createDirectExpense(
         walletId: walletId,
         assistantId: assistantId,
         amount: amount,

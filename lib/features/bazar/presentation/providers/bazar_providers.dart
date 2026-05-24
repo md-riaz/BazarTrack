@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../bootstrap.dart';
 import '../../../../core/mock/mock_seed.dart';
+import '../../../../core/sync/sync_providers.dart';
 import '../../../../shared/models/app_enums.dart';
 import '../../data/datasources/bazar_local_data_source.dart';
 import '../../data/datasources/mock_bazar_remote_data_source.dart';
@@ -24,6 +25,7 @@ final bazarRepositoryProvider = Provider<BazarRepository>((ref) {
   return BazarRepositoryImpl(
     localDataSource: ref.watch(bazarLocalDataSourceProvider),
     remoteDataSource: ref.watch(bazarRemoteDataSourceProvider),
+    syncEnqueueService: ref.watch(syncEnqueueServiceProvider),
   );
 });
 

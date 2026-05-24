@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../bootstrap.dart';
+import '../../../../core/sync/sync_providers.dart';
 import '../../../../shared/models/app_enums.dart';
 import '../../data/datasources/mock_money_remote_datasource.dart';
 import '../../data/datasources/money_local_data_source.dart';
@@ -31,6 +32,7 @@ final moneyEntryRepositoryProvider = Provider<MoneyEntryRepository>((ref) {
     directExpenseDao: ref.watch(directExpenseDaoProvider),
     monthlyCloseDao: ref.watch(monthlyCloseDaoProvider),
     remoteDataSource: ref.watch(moneyRemoteDataSourceProvider),
+    syncEnqueueService: ref.watch(syncEnqueueServiceProvider),
   );
 });
 

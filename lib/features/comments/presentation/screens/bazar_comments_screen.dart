@@ -78,6 +78,7 @@ class BazarCommentsScreen extends ConsumerWidget {
                                 ref.read(draftCommentProvider.notifier).state =
                                     value,
                             decoration: const InputDecoration(
+                              labelText: 'মন্তব্য',
                               hintText: 'মন্তব্য লিখুন…',
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
@@ -88,6 +89,7 @@ class BazarCommentsScreen extends ConsumerWidget {
                           ),
                         ),
                         IconButton.filled(
+                          tooltip: 'মন্তব্য পাঠান',
                           onPressed: draft.isEmpty
                               ? null
                               : () =>

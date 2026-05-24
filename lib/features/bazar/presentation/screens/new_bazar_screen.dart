@@ -403,20 +403,25 @@ class _ModeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.surface : AppColors.surface3,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: AppTextStyles.bodyStrong.copyWith(
-              color: selected ? AppColors.primary : AppColors.text3,
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: '$label ইনপুট মোড',
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: selected ? AppColors.surface : AppColors.surface3,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              label,
+              style: AppTextStyles.bodyStrong.copyWith(
+                color: selected ? AppColors.primary : AppColors.text3,
+              ),
             ),
           ),
         ),
@@ -538,6 +543,7 @@ class _ItemPreviewList extends StatelessWidget {
                   ),
                 ),
                 IconButton(
+                  tooltip: 'আইটেম মুছুন',
                   onPressed: () => onRemove(index),
                   icon: const Icon(Icons.close, color: AppColors.negative),
                 ),

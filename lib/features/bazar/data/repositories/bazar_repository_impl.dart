@@ -1,5 +1,7 @@
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/sync/sync_enqueue_service.dart';
+import '../../../../core/sync/sync_types.dart';
 import '../../../../shared/models/app_enums.dart';
 import '../../domain/entities/bazar_entities.dart' as domain;
 import '../../domain/repositories/bazar_repository.dart';
@@ -11,11 +13,14 @@ class BazarRepositoryImpl implements BazarRepository {
   BazarRepositoryImpl({
     required BazarLocalDataSource localDataSource,
     required MockBazarRemoteDataSource remoteDataSource,
+    SyncEnqueueService? syncEnqueueService,
   }) : _localDataSource = localDataSource,
-       _remoteDataSource = remoteDataSource;
+       _remoteDataSource = remoteDataSource,
+       _syncEnqueueService = syncEnqueueService;
 
   final BazarLocalDataSource _localDataSource;
   final MockBazarRemoteDataSource _remoteDataSource;
+  final SyncEnqueueService? _syncEnqueueService;
   final Uuid _uuid = const Uuid();
 
   @override
@@ -118,6 +123,12 @@ class BazarRepositoryImpl implements BazarRepository {
             itemCount: row.itemCount,
             spent: row.spent,
           );
+    await _enqueue(
+      entityType: 'bazar',
+      entityId: domainBazar.id,
+      operation: SyncOperation.create,
+      payload: _bazarPayload(domainBazar),
+    );
     unawaitedPublishBazar(domainBazar);
     return domainBazar;
   }
@@ -154,6 +165,12 @@ class BazarRepositoryImpl implements BazarRepository {
     );
 
     final domainItem = created.toDomain();
+    await _enqueue(
+      entityType: 'bazar_item',
+      entityId: domainItem.id,
+      operation: SyncOperation.create,
+      payload: _itemPayload(domainItem),
+    );
     unawaitedPublishItem(domainItem);
     return domainItem;
   }
@@ -199,6 +216,12 @@ class BazarRepositoryImpl implements BazarRepository {
     );
 
     final domainItem = updated.toDomain();
+    await _enqueue(
+      entityType: 'bazar_item',
+      entityId: domainItem.id,
+      operation: SyncOperation.update,
+      payload: _itemPayload(domainItem),
+    );
     unawaitedPublishItem(domainItem);
     return domainItem;
   }
@@ -225,6 +248,12 @@ class BazarRepositoryImpl implements BazarRepository {
             itemCount: row.itemCount,
             spent: row.spent,
           );
+    await _enqueue(
+      entityType: 'bazar',
+      entityId: domainBazar.id,
+      operation: SyncOperation.update,
+      payload: _bazarPayload(domainBazar),
+    );
     unawaitedPublishBazar(domainBazar);
     return domainBazar;
   }
@@ -264,6 +293,56 @@ class BazarRepositoryImpl implements BazarRepository {
       return ItemStatus.done;
     }
     return status ?? ItemStatus.pending;
+  }
+
+  Future<void> _enqueue({
+    required String entityType,
+    required String entityId,
+    required SyncOperation operation,
+    required Map<String, dynamic> payload,
+  }) async {
+    final enqueueService = _syncEnqueueService;
+    if (enqueueService == null) return;
+    await enqueueService.enqueue(
+      entityType: entityType,
+      entityId: entityId,
+      operation: operation,
+      payload: payload,
+    );
+  }
+
+  Map<String, dynamic> _bazarPayload(domain.Bazar bazar) {
+    return {
+      'id': bazar.id,
+      'wallet_id': bazar.walletId,
+      'created_by': bazar.createdBy,
+      'assigned_to': bazar.assignedTo,
+      'title': bazar.title,
+      'note': bazar.note,
+      'status': bazarStatusToDb(bazar.status),
+      'bazar_date': bazar.bazarDate.toIso8601String(),
+      'created_at': bazar.createdAt.toIso8601String(),
+      'updated_at': bazar.updatedAt.toIso8601String(),
+      'closed_at': bazar.closedAt?.toIso8601String(),
+    };
+  }
+
+  Map<String, dynamic> _itemPayload(domain.BazarItem item) {
+    return {
+      'id': item.id,
+      'bazar_id': item.bazarId,
+      'name': item.name,
+      'raw_text': item.rawText,
+      'quantity': item.quantity,
+      'unit': item.unit,
+      'attributes': item.attributes,
+      'note': item.note,
+      'status': itemStatusToDb(item.status),
+      'price': item.price,
+      'added_by': item.addedBy,
+      'created_at': item.createdAt.toIso8601String(),
+      'updated_at': item.updatedAt.toIso8601String(),
+    };
   }
 
   void unawaitedPublishItem(domain.BazarItem item) {

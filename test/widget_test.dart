@@ -27,7 +27,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('সহজ বাজার খাতা'), findsOneWidget);
-    expect(find.text('ফোন নম্বর'), findsOneWidget);
+    expect(find.text('ফোন নম্বর'), findsWidgets);
     expect(find.text('লগইন করুন →'), findsOneWidget);
   });
 
@@ -65,6 +65,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('লগইন করুন →'), findsOneWidget);
-    expect(find.text('ফোন নম্বর'), findsOneWidget);
+    expect(find.text('ফোন নম্বর'), findsWidgets);
   });
 }

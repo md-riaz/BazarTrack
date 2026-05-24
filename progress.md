@@ -1,5 +1,16 @@
 # Build Progress Log
 
+## 2026-05-24 UTC — Orchestrator — Phase 3 offline/accessibility gaps closed
+- Wired feature write paths to real `sync_queue_items` through `SyncEnqueueService` for bazar, bazar items, money entries, direct expenses, and monthly snapshots.
+- Direct expense UI now saves through the money repository instead of bypassing the sync queue.
+- Added repository tests proving feature writes enqueue durable sync rows, complementing existing offline/online sync engine tests.
+- Added accessibility fixes for form labels, icon tooltips, selected tab/mode semantics, and 48dp labeled switch semantics.
+- Verification passed:
+  - `flutter analyze` — no issues
+  - `flutter test` — 63 tests passed
+  - `flutter build apk --debug` — built `build\\app\\outputs\\flutter-apk\\app-debug.apk`
+- Remaining Phase 3: manual/screenshot visual comparison; full device TalkBack/VoiceOver and performance profiling are beyond automated baseline.
+
 ## 2026-05-24 UTC — Orchestrator — Phase 3 build/docs baseline verified
 - Added README coverage for setup, architecture, offline-first rules, routes, validation commands, and mock-to-API handoff seams.
 - Enabled Android core library desugaring for `flutter_local_notifications` in `android/app/build.gradle.kts`.

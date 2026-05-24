@@ -34,6 +34,7 @@ class SettingsScreen extends ConsumerWidget {
                 title: 'Push Notification',
                 subtitle: 'বাজার ও টাকার আপডেট',
                 trailing: HSwitch(
+                  semanticLabel: 'Push Notification',
                   value: notifications,
                   onChanged: (value) =>
                       ref.read(settingsNotificationProvider.notifier).state =
@@ -45,6 +46,7 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: 'নোটিফিকেশন শব্দ',
                 showDivider: false,
                 trailing: HSwitch(
+                  semanticLabel: 'Sound',
                   value: sound,
                   onChanged: (value) =>
                       ref.read(settingsSoundProvider.notifier).state = value,

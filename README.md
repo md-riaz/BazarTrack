@@ -126,7 +126,7 @@ flutter build apk --debug
 Current verified baseline:
 
 - `flutter analyze` — no issues
-- `flutter test` — 62 tests passed
+- `flutter test` — 63 tests passed
 - Debug APK build passes after enabling Android core library desugaring
 
 ## Important routes

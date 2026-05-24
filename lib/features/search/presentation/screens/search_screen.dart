@@ -119,6 +119,7 @@ class _SearchBox extends StatelessWidget {
           hintStyle: AppTextStyles.body.copyWith(color: AppColors.text4),
           prefixIcon: const Icon(Icons.search, color: AppColors.text3),
           suffixIcon: IconButton(
+            tooltip: 'সার্চ মুছুন',
             onPressed: onClear,
             icon: const Icon(Icons.close, color: AppColors.text4),
           ),
@@ -152,26 +153,31 @@ class _SearchTypeTabs extends StatelessWidget {
         children: [
           for (final type in SearchResultType.values)
             Expanded(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(9),
-                onTap: () => onChanged(type),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: type == selected
-                        ? AppColors.surface
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(9),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 9),
-                    child: Text(
-                      type.label,
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: type == selected
-                            ? AppColors.primary
-                            : AppColors.text3,
-                        fontWeight: FontWeight.w700,
+              child: Semantics(
+                button: true,
+                selected: type == selected,
+                label: '${type.label} সার্চ ট্যাব',
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(9),
+                  onTap: () => onChanged(type),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: type == selected
+                          ? AppColors.surface
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 9),
+                      child: Text(
+                        type.label,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: type == selected
+                              ? AppColors.primary
+                              : AppColors.text3,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),

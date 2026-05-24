@@ -3,6 +3,7 @@ import 'package:bazar/features/settings/presentation/screens/more_screen.dart';
 import 'package:bazar/features/settings/presentation/screens/offline_queue_screen.dart';
 import 'package:bazar/features/settings/presentation/screens/profile_edit_screen.dart';
 import 'package:bazar/features/settings/presentation/screens/settings_screen.dart';
+import 'package:bazar/features/settings/presentation/widgets/settings_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -64,6 +65,34 @@ void main() {
 
       await tester.tap(find.text('Sync Queue দেখুন'));
       expect(queueTapped, isTrue);
+    });
+
+    testWidgets('HSwitch exposes semantic role, label, and 48dp tap target', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          Center(
+            child: HSwitch(
+              semanticLabel: 'Push Notification',
+              value: true,
+              onChanged: (_) {},
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        tester.getSemantics(find.byType(HSwitch)),
+        matchesSemantics(
+          label: 'Push Notification',
+          hasTapAction: true,
+          hasToggledState: true,
+          isToggled: true,
+          isButton: true,
+        ),
+      );
+      expect(tester.getSize(find.byType(HSwitch)), const Size(48, 48));
     });
 
     testWidgets('OfflineQueueScreen renders pending and failed queue items', (

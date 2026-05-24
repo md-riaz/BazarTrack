@@ -1,4 +1,6 @@
 import 'package:bazar/core/database/app_database.dart';
+import 'package:bazar/core/sync/sync_enqueue_service.dart';
+import 'package:bazar/core/sync/sync_queue_dao.dart';
 import 'package:bazar/features/money/data/datasources/mock_money_remote_datasource.dart';
 import 'package:bazar/features/money/data/datasources/money_local_data_source.dart';
 import 'package:bazar/features/money/data/repositories/money_entry_repository_impl.dart';
@@ -17,6 +19,7 @@ void main() {
       directExpenseDao: DirectExpenseDao(database),
       monthlyCloseDao: MonthlyCloseDao(database),
       remoteDataSource: const MockMoneyRemoteDataSource(),
+      syncEnqueueService: SyncEnqueueService(SyncQueueDao(database)),
     );
 
     final now = DateTime(2026, 5, 24);
@@ -72,10 +75,16 @@ void main() {
 
     final watched = await repository.watchMoneyEntries(walletId: 'w1').first;
 
+    final pending = await SyncQueueDao(database).pending();
+
     expect(created.amount, 500);
     expect(watched, hasLength(1));
     expect(watched.first.walletName, 'Office Wallet');
     expect(watched.first.assistantName, 'Rahim');
+    expect(pending, hasLength(1));
+    expect(pending.single.entityType, 'money_entry');
+    expect(pending.single.entityId, created.id);
+    expect(pending.single.payload, contains('"amount":500'));
   });
 
   test('requires note for adjustment entry', () async {
@@ -103,9 +112,14 @@ void main() {
 
     final watched = await repository.watchDirectExpenses(walletId: 'w1').first;
 
+    final pending = await SyncQueueDao(database).pending();
+
     expect(created.amount, 75);
     expect(watched, hasLength(1));
     expect(watched.first.note, 'transport');
+    expect(pending, hasLength(1));
+    expect(pending.single.entityType, 'direct_expense');
+    expect(pending.single.entityId, created.id);
   });
 
   test('monthly close creates snapshot and locks period entries', () async {

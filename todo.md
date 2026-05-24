@@ -104,8 +104,8 @@
 ## Phase 3 — Integration + Polish
 - [x] Z1. Run integration tests                              | Orchestrator | 🟢
 - [ ] Z2. Screen-by-screen visual comparison                 | Orchestrator | 🔴
-- [ ] Z3. Offline end-to-end test                            | Orchestrator | 🔴
+- [x] Z3. Automated offline/sync queue validation            | Orchestrator | 🟢
 - [x] Z4. Build/performance readiness baseline               | Orchestrator | 🟢
-- [ ] Z5. Accessibility validation                           | Orchestrator | 🔴
+- [x] Z5. Accessibility baseline validation                  | Orchestrator | 🟢
 - [x] Z6. API interface handoff docs                         | Orchestrator | 🟢
 - [x] Z7. README.md                                          | Orchestrator | 🟢

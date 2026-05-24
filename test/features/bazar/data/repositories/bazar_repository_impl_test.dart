@@ -1,5 +1,7 @@
 import 'package:bazar/core/database/app_database.dart';
 import 'package:bazar/core/mock/mock_seed.dart';
+import 'package:bazar/core/sync/sync_enqueue_service.dart';
+import 'package:bazar/core/sync/sync_queue_dao.dart';
 import 'package:bazar/features/bazar/data/datasources/bazar_local_data_source.dart';
 import 'package:bazar/features/bazar/data/datasources/mock_bazar_remote_data_source.dart';
 import 'package:bazar/features/bazar/data/repositories/bazar_repository_impl.dart';
@@ -17,6 +19,7 @@ void main() {
     repository = BazarRepositoryImpl(
       localDataSource: BazarLocalDataSource(database),
       remoteDataSource: MockBazarRemoteDataSource(),
+      syncEnqueueService: SyncEnqueueService(SyncQueueDao(database)),
     );
   });
 
@@ -44,7 +47,16 @@ void main() {
     expect(updated.price, 220);
 
     final events = await repository.watchActivity('b1').first;
+    final pending = await SyncQueueDao(database).pending();
     expect(events.any((event) => event.action == 'item.purchased'), isTrue);
+    final queuedUpdate = pending.where(
+      (item) =>
+          item.entityType == 'bazar_item' &&
+          item.entityId == 'i3' &&
+          item.payload.contains('"price":220'),
+    );
+    expect(queuedUpdate, hasLength(1));
+    expect(queuedUpdate.single.operation, 'update');
   });
 
   test('explicit not found status writes activity log', () async {

@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/sync/sync_enqueue_service.dart';
+import '../../../../core/sync/sync_types.dart';
 import '../../../../features/wallet/domain/entities/wallet_snapshot.dart';
 import '../../../../shared/models/app_enums.dart';
 import '../../domain/entities/direct_expense.dart';
@@ -17,15 +19,18 @@ class MoneyEntryRepositoryImpl implements MoneyEntryRepository {
     required DirectExpenseDao directExpenseDao,
     required MonthlyCloseDao monthlyCloseDao,
     required MoneyRemoteDataSource remoteDataSource,
+    SyncEnqueueService? syncEnqueueService,
   }) : _moneyEntryDao = moneyEntryDao,
        _directExpenseDao = directExpenseDao,
        _monthlyCloseDao = monthlyCloseDao,
-       _remoteDataSource = remoteDataSource;
+       _remoteDataSource = remoteDataSource,
+       _syncEnqueueService = syncEnqueueService;
 
   final MoneyEntryDao _moneyEntryDao;
   final DirectExpenseDao _directExpenseDao;
   final MonthlyCloseDao _monthlyCloseDao;
   final MoneyRemoteDataSource _remoteDataSource;
+  final SyncEnqueueService? _syncEnqueueService;
   final Uuid _uuid = const Uuid();
 
   @override
@@ -85,6 +90,25 @@ class MoneyEntryRepositoryImpl implements MoneyEntryRepository {
       note: note,
       createdBy: createdBy,
     );
+    await _enqueue(
+      entityType: 'money_entry',
+      entityId: entry.id,
+      operation: SyncOperation.create,
+      payload: {
+        'id': entry.id,
+        'wallet_id': entry.walletId,
+        'assistant_id': entry.assistantId,
+        'bazar_id': entry.bazarId,
+        'type': entryTypeToDb(entry.type),
+        'amount': entry.amount,
+        'note': entry.note,
+        'entry_date': entry.entryDate.toIso8601String(),
+        'created_by': entry.createdBy,
+        'created_at': entry.createdAt.toIso8601String(),
+        'updated_at': entry.updatedAt.toIso8601String(),
+        'is_locked': entry.isLocked,
+      },
+    );
     _remoteDataSource.publishMoneyEntry(entry).ignore();
     return entry;
   }
@@ -109,6 +133,23 @@ class MoneyEntryRepositoryImpl implements MoneyEntryRepository {
       note: note,
       receiptUrl: receiptUrl,
       createdBy: createdBy,
+    );
+    await _enqueue(
+      entityType: 'direct_expense',
+      entityId: expense.id,
+      operation: SyncOperation.create,
+      payload: {
+        'id': expense.id,
+        'wallet_id': expense.walletId,
+        'assistant_id': expense.assistantId,
+        'amount': expense.amount,
+        'note': expense.note,
+        'entry_date': expense.entryDate.toIso8601String(),
+        'receipt_url': expense.receiptUrl,
+        'created_by': expense.createdBy,
+        'created_at': expense.createdAt.toIso8601String(),
+        'is_locked': expense.isLocked,
+      },
     );
     _remoteDataSource.publishDirectExpense(expense).ignore();
     return expense;
@@ -193,6 +234,23 @@ class MoneyEntryRepositoryImpl implements MoneyEntryRepository {
       to: range.end,
     );
 
+    await _enqueue(
+      entityType: 'wallet_snapshot',
+      entityId: snapshotRow.id,
+      operation: SyncOperation.create,
+      payload: {
+        'id': snapshotRow.id,
+        'wallet_id': snapshotRow.walletId,
+        'assistant_id': snapshotRow.assistantId,
+        'period_month': snapshotRow.periodMonth,
+        'opening_balance': snapshotRow.openingBalance,
+        'closing_balance': snapshotRow.closingBalance,
+        'snapshot_hash': snapshotRow.snapshotHash,
+        'closed_by': snapshotRow.closedBy,
+        'closed_at': snapshotRow.closedAt.toIso8601String(),
+        'notes': snapshotRow.notes,
+      },
+    );
     _remoteDataSource
         .publishMonthlyClose(
           walletId: walletId,
@@ -247,6 +305,22 @@ class MoneyEntryRepositoryImpl implements MoneyEntryRepository {
       'entries': entries,
     });
     return sha256.convert(utf8.encode(payload)).toString();
+  }
+
+  Future<void> _enqueue({
+    required String entityType,
+    required String entityId,
+    required SyncOperation operation,
+    required Map<String, dynamic> payload,
+  }) async {
+    final enqueueService = _syncEnqueueService;
+    if (enqueueService == null) return;
+    await enqueueService.enqueue(
+      entityType: entityType,
+      entityId: entityId,
+      operation: operation,
+      payload: payload,
+    );
   }
 
   void _validateAmount(double amount) {
