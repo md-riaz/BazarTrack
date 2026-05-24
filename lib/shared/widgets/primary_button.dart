@@ -31,9 +31,7 @@ class PrimaryButton extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: color,
             minimumSize: const Size.fromHeight(50),
-          ).copyWith(
-            iconSize: const WidgetStatePropertyAll(0),
-          ),
+          ).copyWith(iconSize: const WidgetStatePropertyAll(0)),
         ),
       ),
     );

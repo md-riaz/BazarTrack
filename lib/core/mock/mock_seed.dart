@@ -112,9 +112,24 @@ class MockSeed {
       ]);
 
       batch.insertAll(db.walletMembers, [
-        WalletMembersCompanion.insert(id: 'wm1', walletId: 'w1', userId: 'u4', role: 'owner'),
-        WalletMembersCompanion.insert(id: 'wm2', walletId: 'w2', userId: 'u3', role: 'owner'),
-        WalletMembersCompanion.insert(id: 'wm3', walletId: 'w3', userId: 'u4', role: 'owner'),
+        WalletMembersCompanion.insert(
+          id: 'wm1',
+          walletId: 'w1',
+          userId: 'u4',
+          role: 'owner',
+        ),
+        WalletMembersCompanion.insert(
+          id: 'wm2',
+          walletId: 'w2',
+          userId: 'u3',
+          role: 'owner',
+        ),
+        WalletMembersCompanion.insert(
+          id: 'wm3',
+          walletId: 'w3',
+          userId: 'u4',
+          role: 'owner',
+        ),
       ]);
 
       batch.insertAll(db.bazars, [

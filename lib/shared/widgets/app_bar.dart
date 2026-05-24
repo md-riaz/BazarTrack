@@ -29,10 +29,7 @@ class BazarAppBar extends StatelessWidget implements PreferredSizeWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (subtitle != null)
-            Text(
-              subtitle!,
-              style: AppTextStyles.appBarSubtitle,
-            ),
+            Text(subtitle!, style: AppTextStyles.appBarSubtitle),
           Text(title, style: AppTextStyles.appBarTitle),
         ],
       ),

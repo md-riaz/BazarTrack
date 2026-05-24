@@ -29,9 +29,17 @@ class GhostButton extends StatelessWidget {
           onPressed: onPressed,
           style: theme.outlinedButtonTheme.style?.copyWith(
             foregroundColor: WidgetStatePropertyAll(foregroundColor),
-            side: WidgetStatePropertyAll(BorderSide(color: borderColor ?? theme.colorScheme.outline, width: 1.5)),
+            side: WidgetStatePropertyAll(
+              BorderSide(
+                color: borderColor ?? theme.colorScheme.outline,
+                width: 1.5,
+              ),
+            ),
           ),
-          child: Text(label, style: AppTextStyles.ghostButton.copyWith(color: foregroundColor)),
+          child: Text(
+            label,
+            style: AppTextStyles.ghostButton.copyWith(color: foregroundColor),
+          ),
         ),
       ),
     );

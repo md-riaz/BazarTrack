@@ -1,16 +1,28 @@
 import 'package:bazar/app.dart';
-import 'package:bazar/shared/providers/foundation_providers.dart';
+import 'package:bazar/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:bazar/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:bazar/features/auth/presentation/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('app boots to login when unauthenticated', (tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: BazarApp(),
-      ),
+  ProviderScope buildApp({InMemoryAuthLocalDataSource? local}) {
+    return ProviderScope(
+      overrides: [
+        authLocalDataSourceProvider.overrideWith(
+          (ref) => local ?? InMemoryAuthLocalDataSource(),
+        ),
+        authRemoteDataSourceProvider.overrideWith(
+          (ref) => const MockAuthRemoteDataSource(delay: Duration.zero),
+        ),
+      ],
+      child: const BazarApp(),
     );
+  }
+
+  testWidgets('app boots to login when unauthenticated', (tester) async {
+    await tester.pumpWidget(buildApp());
 
     await tester.pumpAndSettle();
 
@@ -20,11 +32,7 @@ void main() {
   });
 
   testWidgets('demo login navigates to home route', (tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: BazarApp(),
-      ),
-    );
+    await tester.pumpWidget(buildApp());
 
     await tester.pumpAndSettle();
 
@@ -34,19 +42,21 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('হোম'), findsOneWidget);
-    expect(find.textContaining('Dashboard shell and quick actions'), findsOneWidget);
+    expect(
+      find.textContaining('Dashboard shell and quick actions'),
+      findsOneWidget,
+    );
     expect(find.text('লগআউট'), findsOneWidget);
   });
 
   testWidgets('authenticated state can logout back to login', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          authStateProvider.overrideWith((ref) => const AuthState.demoAuthenticated()),
-        ],
-        child: const BazarApp(),
-      ),
+    final local = InMemoryAuthLocalDataSource();
+    await local.saveSession(
+      token: MockAuthRemoteDataSource.seededToken,
+      userId: MockAuthRemoteDataSource.seededUser.id,
     );
+
+    await tester.pumpWidget(buildApp(local: local));
 
     await tester.pumpAndSettle();
 

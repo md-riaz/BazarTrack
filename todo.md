@@ -1,108 +1,108 @@
 # সহজ বাজার খাতা — Task Registry
 
-> Last updated: 2025-02-14 UTC
+> Last updated: 2026-05-24 UTC
 > Status: 🔴 not_started | 🟡 in_progress | 🟢 done | ⛔ blocked
 
 ## Phase 0 — Discovery
 - [x] D0. Read assets/spec.pdf fully                         | Orchestrator | 🟢
 - [x] D1. Read assets/prototype.jsx fully                    | Orchestrator | 🟢
-- [x] D2. Review AGENT_PROMPT.md                             | Orchestrator | 🟢
+- [x] D2. Review AGENTS_PROMPT.md                            | Orchestrator | 🟢
 - [x] D3. Create todo.md                                     | Orchestrator | 🟢
 - [x] D4. Create progress.md                                 | Orchestrator | 🟢
 
 ## Phase 1 — Foundation (Agent A) [BLOCKS ALL]
-- [ ] A1. Flutter project init                               | Agent A | 🔴
-- [ ] A2. pubspec.yaml + pub get                             | Agent A | 🔴
-- [ ] A3. app_colors.dart                                    | Agent A | 🔴
-- [ ] A4. app_text_styles.dart + app_theme.dart              | Agent A | 🔴
-- [ ] A5. Drift DB all tables                                | Agent A | 🔴
-- [ ] A6. Drift codegen                                      | Agent A | 🔴
-- [ ] A7. GoRouter all routes                                | Agent A | 🔴
-- [ ] A8. bootstrap.dart                                     | Agent A | 🔴
-- [ ] A9. Shared widgets                                     | Agent A | 🔴
-- [ ] A10. Shared enums                                      | Agent A | 🔴
-- [ ] A11. Mock seed data from prototype.jsx                 | Agent A | 🔴
-- [ ] A12. Formatters (balance/date/currency)                | Agent A | 🔴
+- [x] A1. Flutter project init                               | Agent A | 🟢
+- [x] A2. pubspec.yaml + pub get                             | Agent A | 🟢
+- [x] A3. app_colors.dart                                    | Agent A | 🟢
+- [x] A4. app_text_styles.dart + app_theme.dart              | Agent A | 🟢
+- [x] A5. Drift DB all tables                                | Agent A | 🟢
+- [x] A6. Drift codegen                                      | Agent A | 🟢
+- [x] A7. GoRouter all routes                                | Agent A | 🟢
+- [x] A8. bootstrap.dart                                     | Agent A | 🟢
+- [x] A9. Shared widgets                                     | Agent A | 🟢
+- [x] A10. Shared enums                                      | Agent A | 🟢
+- [x] A11. Mock seed data from prototype.jsx                 | Agent A | 🟢
+- [x] A12. Formatters (balance/date/currency)                | Agent A | 🟢
 
 ## Phase 2 — Features (parallel after Phase 1)
 ### Agent B — Auth
-- [ ] B1. User entity + repository abstraction               | Agent B | 🔴
-- [ ] B2. MockAuthRemoteDataSource                           | Agent B | 🔴
-- [ ] B3. LocalAuthDataSource                                | Agent B | 🔴
-- [ ] B4. AuthRepositoryImpl                                 | Agent B | 🔴
-- [ ] B5. LoginScreen parity                                 | Agent B | 🔴
-- [ ] B6. currentUserProvider                                | Agent B | 🔴
-- [ ] B7. Router auth guard                                  | Agent B | 🔴
-- [ ] B8. Logout flow                                        | Agent B | 🔴
-- [ ] B9. Auth tests                                          | Agent B | 🔴
+- [x] B1. User entity + repository abstraction               | Agent B | 🟢
+- [x] B2. MockAuthRemoteDataSource                           | Agent B | 🟢
+- [x] B3. LocalAuthDataSource                                | Agent B | 🟢
+- [x] B4. AuthRepositoryImpl                                 | Agent B | 🟢
+- [x] B5. LoginScreen parity                                 | Agent B | 🟢
+- [x] B6. currentUserProvider                                | Agent B | 🟢
+- [x] B7. Router auth guard                                  | Agent B | 🟢
+- [x] B8. Logout flow                                        | Agent B | 🟢
+- [x] B9. Auth tests                                         | Agent B | 🟢
 
 ### Agent C — Wallet + Balance
-- [ ] C1. Wallet entity/repository/mock                      | Agent C | 🔴
-- [ ] C2. Wallet DAOs                                        | Agent C | 🔴
-- [ ] C3. BalanceCalculator                                  | Agent C | 🔴
-- [ ] C4. BalanceResult entity                               | Agent C | 🔴
-- [ ] C5. WalletRepositoryImpl                               | Agent C | 🔴
-- [ ] C6. Wallet providers                                   | Agent C | 🔴
-- [ ] C7. BalanceScreen parity                               | Agent C | 🔴
-- [ ] C8. WalletDetailScreen parity                          | Agent C | 🔴
-- [ ] C9. AssistantLedgerScreen                              | Agent C | 🔴
-- [ ] C10. Balance tests                                     | Agent C | 🔴
+- [x] C1. Wallet entity/repository/mock                      | Agent C | 🟢
+- [x] C2. Wallet DAOs                                        | Agent C | 🟢
+- [x] C3. BalanceCalculator                                  | Agent C | 🟢
+- [x] C4. BalanceResult entity                               | Agent C | 🟢
+- [x] C5. WalletRepositoryImpl                               | Agent C | 🟢
+- [x] C6. Wallet providers                                   | Agent C | 🟢
+- [x] C7. BalanceScreen parity                               | Agent C | 🟢
+- [x] C8. WalletDetailScreen parity                          | Agent C | 🟢
+- [x] C9. AssistantLedgerScreen                              | Agent C | 🟢
+- [x] C10. Balance tests                                     | Agent C | 🟢
 
 ### Agent D — Bazar Core
-- [ ] D1. Bazar entity/repository/mock                       | Agent D | 🔴
-- [ ] D2. Bazar DAOs                                         | Agent D | 🔴
-- [ ] D3. BazarRepositoryImpl                                | Agent D | 🔴
-- [ ] D4. BazarListScreen parity                             | Agent D | 🔴
-- [ ] D5. BazarDetailScreen parity                           | Agent D | 🔴
-- [ ] D6. ItemEditSheet parity                               | Agent D | 🔴
-- [ ] D7. BazarSummaryScreen parity                          | Agent D | 🔴
-- [ ] D8. ActivityTimelineWidget                             | Agent D | 🔴
-- [ ] D9. Bazar tests                                        | Agent D | 🔴
+- [x] D1. Bazar entity/repository/mock                       | Agent D | 🟢
+- [x] D2. Bazar DAOs                                         | Agent D | 🟢
+- [x] D3. BazarRepositoryImpl                                | Agent D | 🟢
+- [x] D4. BazarListScreen parity                             | Agent D | 🟢
+- [x] D5. BazarDetailScreen parity                           | Agent D | 🟢
+- [x] D6. ItemEditSheet parity                               | Agent D | 🟢
+- [x] D7. BazarSummaryScreen parity                          | Agent D | 🟢
+- [x] D8. ActivityTimelineWidget                             | Agent D | 🟢
+- [x] D9. Bazar tests                                        | Agent D | 🟢
 
 ### Agent E — New Bazar + Items + Direct Expense
-- [ ] E1. NewBazarScreen dual mode                           | Agent E | 🔴
-- [ ] E2. AddItemScreen                                      | Agent E | 🔴
-- [ ] E3. DirectExpenseScreen                                | Agent E | 🔴
-- [ ] E4. FrequentItemsProvider                              | Agent E | 🔴
-- [ ] E5. AutoParseService                                   | Agent E | 🔴
+- [x] E1. NewBazarScreen dual mode                           | Agent E | 🟢
+- [x] E2. AddItemScreen                                      | Agent E | 🟢
+- [x] E3. DirectExpenseScreen                                | Agent E | 🟢
+- [x] E4. FrequentItemsProvider                              | Agent E | 🟢
+- [x] E5. AutoParseService                                   | Agent E | 🟢
 
 ### Agent F — Money + Reports + Monthly Close
-- [ ] F1. MoneyEntry entity/repository/mock                  | Agent F | 🔴
-- [ ] F2. MoneyEntry/DirectExpense DAOs                      | Agent F | 🔴
-- [ ] F3. MoneyEntryRepositoryImpl                           | Agent F | 🔴
-- [ ] F4. MoneyEntryScreen parity                            | Agent F | 🔴
-- [ ] F5. ReportsScreen parity                               | Agent F | 🔴
-- [ ] F6. MonthlyCloseScreen flow                            | Agent F | 🔴
-- [ ] F7. Money/report tests                                 | Agent F | 🔴
+- [x] F1. MoneyEntry entity/repository/mock                  | Agent F | 🟢
+- [x] F2. MoneyEntry/DirectExpense DAOs                      | Agent F | 🟢
+- [x] F3. MoneyEntryRepositoryImpl                           | Agent F | 🟢
+- [x] F4. MoneyEntryScreen parity                            | Agent F | 🟢
+- [x] F5. ReportsScreen parity                               | Agent F | 🟢
+- [x] F6. MonthlyCloseScreen flow                            | Agent F | 🟢
+- [x] F7. Money/report tests                                 | Agent F | 🟢
 
 ### Agent G — Admin + Notifications + Search
-- [ ] G1. Admin entities/mock                                | Agent G | 🔴
-- [ ] G2. AdminScreen parity                                 | Agent G | 🔴
-- [ ] G3. AddUserScreen                                      | Agent G | 🔴
-- [ ] G4. NotificationsScreen                                | Agent G | 🔴
-- [ ] G5. SearchScreen                                       | Agent G | 🔴
-- [ ] G6. Push notification handler scaffold                 | Agent G | 🔴
-- [ ] G7. Admin/search tests                                 | Agent G | 🔴
+- [x] G1. Admin entities/mock                                | Agent G | 🟢
+- [x] G2. AdminScreen parity                                 | Agent G | 🟢
+- [x] G3. AddUserScreen                                      | Agent G | 🟢
+- [x] G4. NotificationsScreen                                | Agent G | 🟢
+- [x] G5. SearchScreen                                       | Agent G | 🟢
+- [x] G6. Push notification handler scaffold                 | Agent G | 🟢
+- [x] G7. Admin/search tests                                 | Agent G | 🟢
 
 ### Agent H — Settings + More + Comments + History
-- [ ] H1. MoreScreen                                         | Agent H | 🔴
-- [ ] H2. ProfileEditScreen                                  | Agent H | 🔴
-- [ ] H3. SettingsScreen                                     | Agent H | 🔴
-- [ ] H4. OfflineQueueScreen                                 | Agent H | 🔴
-- [ ] H5. BazarCommentsScreen                                | Agent H | 🔴
-- [ ] H6. PriceHistoryScreen                                 | Agent H | 🔴
-- [ ] H7. Settings/comments tests                            | Agent H | 🔴
+- [x] H1. MoreScreen                                         | Agent H | 🟢
+- [x] H2. ProfileEditScreen                                  | Agent H | 🟢
+- [x] H3. SettingsScreen                                     | Agent H | 🟢
+- [x] H4. OfflineQueueScreen                                 | Agent H | 🟢
+- [x] H5. BazarCommentsScreen                                | Agent H | 🟢
+- [x] H6. PriceHistoryScreen                                 | Agent H | 🟢
+- [x] H7. Settings/comments tests                            | Agent H | 🟢
 
 ### Agent I — Sync Engine
-- [ ] I1. ConnectivityService                                | Agent I | 🔴
-- [ ] I2. SyncEngine                                         | Agent I | 🔴
-- [ ] I3. SyncStatusProvider                                 | Agent I | 🔴
-- [ ] I4. enqueue service                                    | Agent I | 🔴
-- [ ] I5. Drift→API mappers                                  | Agent I | 🔴
-- [ ] I6. Sync tests                                         | Agent I | 🔴
+- [x] I1. ConnectivityService                                | Agent I | 🟢
+- [x] I2. SyncEngine                                         | Agent I | 🟢
+- [x] I3. SyncStatusProvider                                 | Agent I | 🟢
+- [x] I4. enqueue service                                    | Agent I | 🟢
+- [x] I5. Drift→API mappers                                  | Agent I | 🟢
+- [x] I6. Sync tests                                         | Agent I | 🟢
 
 ## Phase 3 — Integration + Polish
-- [ ] Z1. Run integration tests                              | Orchestrator | 🔴
+- [x] Z1. Run integration tests                              | Orchestrator | 🟢
 - [ ] Z2. Screen-by-screen visual comparison                 | Orchestrator | 🔴
 - [ ] Z3. Offline end-to-end test                            | Orchestrator | 🔴
 - [ ] Z4. Performance validation                             | Orchestrator | 🔴

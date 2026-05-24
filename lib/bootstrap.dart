@@ -19,9 +19,7 @@ Future<void> bootstrap() async {
 
   runApp(
     ProviderScope(
-      overrides: [
-        appDatabaseProvider.overrideWithValue(database),
-      ],
+      overrides: [appDatabaseProvider.overrideWithValue(database)],
       child: const BazarApp(),
     ),
   );

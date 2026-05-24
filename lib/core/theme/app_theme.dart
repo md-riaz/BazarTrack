@@ -7,35 +7,38 @@ class AppTheme {
   const AppTheme._();
 
   static ThemeData get light {
-    final textTheme = Typography.material2021().black.apply(
-      bodyColor: AppColors.text2,
-      displayColor: AppColors.text1,
-      fontFamily: AppTextStyles.fontFamily,
-      fontFamilyFallback: AppTextStyles.fontFamilyFallback,
-    ).copyWith(
-      headlineSmall: AppTextStyles.screenTitle,
-      titleLarge: AppTextStyles.sectionTitle,
-      bodyLarge: AppTextStyles.body,
-      bodyMedium: AppTextStyles.body,
-      bodySmall: AppTextStyles.bodySmall,
-      labelLarge: AppTextStyles.button,
-      labelMedium: AppTextStyles.label,
-      labelSmall: AppTextStyles.caption,
-    );
+    final textTheme = Typography.material2021().black
+        .apply(
+          bodyColor: AppColors.text2,
+          displayColor: AppColors.text1,
+          fontFamily: AppTextStyles.fontFamily,
+          fontFamilyFallback: AppTextStyles.fontFamilyFallback,
+        )
+        .copyWith(
+          headlineSmall: AppTextStyles.screenTitle,
+          titleLarge: AppTextStyles.sectionTitle,
+          bodyLarge: AppTextStyles.body,
+          bodyMedium: AppTextStyles.body,
+          bodySmall: AppTextStyles.bodySmall,
+          labelLarge: AppTextStyles.button,
+          labelMedium: AppTextStyles.label,
+          labelSmall: AppTextStyles.caption,
+        );
 
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
-      brightness: Brightness.light,
-      primary: AppColors.primary,
-      onPrimary: Colors.white,
-      secondary: AppColors.primaryDark,
-      surface: AppColors.surface,
-      error: AppColors.negative,
-    ).copyWith(
-      surfaceContainerHighest: AppColors.surface3,
-      outline: AppColors.border,
-      outlineVariant: AppColors.border2,
-    );
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          brightness: Brightness.light,
+          primary: AppColors.primary,
+          onPrimary: Colors.white,
+          secondary: AppColors.primaryDark,
+          surface: AppColors.surface,
+          error: AppColors.negative,
+        ).copyWith(
+          surfaceContainerHighest: AppColors.surface3,
+          outline: AppColors.border,
+          outlineVariant: AppColors.border2,
+        );
 
     return ThemeData(
       useMaterial3: true,
@@ -86,7 +89,10 @@ class AppTheme {
         fillColor: AppColors.surface,
         hintStyle: AppTextStyles.body.copyWith(color: AppColors.text4),
         labelStyle: AppTextStyles.label,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 13,
+          vertical: 11,
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.border, width: 1.5),
@@ -99,9 +105,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.negative, width: 1.5),
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
       dividerTheme: const DividerThemeData(
         color: AppColors.surface2,
@@ -111,7 +115,9 @@ class AppTheme {
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         side: BorderSide.none,
-        labelStyle: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w700),
+        labelStyle: AppTextStyles.bodySmall.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
         backgroundColor: AppColors.surface3,
       ),
     );

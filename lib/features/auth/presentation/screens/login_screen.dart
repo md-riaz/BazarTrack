@@ -5,7 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../shared/providers/foundation_providers.dart';
+import '../../domain/entities/user.dart';
+import '../providers/auth_provider.dart';
 import '../../../../shared/widgets/primary_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -26,15 +27,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  void _login() {
-    ref.read(authStateProvider.notifier).state = AuthState.demoAuthenticated();
-    if (mounted) {
+  Future<void> _login() async {
+    final user = await ref
+        .read(loginControllerProvider.notifier)
+        .login(
+          phone: _phoneController.text,
+          password: _passwordController.text,
+        );
+
+    if (user != null && mounted) {
       context.go(AppRoutes.home);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final loginState = ref.watch(loginControllerProvider);
+
+    ref.listen<AsyncValue<User?>>(loginControllerProvider, (previous, next) {
+      next.whenOrNull(
+        error: (error, stackTrace) {
+          if (!mounted) {
+            return;
+          }
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(error.toString())));
+        },
+      );
+    });
+
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
@@ -102,8 +124,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                     PrimaryButton(
-                      label: 'লগইন করুন →',
-                      onPressed: _login,
+                      label: loginState.isLoading
+                          ? 'লগইন হচ্ছে...'
+                          : 'লগইন করুন →',
+                      onPressed: loginState.isLoading ? null : _login,
                     ),
                     const SizedBox(height: 6),
                     const Text(

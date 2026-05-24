@@ -16,7 +16,11 @@ class CurrencyFormatter {
     '9': '৯',
   };
 
-  static String format(num value, {bool includeSymbol = true, bool compact = false}) {
+  static String format(
+    num value, {
+    bool includeSymbol = true,
+    bool compact = false,
+  }) {
     final formatter = compact
         ? NumberFormat.compact(locale: 'en_US')
         : NumberFormat('#,##0.##', 'en_US');

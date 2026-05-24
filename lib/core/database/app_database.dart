@@ -48,7 +48,9 @@ class WalletMembers extends Table {
 class WalletAssistantRestrictions extends Table {
   TextColumn get id => text()();
   TextColumn get walletId => text().references(Wallets, #id)();
+  @ReferenceName('restrictedWallets')
   TextColumn get assistantId => text().references(Users, #id)();
+  @ReferenceName('createdWalletRestrictions')
   TextColumn get createdBy => text().references(Users, #id).nullable()();
   DateTimeColumn get createdAt => dateTime()();
 
@@ -59,7 +61,9 @@ class WalletAssistantRestrictions extends Table {
 class Bazars extends Table {
   TextColumn get id => text()();
   TextColumn get walletId => text().references(Wallets, #id)();
+  @ReferenceName('createdBazars')
   TextColumn get createdBy => text().references(Users, #id)();
+  @ReferenceName('assignedBazars')
   TextColumn get assignedTo => text().references(Users, #id).nullable()();
   TextColumn get title => text().nullable()();
   TextColumn get note => text().nullable()();
@@ -91,22 +95,29 @@ class BazarItems extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 
-  @override
   List<Index> get indexes => [
-    Index('idx_bazar_items_bazar_status', 'CREATE INDEX idx_bazar_items_bazar_status ON bazar_items (bazar_id, status)'),
-    Index('idx_bazar_items_bazar_price', 'CREATE INDEX idx_bazar_items_bazar_price ON bazar_items (bazar_id, price)'),
+    Index(
+      'idx_bazar_items_bazar_status',
+      'CREATE INDEX idx_bazar_items_bazar_status ON bazar_items (bazar_id, status)',
+    ),
+    Index(
+      'idx_bazar_items_bazar_price',
+      'CREATE INDEX idx_bazar_items_bazar_price ON bazar_items (bazar_id, price)',
+    ),
   ];
 }
 
 class MoneyEntries extends Table {
   TextColumn get id => text()();
   TextColumn get walletId => text().references(Wallets, #id)();
+  @ReferenceName('assistantMoneyEntries')
   TextColumn get assistantId => text().references(Users, #id)();
   TextColumn get bazarId => text().references(Bazars, #id).nullable()();
   TextColumn get type => text()();
   RealColumn get amount => real()();
   TextColumn get note => text().nullable()();
   DateTimeColumn get entryDate => dateTime()();
+  @ReferenceName('createdMoneyEntries')
   TextColumn get createdBy => text().references(Users, #id).nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
@@ -115,21 +126,28 @@ class MoneyEntries extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 
-  @override
   List<Index> get indexes => [
-    Index('idx_money_entries_wallet_assistant_date', 'CREATE INDEX idx_money_entries_wallet_assistant_date ON money_entries (wallet_id, assistant_id, entry_date)'),
-    Index('idx_money_entries_wallet_locked', 'CREATE INDEX idx_money_entries_wallet_locked ON money_entries (wallet_id, is_locked)'),
+    Index(
+      'idx_money_entries_wallet_assistant_date',
+      'CREATE INDEX idx_money_entries_wallet_assistant_date ON money_entries (wallet_id, assistant_id, entry_date)',
+    ),
+    Index(
+      'idx_money_entries_wallet_locked',
+      'CREATE INDEX idx_money_entries_wallet_locked ON money_entries (wallet_id, is_locked)',
+    ),
   ];
 }
 
 class DirectExpenses extends Table {
   TextColumn get id => text()();
   TextColumn get walletId => text().references(Wallets, #id)();
+  @ReferenceName('assistantDirectExpenses')
   TextColumn get assistantId => text().references(Users, #id)();
   RealColumn get amount => real()();
   TextColumn get note => text().nullable()();
   DateTimeColumn get entryDate => dateTime()();
   TextColumn get receiptUrl => text().nullable()();
+  @ReferenceName('createdDirectExpenses')
   TextColumn get createdBy => text().references(Users, #id).nullable()();
   DateTimeColumn get createdAt => dateTime()();
   BoolColumn get isLocked => boolean().withDefault(const Constant(false))();
@@ -141,11 +159,13 @@ class DirectExpenses extends Table {
 class WalletSnapshots extends Table {
   TextColumn get id => text()();
   TextColumn get walletId => text().references(Wallets, #id)();
+  @ReferenceName('assistantWalletSnapshots')
   TextColumn get assistantId => text().references(Users, #id).nullable()();
   TextColumn get periodMonth => text().withLength(min: 7, max: 7)();
   RealColumn get openingBalance => real()();
   RealColumn get closingBalance => real()();
   TextColumn get snapshotHash => text().nullable()();
+  @ReferenceName('closedWalletSnapshots')
   TextColumn get closedBy => text().references(Users, #id).nullable()();
   DateTimeColumn get closedAt => dateTime()();
   TextColumn get notes => text().nullable()();
@@ -163,8 +183,10 @@ class Attachments extends Table {
   TextColumn get id => text()();
   TextColumn get bazarId => text().references(Bazars, #id).nullable()();
   TextColumn get bazarItemId => text().references(BazarItems, #id).nullable()();
-  TextColumn get moneyEntryId => text().references(MoneyEntries, #id).nullable()();
-  TextColumn get directExpenseId => text().references(DirectExpenses, #id).nullable()();
+  TextColumn get moneyEntryId =>
+      text().references(MoneyEntries, #id).nullable()();
+  TextColumn get directExpenseId =>
+      text().references(DirectExpenses, #id).nullable()();
   TextColumn get fileUrl => text()();
   TextColumn get fileType => text()();
   TextColumn get uploadedBy => text().references(Users, #id).nullable()();
@@ -199,9 +221,11 @@ class ActivityLogs extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 
-  @override
   List<Index> get indexes => [
-    Index('idx_activity_logs_entity', 'CREATE INDEX idx_activity_logs_entity ON activity_logs (entity_type, entity_id)'),
+    Index(
+      'idx_activity_logs_entity',
+      'CREATE INDEX idx_activity_logs_entity ON activity_logs (entity_type, entity_id)',
+    ),
   ];
 }
 
