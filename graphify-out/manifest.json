@@ -1,0 +1,290 @@
+{
+  "/root/projects/Bazar/lib/main.dart": {
+    "mtime": 1779588951.730823,
+    "hash": "8f3228b735ad9b0b00f0f53d90de943f"
+  },
+  "/root/projects/Bazar/lib/app.dart": {
+    "mtime": 1779588951.6888235,
+    "hash": "79aea267aa302387e72cbbbd3f5e5b41"
+  },
+  "/root/projects/Bazar/lib/bootstrap.dart": {
+    "mtime": 1779589042.903967,
+    "hash": "a8b2f777d35aa7cf2d752bd7b0ab82cf"
+  },
+  "/root/projects/Bazar/lib/shared/widgets/ghost_button.dart": {
+    "mtime": 1779587903.9316602,
+    "hash": "e8ecba8b43c5cd2f0057fe59e60393a5"
+  },
+  "/root/projects/Bazar/lib/shared/widgets/primary_button.dart": {
+    "mtime": 1779587904.5336704,
+    "hash": "93318a2e4cfb714ff35157f9683bd318"
+  },
+  "/root/projects/Bazar/lib/shared/widgets/app_divider.dart": {
+    "mtime": 1779587939.9552667,
+    "hash": "cf5c0f67ee2edc1b9d8cc8294a878697"
+  },
+  "/root/projects/Bazar/lib/shared/widgets/frequent_items_row.dart": {
+    "mtime": 1779587939.8762655,
+    "hash": "a09bd5869dd9d9e2bb63504b467dec75"
+  },
+  "/root/projects/Bazar/lib/shared/widgets/bottom_sheet_handle.dart": {
+    "mtime": 1779587904.5256703,
+    "hash": "9b6131d553f0b179062b6ccde66fc1da"
+  },
+  "/root/projects/Bazar/lib/shared/widgets/app_bar.dart": {
+    "mtime": 1779587977.1458814,
+    "hash": "92774dd678efe4ed365bc4c2dfa84917"
+  },
+  "/root/projects/Bazar/lib/shared/widgets/status_chip.dart": {
+    "mtime": 1779587939.069252,
+    "hash": "19c79e8a4657ccf1e9fe7d539df9f41f"
+  },
+  "/root/projects/Bazar/lib/shared/widgets/sync_badge.dart": {
+    "mtime": 1779587939.9012659,
+    "hash": "a2ca313c0b5403f666ebf708c57aece8"
+  },
+  "/root/projects/Bazar/lib/shared/widgets/section_header.dart": {
+    "mtime": 1779587903.997661,
+    "hash": "228616f801fca9c28ee28dc0f884e837"
+  },
+  "/root/projects/Bazar/lib/shared/providers/foundation_providers.dart": {
+    "mtime": 1779596571.6769226,
+    "hash": "c4b7029ab98e22eddb8849f739ce1c25"
+  },
+  "/root/projects/Bazar/lib/shared/models/app_enums.dart": {
+    "mtime": 1779587715.737278,
+    "hash": "1b00b4f346c2661cf9c609a0a3081e52"
+  },
+  "/root/projects/Bazar/lib/features/auth/presentation/screens/login_screen.dart": {
+    "mtime": 1779596517.533145,
+    "hash": "dbaa5960b14c2c8408678f5286c65946"
+  },
+  "/root/projects/Bazar/lib/core/theme/app_text_styles.dart": {
+    "mtime": 1779587766.2442248,
+    "hash": "cf09cd0e98352540432d22e5fc262968"
+  },
+  "/root/projects/Bazar/lib/core/theme/app_colors.dart": {
+    "mtime": 1779587741.8887722,
+    "hash": "fdb424f0b5052899a2f94e1b0f8e843e"
+  },
+  "/root/projects/Bazar/lib/core/theme/app_theme.dart": {
+    "mtime": 1779587795.0227506,
+    "hash": "cae421b7ce1e8666170c47de2096e703"
+  },
+  "/root/projects/Bazar/lib/core/database/app_database.dart": {
+    "mtime": 1779589029.6890726,
+    "hash": "7c586304eec684ad348db1a2ab0cc52e"
+  },
+  "/root/projects/Bazar/lib/core/mock/mock_seed.dart": {
+    "mtime": 1779588068.6243486,
+    "hash": "c9d2acc4f6d9df01ecfde9931716bb6a"
+  },
+  "/root/projects/Bazar/lib/core/utils/balance_formatter.dart": {
+    "mtime": 1779587977.1368814,
+    "hash": "f7382208e20563a770536648d116444b"
+  },
+  "/root/projects/Bazar/lib/core/utils/currency_formatter.dart": {
+    "mtime": 1779587977.1408813,
+    "hash": "5537830a59c704752269401231a6b77f"
+  },
+  "/root/projects/Bazar/lib/core/utils/date_formatter.dart": {
+    "mtime": 1779587977.1638818,
+    "hash": "62efa1f961105a4399c20fea65bfc193"
+  },
+  "/root/projects/Bazar/lib/core/router/app_router.dart": {
+    "mtime": 1779596571.647922,
+    "hash": "eea927b1915cec58c796272bff11f8ce"
+  },
+  "/root/projects/Bazar/android/build.gradle.kts": {
+    "mtime": 1779587584.3576486,
+    "hash": "f11f360aed44d4f6871b398346af14f0"
+  },
+  "/root/projects/Bazar/android/gradlew": {
+    "mtime": 1779587584.9906619,
+    "hash": "7f1cd7eb3f75a1dc85cd37753972a6e2"
+  },
+  "/root/projects/Bazar/android/settings.gradle.kts": {
+    "mtime": 1779587584.3116477,
+    "hash": "094e3cafe85d4dbf756dfe0bd754c6cb"
+  },
+  "/root/projects/Bazar/android/app/build.gradle.kts": {
+    "mtime": 1779587584.3596487,
+    "hash": "39efe0fa82019b9118da5854555f9acf"
+  },
+  "/root/projects/Bazar/android/app/src/main/kotlin/com/example/bazar/MainActivity.kt": {
+    "mtime": 1779587584.3626487,
+    "hash": "4a58543aef0d1b822bf1d766dcb1f0fb"
+  },
+  "/root/projects/Bazar/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java": {
+    "mtime": 1779596644.0199428,
+    "hash": "0b5a12beb537e6c78fed4e0be068d218"
+  },
+  "/root/projects/Bazar/test/widget_test.dart": {
+    "mtime": 1779596944.4850051,
+    "hash": "586d927fbd53559e839992189f0d8b4f"
+  },
+  "/root/projects/Bazar/assets/prototype.jsx": {
+    "mtime": 1779580271.3954105,
+    "hash": "045d889dee1962c323f4fc081452705d"
+  },
+  "/root/projects/Bazar/ios/Runner/AppDelegate.swift": {
+    "mtime": 1779587584.4076498,
+    "hash": "2bd8469f2a4b701ff582f6574e58b13c"
+  },
+  "/root/projects/Bazar/ios/Runner/Runner-Bridging-Header.h": {
+    "mtime": 1779587584.4086497,
+    "hash": "e07862ac930ed4d8479185d52c6cc66d"
+  },
+  "/root/projects/Bazar/ios/Runner/GeneratedPluginRegistrant.h": {
+    "mtime": 1779587587.9757247,
+    "hash": "decb9041b5e91a07e66f4664e5dac408"
+  },
+  "/root/projects/Bazar/ios/Runner/SceneDelegate.swift": {
+    "mtime": 1779587584.4526505,
+    "hash": "748d701e783e68faf618c00464257a19"
+  },
+  "/root/projects/Bazar/ios/Runner/GeneratedPluginRegistrant.m": {
+    "mtime": 1779596644.0569432,
+    "hash": "7414a6585a783140a36328a32c4c5e94"
+  },
+  "/root/projects/Bazar/ios/Flutter/ephemeral/flutter_lldb_helper.py": {
+    "mtime": 1779587587.525715,
+    "hash": "98fc75412162af387e2e3461e4e58094"
+  },
+  "/root/projects/Bazar/ios/RunnerTests/RunnerTests.swift": {
+    "mtime": 1779587584.4606507,
+    "hash": "a225a382d14d7b16b6f602a5c1d49331"
+  },
+  "/root/projects/Bazar/README.md": {
+    "mtime": 1779587584.3716488,
+    "hash": "1b3536c0bd6bb0d25909739c985a9e93"
+  },
+  "/root/projects/Bazar/progress.md": {
+    "mtime": 1779580761.4194553,
+    "hash": "eded69f858234ca63e762fa1d07bcdc9"
+  },
+  "/root/projects/Bazar/pubspec.yaml": {
+    "mtime": 1779587697.4099262,
+    "hash": "bd2d21f493e6b1598dcf1dc81ecafdad"
+  },
+  "/root/projects/Bazar/subagents.md": {
+    "mtime": 1779586757.493442,
+    "hash": "f5d6d065ede755a0798a6a8bbb0619f7"
+  },
+  "/root/projects/Bazar/AGENTS_PROMPT.md": {
+    "mtime": 1779587087.2542045,
+    "hash": "08091c6816bf14d3b52127d681572490"
+  },
+  "/root/projects/Bazar/analysis_options.yaml": {
+    "mtime": 1779587584.369649,
+    "hash": "66d03d7647c8e438164feaf5b922d44a"
+  },
+  "/root/projects/Bazar/todo.md": {
+    "mtime": 1779580607.026273,
+    "hash": "220dc1413f62fafc8a61ad3ccfd3270d"
+  },
+  "/root/projects/Bazar/assets/spec_extracted.txt": {
+    "mtime": 1779580448.7594078,
+    "hash": "39fc7727d11a1a6ebfffc5029c29762a"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md": {
+    "mtime": 1779587584.4166498,
+    "hash": "e175e436acacf76c814d83532d0b662c"
+  },
+  "/root/projects/Bazar/assets/spec.pdf": {
+    "mtime": 1779579976.5786552,
+    "hash": "4181994cf969180830ef12d3b042d6aa"
+  },
+  "/root/projects/Bazar/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png": {
+    "mtime": 1779587584.321648,
+    "hash": "57838d52c318faff743130c3fcfae0c6"
+  },
+  "/root/projects/Bazar/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png": {
+    "mtime": 1779587584.3226478,
+    "hash": "a0a8db5985280b3679d99a820ae2db79"
+  },
+  "/root/projects/Bazar/android/app/src/main/res/mipmap-mdpi/ic_launcher.png": {
+    "mtime": 1779587584.324648,
+    "hash": "6270344430679711b81476e29878caa7"
+  },
+  "/root/projects/Bazar/android/app/src/main/res/mipmap-hdpi/ic_launcher.png": {
+    "mtime": 1779587584.3256478,
+    "hash": "13e9c72ec37fac220397aa819fa1ef2d"
+  },
+  "/root/projects/Bazar/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png": {
+    "mtime": 1779587584.331648,
+    "hash": "afe1b655b9f32da22f9a4301bb8e6ba8"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@2x.png": {
+    "mtime": 1779587584.4256501,
+    "hash": "978c1bee49d7ad5fc1a4d81099b13e18"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png": {
+    "mtime": 1779587584.42665,
+    "hash": "978c1bee49d7ad5fc1a4d81099b13e18"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage.png": {
+    "mtime": 1779587584.42365,
+    "hash": "978c1bee49d7ad5fc1a4d81099b13e18"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@2x.png": {
+    "mtime": 1779587584.4496505,
+    "hash": "5b3c0902200ce596e9848f22e1f0fe0e"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-83.5x83.5@2x.png": {
+    "mtime": 1779587584.4386504,
+    "hash": "665cb5e3c5729da6d639d26eff47a503"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png": {
+    "mtime": 1779587584.4306502,
+    "hash": "c785f8932297af4acd5f5ccb7630f01c"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@1x.png": {
+    "mtime": 1779587584.4476504,
+    "hash": "36c0d7a7132bdde18898ffdfcfcdc4d2"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@3x.png": {
+    "mtime": 1779587584.4516506,
+    "hash": "e419d22a37bc40ba185aca1acb6d4ac6"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@2x.png": {
+    "mtime": 1779587584.4316502,
+    "hash": "8245359312aea1b0d2412f79a07b0ca5"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@1x.png": {
+    "mtime": 1779587584.4506505,
+    "hash": "be8887071dd7ec39cb754d236aa9584f"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@2x.png": {
+    "mtime": 1779587584.4436505,
+    "hash": "043119ef4faa026ff82bd03f241e5338"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@3x.png": {
+    "mtime": 1779587584.4406502,
+    "hash": "2b1452c4c1bda6177b4fbbb832df217f"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@2x.png": {
+    "mtime": 1779587584.4336503,
+    "hash": "2247a840b6ee72b8a069208af170e5b1"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@3x.png": {
+    "mtime": 1779587584.4376502,
+    "hash": "1b3b1538136316263c7092951e923e9d"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@3x.png": {
+    "mtime": 1779587584.4486506,
+    "hash": "5b3c0902200ce596e9848f22e1f0fe0e"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@1x.png": {
+    "mtime": 1779587584.4456503,
+    "hash": "2247a840b6ee72b8a069208af170e5b1"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@1x.png": {
+    "mtime": 1779587584.4356503,
+    "hash": "a2f8558fb1d42514111fbbb19fb67314"
+  },
+  "/root/projects/Bazar/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@2x.png": {
+    "mtime": 1779587584.4446504,
+    "hash": "643842917530acf4c5159ae851b0baf2"
+  }
+}
