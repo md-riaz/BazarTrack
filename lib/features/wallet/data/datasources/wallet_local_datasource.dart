@@ -49,6 +49,13 @@ class WalletMemberDao {
 
   final db.AppDatabase _database;
 
+  Stream<List<domain.WalletMember>> watchAllMembers() {
+    return (_database.select(_database.walletMembers)
+          ..orderBy([(table) => OrderingTerm.asc(table.createdAt)]))
+        .watch()
+        .map((rows) => rows.map(_mapMember).toList(growable: false));
+  }
+
   Stream<List<domain.WalletMember>> watchMembers(String walletId) {
     return (_database.select(_database.walletMembers)
           ..where((table) => table.walletId.equals(walletId))

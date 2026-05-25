@@ -28,6 +28,17 @@ class MockSeed {
     await db.batch((batch) {
       batch.insertAll(db.users, [
         UsersCompanion.insert(
+          id: 'u0',
+          name: 'Admin User',
+          phone: const Value('01000-ADMIN'),
+          email: const Value('admin@example.com'),
+          role: 'admin',
+          passwordHash: const Value('demo-hash'),
+          isActive: const Value(true),
+          createdAt: now,
+          updatedAt: now,
+        ),
+        UsersCompanion.insert(
           id: 'u1',
           name: 'Rahim Uddin',
           phone: const Value('01711-XXXXXX'),

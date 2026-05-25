@@ -5,6 +5,8 @@ import '../../../../core/sync/sync_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/models/app_enums.dart';
+import '../../../auth/domain/entities/user.dart';
+import '../../../auth/domain/services/role_permissions.dart';
 import '../../../../shared/widgets/app_bar.dart';
 import '../../../../shared/widgets/ghost_button.dart';
 import '../providers/settings_providers.dart';
@@ -13,12 +15,14 @@ import '../widgets/settings_widgets.dart';
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({
     super.key,
+    this.user,
     this.onProfileEditTap,
     this.onOfflineQueueTap,
     this.onMenuTap,
     this.onLogoutTap,
   });
 
+  final User? user;
   final VoidCallback? onProfileEditTap;
   final VoidCallback? onOfflineQueueTap;
   final ValueChanged<String>? onMenuTap;
@@ -35,7 +39,7 @@ class MoreScreen extends ConsumerWidget {
       appBar: const BazarAppBar(title: 'আরো'),
       body: ListView(
         children: [
-          _ProfileCard(onProfileEditTap: onProfileEditTap),
+          _ProfileCard(user: user, onProfileEditTap: onProfileEditTap),
           _SyncStatusCard(
             sync: sync,
             queueCount: queueCount,
@@ -44,15 +48,22 @@ class MoreScreen extends ConsumerWidget {
           HSectionCard(
             children: [
               _menuRow('notifications', 'নোটিফিকেশন', Icons.notifications),
-              _menuRow('reports', 'রিপোর্ট', Icons.bar_chart),
+              if (user == null || RolePermissions.canAccessReports(user!.role))
+                _menuRow('reports', 'রিপোর্ট', Icons.bar_chart),
               _menuRow(
                 'walletDetail',
                 'Wallet details',
                 Icons.account_balance_wallet,
               ),
-              _menuRow('monthlyClose', 'Close হিসাব', Icons.calendar_month),
+              if (user == null || RolePermissions.canAccessReports(user!.role))
+                _menuRow('monthlyClose', 'Close হিসাব', Icons.calendar_month),
               _menuRow('search', 'খুঁজুন', Icons.search),
-              _menuRow('admin', 'অ্যাডমিন প্যানেল', Icons.admin_panel_settings),
+              if (user != null && RolePermissions.canSeeAdminMenu(user!.role))
+                _menuRow(
+                  'admin',
+                  'অ্যাডমিন প্যানেল',
+                  Icons.admin_panel_settings,
+                ),
               HMenuRow(
                 icon: Icons.settings,
                 title: 'সেটিংস',
@@ -93,12 +104,15 @@ class MoreScreen extends ConsumerWidget {
 }
 
 class _ProfileCard extends StatelessWidget {
-  const _ProfileCard({required this.onProfileEditTap});
+  const _ProfileCard({required this.user, required this.onProfileEditTap});
 
+  final User? user;
   final VoidCallback? onProfileEditTap;
 
   @override
   Widget build(BuildContext context) {
+    final displayName = user?.name ?? 'Demo User';
+    final contact = user?.phone ?? user?.email ?? 'Demo account';
     return HSectionCard(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 10),
       children: [
@@ -106,18 +120,20 @@ class _ProfileCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
-              const HAvatar(label: 'RU'),
+              HAvatar(label: _initials(displayName)),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Rahim Uddin', style: AppTextStyles.bodyStrong),
+                    Text(displayName, style: AppTextStyles.bodyStrong),
                     const SizedBox(height: 2),
-                    Text('01711-XXXXXX', style: AppTextStyles.bodySmall),
+                    Text(contact, style: AppTextStyles.bodySmall),
                     const SizedBox(height: 5),
-                    const HPill(
-                      label: 'সহকারী',
+                    HPill(
+                      label: user == null
+                          ? 'Demo'
+                          : RolePermissions.label(user!.role),
                       backgroundColor: AppColors.positiveLight,
                       foregroundColor: AppColors.positiveDark,
                     ),
@@ -139,6 +155,15 @@ class _ProfileCard extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _initials(String name) {
+    final parts = name
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList(growable: false);
+    if (parts.isEmpty) return 'DU';
+    return parts.take(2).map((part) => part[0].toUpperCase()).join();
   }
 }
 

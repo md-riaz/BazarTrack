@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../bootstrap.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../wallet/presentation/providers/wallet_providers.dart';
 import '../../../../core/mock/mock_seed.dart';
 import '../../../../core/sync/sync_providers.dart';
 import '../../../../shared/models/app_enums.dart';
@@ -33,7 +35,40 @@ final selectedBazarStatusProvider = StateProvider<BazarStatus?>((ref) => null);
 
 final bazarsProvider = StreamProvider<List<Bazar>>((ref) {
   final status = ref.watch(selectedBazarStatusProvider);
-  return ref.watch(bazarRepositoryProvider).watchBazars(status: status);
+  final currentUser = ref.watch(currentUserProvider).valueOrNull;
+  if (currentUser == null) {
+    return Stream.value(const <Bazar>[]);
+  }
+
+  final bazarStream = ref
+      .watch(bazarRepositoryProvider)
+      .watchBazars(status: status);
+  if (currentUser.role == UserRole.admin) {
+    return bazarStream;
+  }
+
+  if (currentUser.role == UserRole.assistant) {
+    return bazarStream.map(
+      (bazars) => bazars
+          .where(
+            (bazar) =>
+                bazar.assignedTo == null || bazar.assignedTo == currentUser.id,
+          )
+          .toList(growable: false),
+    );
+  }
+
+  final visibleWallets = ref.watch(walletListProvider).valueOrNull;
+  if (visibleWallets == null) {
+    return Stream.value(const <Bazar>[]);
+  }
+
+  final visibleWalletIds = visibleWallets.map((wallet) => wallet.id).toSet();
+  return bazarStream.map(
+    (bazars) => bazars
+        .where((bazar) => visibleWalletIds.contains(bazar.walletId))
+        .toList(growable: false),
+  );
 });
 
 final bazarProvider = StreamProvider.family<Bazar?, String>((ref, bazarId) {

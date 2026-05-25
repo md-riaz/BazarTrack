@@ -3,7 +3,9 @@ import 'package:bazar/core/database/app_database.dart';
 import 'package:bazar/core/sync/connectivity_service.dart';
 import 'package:bazar/core/sync/sync_providers.dart';
 import 'package:bazar/core/theme/app_theme.dart';
+import 'package:bazar/features/auth/domain/entities/user.dart' as auth;
 import 'package:bazar/features/settings/presentation/screens/more_screen.dart';
+import 'package:bazar/shared/models/app_enums.dart';
 import 'package:drift/drift.dart';
 import 'package:bazar/features/settings/presentation/screens/offline_queue_screen.dart';
 import 'package:bazar/features/settings/presentation/screens/profile_edit_screen.dart';
@@ -29,7 +31,7 @@ Widget _wrap(
 
 void main() {
   group('Agent H settings screens', () {
-    testWidgets('MoreScreen renders profile, menu, and sync controls', (
+    testWidgets('MoreScreen shows assistant profile and role-limited menu', (
       tester,
     ) async {
       String? tappedRoute;
@@ -42,6 +44,14 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           MoreScreen(
+            user: const auth.User(
+              id: 'u1',
+              name: 'Rahim Uddin',
+              role: UserRole.assistant,
+              isActive: true,
+              phone: '01711-XXXXXX',
+              email: 'rahim@example.com',
+            ),
             onMenuTap: (route) => tappedRoute = route,
             onOfflineQueueTap: () => tappedRoute = 'offlineQueue',
           ),
@@ -55,8 +65,15 @@ void main() {
 
       expect(find.text('আরো'), findsOneWidget);
       expect(find.text('Rahim Uddin'), findsOneWidget);
+      expect(find.text('01711-XXXXXX'), findsOneWidget);
+      expect(find.text('Assistant'), findsOneWidget);
       expect(find.text('নোটিফিকেশন'), findsOneWidget);
+      expect(find.text('Wallet details'), findsOneWidget);
+      expect(find.text('খুঁজুন'), findsOneWidget);
       expect(find.text('সেটিংস'), findsOneWidget);
+      expect(find.text('রিপোর্ট'), findsNothing);
+      expect(find.text('Close হিসাব'), findsNothing);
+      expect(find.text('অ্যাডমিন প্যানেল'), findsNothing);
 
       expect(find.text('Sync status'), findsOneWidget);
       expect(find.text('২টা item Sync queue-তে আছে। দেখুন →'), findsOneWidget);
@@ -69,6 +86,34 @@ void main() {
 
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(milliseconds: 1));
+    });
+
+    testWidgets('MoreScreen shows owner reports and monthly close only', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(MoreScreen(user: _user(role: UserRole.owner))),
+      );
+      await tester.pump();
+
+      expect(find.text('Rahim Uddin'), findsOneWidget);
+      expect(find.text('Owner'), findsOneWidget);
+      expect(find.text('রিপোর্ট'), findsOneWidget);
+      expect(find.text('Close হিসাব'), findsOneWidget);
+      expect(find.text('অ্যাডমিন প্যানেল'), findsNothing);
+    });
+
+    testWidgets('MoreScreen shows admin panel for admin user', (tester) async {
+      await tester.pumpWidget(
+        _wrap(MoreScreen(user: _user(role: UserRole.admin))),
+      );
+      await tester.pump();
+
+      expect(find.text('Rahim Uddin'), findsOneWidget);
+      expect(find.text('Admin'), findsOneWidget);
+      expect(find.text('রিপোর্ট'), findsOneWidget);
+      expect(find.text('Close হিসাব'), findsOneWidget);
+      expect(find.text('অ্যাডমিন প্যানেল'), findsOneWidget);
     });
 
     testWidgets('SettingsScreen toggles language and notification controls', (
@@ -179,6 +224,17 @@ void main() {
       expect(find.text('প্রোফাইল সংরক্ষিত হয়েছে'), findsOneWidget);
     });
   });
+}
+
+auth.User _user({required UserRole role}) {
+  return auth.User(
+    id: 'u-${role.name}',
+    name: 'Rahim Uddin',
+    role: role,
+    isActive: true,
+    phone: '01711-XXXXXX',
+    email: 'rahim@example.com',
+  );
 }
 
 Future<void> _insertQueueRows(AppDatabase database) async {

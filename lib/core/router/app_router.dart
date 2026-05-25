@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/admin/presentation/screens/add_user_screen.dart';
 import '../../features/admin/presentation/screens/add_wallet_screen.dart';
 import '../../features/admin/presentation/screens/admin_screen.dart';
+import '../../features/auth/domain/services/role_permissions.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/bazar/domain/entities/bazar_entities.dart';
@@ -53,16 +54,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.home,
     redirect: (context, state) {
       final isLoggingIn = state.matchedLocation == AppRoutes.login;
-      final isAuthenticated = currentUser.maybeWhen(
-        data: (user) => user != null,
-        orElse: () => false,
-      );
+      final user = currentUser.valueOrNull;
+      final isAuthenticated = user != null;
 
       if (!isAuthenticated && !isLoggingIn) {
         return AppRoutes.login;
       }
 
       if (isAuthenticated && isLoggingIn) {
+        return AppRoutes.home;
+      }
+
+      if (user != null && !_canAccessRoute(state.matchedLocation, user.role)) {
         return AppRoutes.home;
       }
 
@@ -75,8 +78,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const LoginScreen(),
       ),
       ShellRoute(
-        builder: (context, state, child) =>
-            MainShell(location: state.uri.path, child: child),
+        builder: (context, state, child) => MainShell(
+          location: state.uri.path,
+          role: currentUser.valueOrNull?.role,
+          child: child,
+        ),
         routes: [
           GoRoute(
             path: AppRoutes.home,
@@ -114,6 +120,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoutes.more,
             name: 'more',
             builder: (context, state) => MoreScreen(
+              user: currentUser.valueOrNull,
               onProfileEditTap: () => context.push(AppRoutes.profileEdit),
               onOfflineQueueTap: () => context.push(AppRoutes.offlineQueue),
               onMenuTap: (key) => _goFromMoreMenu(context, key),
@@ -323,10 +330,16 @@ class AppRoutes {
 }
 
 class MainShell extends StatelessWidget {
-  const MainShell({required this.location, required this.child, super.key});
+  const MainShell({
+    required this.location,
+    required this.child,
+    this.role,
+    super.key,
+  });
 
   final String location;
   final Widget child;
+  final UserRole? role;
 
   @override
   Widget build(BuildContext context) {
@@ -366,9 +379,9 @@ class MainShell extends StatelessWidget {
           type: BottomNavigationBarType.fixed,
           selectedItemColor: AppColors.primary,
           unselectedItemColor: AppColors.text3,
-          onTap: (index) => context.go(_destinations[index].path),
+          onTap: (index) => context.go(_destinationsForRole(role)[index].path),
           items: [
-            for (final destination in _destinations)
+            for (final destination in _destinationsForRole(role))
               BottomNavigationBarItem(
                 icon: Semantics(
                   label: destination.label,
@@ -391,7 +404,8 @@ class MainShell extends StatelessWidget {
   }
 
   int _selectedIndex(String location) {
-    final index = _destinations.indexWhere((destination) {
+    final destinations = _destinationsForRole(role);
+    final index = destinations.indexWhere((destination) {
       if (destination.path == AppRoutes.home) {
         return location == AppRoutes.home;
       }
@@ -416,38 +430,69 @@ class _ShellDestination {
   final IconData selectedIcon;
 }
 
-const _destinations = <_ShellDestination>[
-  _ShellDestination(
-    path: AppRoutes.home,
-    label: 'হোম',
-    icon: Icons.home_outlined,
-    selectedIcon: Icons.home,
-  ),
-  _ShellDestination(
-    path: AppRoutes.bazarList,
-    label: 'বাজার',
-    icon: Icons.shopping_basket_outlined,
-    selectedIcon: Icons.shopping_basket,
-  ),
-  _ShellDestination(
-    path: AppRoutes.balance,
-    label: 'হিসাব',
-    icon: Icons.account_balance_wallet_outlined,
-    selectedIcon: Icons.account_balance_wallet,
-  ),
-  _ShellDestination(
-    path: AppRoutes.reports,
-    label: 'রিপোর্ট',
-    icon: Icons.bar_chart_outlined,
-    selectedIcon: Icons.bar_chart,
-  ),
-  _ShellDestination(
-    path: AppRoutes.more,
-    label: 'আরো',
-    icon: Icons.more_horiz,
-    selectedIcon: Icons.more,
-  ),
-];
+const _homeDestination = _ShellDestination(
+  path: AppRoutes.home,
+  label: 'হোম',
+  icon: Icons.home_outlined,
+  selectedIcon: Icons.home,
+);
+
+const _bazarDestination = _ShellDestination(
+  path: AppRoutes.bazarList,
+  label: 'বাজার',
+  icon: Icons.shopping_basket_outlined,
+  selectedIcon: Icons.shopping_basket,
+);
+
+const _balanceDestination = _ShellDestination(
+  path: AppRoutes.balance,
+  label: 'হিসাব',
+  icon: Icons.account_balance_wallet_outlined,
+  selectedIcon: Icons.account_balance_wallet,
+);
+
+const _reportsDestination = _ShellDestination(
+  path: AppRoutes.reports,
+  label: 'রিপোর্ট',
+  icon: Icons.bar_chart_outlined,
+  selectedIcon: Icons.bar_chart,
+);
+
+const _moreDestination = _ShellDestination(
+  path: AppRoutes.more,
+  label: 'আরো',
+  icon: Icons.more_horiz,
+  selectedIcon: Icons.more,
+);
+
+List<_ShellDestination> _destinationsForRole(UserRole? role) {
+  return [
+    _homeDestination,
+    _bazarDestination,
+    _balanceDestination,
+    if (role == null || RolePermissions.canSeeReportsTab(role))
+      _reportsDestination,
+    _moreDestination,
+  ];
+}
+
+bool _canAccessRoute(String route, UserRole role) {
+  if (route == AppRoutes.admin ||
+      route == AppRoutes.addUser ||
+      route == AppRoutes.addWallet) {
+    return RolePermissions.canAccessAdmin(role);
+  }
+  if (route == AppRoutes.reports || route == AppRoutes.monthlyClose) {
+    return RolePermissions.canAccessReports(role);
+  }
+  if (route == AppRoutes.moneyEntry) {
+    return RolePermissions.canRecordMoneyEntry(role);
+  }
+  if (route == AppRoutes.directExpense) {
+    return RolePermissions.canAddDirectExpense(role);
+  }
+  return true;
+}
 
 String _goFromMoreMenu(BuildContext context, String key) {
   final destination = switch (key) {
@@ -571,14 +616,15 @@ class HomeDashboardScreen extends ConsumerWidget {
           _RecentBazarList(bazars: bazars, onBazarTap: onBazarTap),
           SectionHeader(title: 'দ্রুত কাজ'),
           _HomeActionGrid(
-            actions: [
-              _HomeAction('বাজার তালিকা', Icons.shopping_basket, onBazarTap),
-              _HomeAction('নতুন বাজার', Icons.add_shopping_cart, onNewBazarTap),
-              _HomeAction('হিসাব', Icons.account_balance_wallet, onBalanceTap),
-              _HomeAction('টাকা এন্ট্রি', Icons.payments, onMoneyEntryTap),
-              _HomeAction('সরাসরি খরচ', Icons.receipt_long, onDirectExpenseTap),
-              _HomeAction('রিপোর্ট', Icons.bar_chart, onReportsTap),
-            ],
+            actions: _homeActionsForRole(
+              role: currentUser?.role,
+              onBazarTap: onBazarTap,
+              onNewBazarTap: onNewBazarTap,
+              onBalanceTap: onBalanceTap,
+              onMoneyEntryTap: onMoneyEntryTap,
+              onDirectExpenseTap: onDirectExpenseTap,
+              onReportsTap: onReportsTap,
+            ),
           ),
         ],
       ),
@@ -945,6 +991,28 @@ class _LoadingDashboardCard extends StatelessWidget {
       ),
     );
   }
+}
+
+List<_HomeAction> _homeActionsForRole({
+  required UserRole? role,
+  required VoidCallback onBazarTap,
+  required VoidCallback onNewBazarTap,
+  required VoidCallback onBalanceTap,
+  required VoidCallback onMoneyEntryTap,
+  required VoidCallback onDirectExpenseTap,
+  required VoidCallback onReportsTap,
+}) {
+  return [
+    _HomeAction('বাজার তালিকা', Icons.shopping_basket, onBazarTap),
+    _HomeAction('নতুন বাজার', Icons.add_shopping_cart, onNewBazarTap),
+    _HomeAction('হিসাব', Icons.account_balance_wallet, onBalanceTap),
+    if (role == null || RolePermissions.canRecordMoneyEntry(role))
+      _HomeAction('টাকা এন্ট্রি', Icons.payments, onMoneyEntryTap),
+    if (role == null || RolePermissions.canAddDirectExpense(role))
+      _HomeAction('সরাসরি খরচ', Icons.receipt_long, onDirectExpenseTap),
+    if (role == null || RolePermissions.canAccessReports(role))
+      _HomeAction('রিপোর্ট', Icons.bar_chart, onReportsTap),
+  ];
 }
 
 class _HomeAction {

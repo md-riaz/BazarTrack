@@ -21,16 +21,51 @@ void main() {
     repository.dispose();
   });
 
-  test('login succeeds with seeded mock user and stores token', () async {
+  test('demo role login stores matching user and token', () async {
+    final cases =
+        <({String phone, String userId, UserRole role, String token})>[
+          (
+            phone: MockAuthRemoteDataSource.demoAdminPhone,
+            userId: 'u0',
+            role: UserRole.admin,
+            token: 'mock-auth-token-u0',
+          ),
+          (
+            phone: MockAuthRemoteDataSource.demoOwnerPhone,
+            userId: 'u3',
+            role: UserRole.owner,
+            token: 'mock-auth-token-u3',
+          ),
+          (
+            phone: MockAuthRemoteDataSource.demoAssistantPhone,
+            userId: 'u1',
+            role: UserRole.assistant,
+            token: 'mock-auth-token-u1',
+          ),
+        ];
+
+    for (final testCase in cases) {
+      await repository.logout();
+
+      final user = await repository.login(
+        phone: testCase.phone,
+        password: MockAuthRemoteDataSource.demoPassword,
+      );
+
+      expect(user.id, testCase.userId);
+      expect(user.role, testCase.role);
+      expect(await localDataSource.readToken(), testCase.token);
+      expect(await localDataSource.readUserId(), testCase.userId);
+    }
+  });
+
+  test('fallback manual login still stores assistant session', () async {
     final user = await repository.login(phone: '01700000000', password: 'demo');
 
     expect(user.id, 'u1');
     expect(user.name, 'Rahim Uddin');
     expect(user.role, UserRole.assistant);
-    expect(
-      await localDataSource.readToken(),
-      MockAuthRemoteDataSource.seededToken,
-    );
+    expect(await localDataSource.readToken(), 'mock-auth-token-u1');
     expect(await localDataSource.readUserId(), 'u1');
   });
 
@@ -41,17 +76,27 @@ void main() {
     expect(await repository.hasActiveSession(), isFalse);
   });
 
-  test('getCurrentUser restores seeded user when token exists', () async {
-    await localDataSource.saveSession(
-      token: MockAuthRemoteDataSource.seededToken,
-      userId: 'u1',
-    );
+  test('getCurrentUser token restore preserves selected role', () async {
+    final cases = <({String token, String userId, UserRole role})>[
+      (token: 'mock-auth-token-u0', userId: 'u0', role: UserRole.admin),
+      (token: 'mock-auth-token-u3', userId: 'u3', role: UserRole.owner),
+      (token: 'mock-auth-token-u1', userId: 'u1', role: UserRole.assistant),
+    ];
 
-    final user = await repository.getCurrentUser();
+    for (final testCase in cases) {
+      await repository.logout();
+      await localDataSource.saveSession(
+        token: testCase.token,
+        userId: testCase.userId,
+      );
 
-    expect(user, isNotNull);
-    expect(user!.id, 'u1');
-    expect(await repository.hasActiveSession(), isTrue);
+      final user = await repository.getCurrentUser();
+
+      expect(user, isNotNull);
+      expect(user!.id, testCase.userId);
+      expect(user.role, testCase.role);
+      expect(await repository.hasActiveSession(), isTrue);
+    }
   });
 
   test('logout clears token and emits null current user', () async {
