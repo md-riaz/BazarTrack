@@ -58,10 +58,10 @@ void main() {
       expect(find.text('নোটিফিকেশন'), findsOneWidget);
       expect(find.text('সেটিংস'), findsOneWidget);
 
-      expect(find.text('সিঙ্ক অবস্থা'), findsOneWidget);
-      expect(find.text('২টি আইটেম সিঙ্ক কিউতে আছে। দেখুন →'), findsOneWidget);
+      expect(find.text('Sync status'), findsOneWidget);
+      expect(find.text('২টা item Sync queue-তে আছে। দেখুন →'), findsOneWidget);
 
-      await tester.tap(find.text('২টি আইটেম সিঙ্ক কিউতে আছে। দেখুন →'));
+      await tester.tap(find.text('২টা item Sync queue-তে আছে। দেখুন →'));
       expect(tappedRoute, 'offlineQueue');
 
       await tester.tap(find.text('নোটিফিকেশন'));
@@ -83,12 +83,12 @@ void main() {
       expect(find.text('সেটিংস'), findsOneWidget);
       expect(find.text('পুশ নোটিফিকেশন'), findsOneWidget);
       expect(find.text('ভাষা / Language'), findsOneWidget);
-      expect(find.text('ভার্সন'), findsOneWidget);
+      expect(find.text('Version'), findsOneWidget);
 
       await tester.tap(find.text('English'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('সিঙ্ক কিউ দেখুন'));
+      await tester.tap(find.text('Sync queue দেখুন'));
       expect(queueTapped, isTrue);
     });
 
@@ -143,13 +143,13 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.text('সিঙ্ক কিউ'), findsOneWidget);
-      expect(find.text('অফলাইন আইটেম'), findsOneWidget);
+      expect(find.text('Sync queue'), findsOneWidget);
+      expect(find.text('Offline items'), findsOneWidget);
       expect(find.text('২টি আইটেম পাঠানো বাকি আছে'), findsOneWidget);
       expect(find.text('১ ব্যর্থ'), findsOneWidget);
       expect(find.text('দুধ ২ প্যাকেট'), findsOneWidget);
       expect(find.text('সরাসরি খরচ — ৳ ৫০'), findsOneWidget);
-      expect(find.text('সব আবার সিঙ্ক করুন'), findsOneWidget);
+      expect(find.text('Retry all'), findsOneWidget);
       expect(find.text('Queue মুছুন'), findsNothing);
 
       await tester.pumpWidget(const SizedBox.shrink());

@@ -44,7 +44,7 @@ void main() {
 
     expect(find.text('সহজ বাজার খাতা'), findsOneWidget);
     expect(find.textContaining('স্বাগতম'), findsOneWidget);
-    expect(find.text('হিসাবের সারাংশ'), findsOneWidget);
+    expect(find.text('Balance Summary'), findsOneWidget);
     expect(find.text('সাম্প্রতিক বাজার'), findsOneWidget);
     expect(find.text('দ্রুত কাজ'), findsOneWidget);
     expect(find.text('বাজার তালিকা'), findsOneWidget);

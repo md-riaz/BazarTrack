@@ -47,10 +47,10 @@ class MoreScreen extends ConsumerWidget {
               _menuRow('reports', 'রিপোর্ট', Icons.bar_chart),
               _menuRow(
                 'walletDetail',
-                'ওয়ালেট ডিটেইল',
+                'Wallet details',
                 Icons.account_balance_wallet,
               ),
-              _menuRow('monthlyClose', 'হিসাব বন্ধ', Icons.calendar_month),
+              _menuRow('monthlyClose', 'Close হিসাব', Icons.calendar_month),
               _menuRow('search', 'খুঁজুন', Icons.search),
               _menuRow('admin', 'অ্যাডমিন প্যানেল', Icons.admin_panel_settings),
               HMenuRow(
@@ -127,7 +127,7 @@ class _ProfileCard extends StatelessWidget {
               TextButton(
                 onPressed: onProfileEditTap,
                 child: Text(
-                  'সম্পাদনা',
+                  'Edit',
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w700,
@@ -166,7 +166,7 @@ class _SyncStatusCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('সিঙ্ক অবস্থা', style: AppTextStyles.label),
+          Text('Sync status', style: AppTextStyles.label),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -179,7 +179,7 @@ class _SyncStatusCard extends StatelessWidget {
               TextButton(
                 onPressed: onOfflineQueueTap,
                 child: Text(
-                  'কিউ দেখুন',
+                  'Queue দেখুন',
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w700,
@@ -203,8 +203,8 @@ class _SyncStatusCard extends StatelessWidget {
               ),
               child: Text(
                 queueCount > 0
-                    ? '${_toBanglaDigits(queueCount)}টি আইটেম সিঙ্ক কিউতে আছে। দেখুন →'
-                    : 'সব ডাটা সিঙ্ক করা আছে',
+                    ? '${_toBanglaDigits(queueCount)}টা item Sync queue-তে আছে। দেখুন →'
+                    : 'সব ডাটা synced',
                 style: AppTextStyles.bodySmall.copyWith(
                   color: queueCount > 0
                       ? AppColors.warningDark
@@ -222,10 +222,10 @@ class _SyncStatusCard extends StatelessWidget {
 
 String _syncLabel(SyncStatus status) {
   return switch (status) {
-    SyncStatus.online => 'সিঙ্কড',
-    SyncStatus.syncing => 'সিঙ্ক হচ্ছে',
-    SyncStatus.offline => 'অফলাইন',
-    SyncStatus.failed => 'সিঙ্ক ব্যর্থ',
+    SyncStatus.online => 'Synced',
+    SyncStatus.syncing => 'Sync হচ্ছে',
+    SyncStatus.offline => 'Offline',
+    SyncStatus.failed => 'Sync failed',
   };
 }
 

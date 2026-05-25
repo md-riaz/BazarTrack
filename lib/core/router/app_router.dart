@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -82,27 +83,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'home',
             builder: (context, state) => HomeDashboardScreen(
               onBazarTap: () => context.go(AppRoutes.bazarList),
-              onNewBazarTap: () => context.go(AppRoutes.newBazar),
+              onNewBazarTap: () => context.push(AppRoutes.newBazar),
               onBalanceTap: () => context.go(AppRoutes.balance),
-              onMoneyEntryTap: () => context.go(AppRoutes.moneyEntry),
-              onDirectExpenseTap: () => context.go(AppRoutes.directExpense),
+              onMoneyEntryTap: () => context.push(AppRoutes.moneyEntry),
+              onDirectExpenseTap: () => context.push(AppRoutes.directExpense),
               onReportsTap: () => context.go(AppRoutes.reports),
-              onMoreTap: () => context.go(AppRoutes.more),
             ),
           ),
           GoRoute(
             path: AppRoutes.bazarList,
             name: 'bazar-list',
             builder: (context, state) => BazarListScreen(
-              onBazarTap: (id) => context.go(AppRoutes.bazarDetail(id)),
+              onBazarTap: (id) => context.push(AppRoutes.bazarDetail(id)),
             ),
           ),
           GoRoute(
             path: AppRoutes.balance,
             name: 'balance',
             builder: (context, state) => BalanceScreen(
-              onWalletTap: (id) => context.go(AppRoutes.walletDetail(id)),
-              onMoneyEntryTap: () => context.go(AppRoutes.moneyEntry),
+              onWalletTap: (id) => context.push(AppRoutes.walletDetail(id)),
+              onMoneyEntryTap: () => context.push(AppRoutes.moneyEntry),
             ),
           ),
           GoRoute(
@@ -114,8 +114,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoutes.more,
             name: 'more',
             builder: (context, state) => MoreScreen(
-              onProfileEditTap: () => context.go(AppRoutes.profileEdit),
-              onOfflineQueueTap: () => context.go(AppRoutes.offlineQueue),
+              onProfileEditTap: () => context.push(AppRoutes.profileEdit),
+              onOfflineQueueTap: () => context.push(AppRoutes.offlineQueue),
               onMenuTap: (key) => _goFromMoreMenu(context, key),
               onLogoutTap: () async {
                 await ref.read(loginControllerProvider.notifier).logout();
@@ -134,10 +134,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final bazarId = state.pathParameters['bazarId']!;
           return BazarDetailScreen(
             bazarId: bazarId,
-            onAddItemTap: () => context.go(AppRoutes.addItem(bazarId)),
-            onCommentsTap: () => context.go(AppRoutes.bazarComments(bazarId)),
+            onAddItemTap: () => context.push(AppRoutes.addItem(bazarId)),
+            onCommentsTap: () => context.push(AppRoutes.bazarComments(bazarId)),
             onPriceHistoryTap: () =>
-                context.go(AppRoutes.priceHistory(bazarId)),
+                context.push(AppRoutes.priceHistory(bazarId)),
           );
         },
       ),
@@ -145,8 +145,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.newBazar,
         name: 'new-bazar',
         builder: (context, state) => NewBazarScreen(
-          onBack: () => context.go(AppRoutes.bazarList),
-          onCreated: (bazarId) => context.go(AppRoutes.bazarDetail(bazarId)),
+          onBack: () => _popOrGo(context, AppRoutes.bazarList),
+          onCreated: (bazarId) =>
+              context.replace(AppRoutes.bazarDetail(bazarId)),
         ),
       ),
       GoRoute(
@@ -156,8 +157,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final bazarId = state.pathParameters['bazarId']!;
           return AddItemScreen(
             bazarId: bazarId,
-            onBack: () => context.go(AppRoutes.bazarDetail(bazarId)),
-            onDone: () => context.go(AppRoutes.bazarDetail(bazarId)),
+            onBack: () => _popOrGo(context, AppRoutes.bazarDetail(bazarId)),
+            onDone: () => _popOrGo(context, AppRoutes.bazarDetail(bazarId)),
           );
         },
       ),
@@ -165,8 +166,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.directExpense,
         name: 'direct-expense',
         builder: (context, state) => DirectExpenseScreen(
-          onBack: () => context.go(AppRoutes.home),
-          onSaved: () => context.go(AppRoutes.home),
+          onBack: () => _popOrGo(context, AppRoutes.home),
+          onSaved: () => _popOrGo(context, AppRoutes.home),
         ),
       ),
       GoRoute(
@@ -200,51 +201,52 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.admin,
         name: 'admin',
         builder: (context, state) => AdminScreen(
-          onAddUserTap: () => context.go(AppRoutes.addUser),
-          onAddWalletTap: () => context.go(AppRoutes.addWallet),
+          onAddUserTap: () => context.push(AppRoutes.addUser),
+          onAddWalletTap: () => context.push(AppRoutes.addWallet),
         ),
       ),
       GoRoute(
         path: AppRoutes.search,
         name: 'search',
         builder: (context, state) => SearchScreen(
-          onResultTap: (result) => context.go(routeForSearchResult(result)),
+          onResultTap: (result) => _openSearchResult(context, result),
         ),
       ),
       GoRoute(
         path: AppRoutes.settings,
         name: 'settings',
         builder: (context, state) => SettingsScreen(
-          onBack: () => context.go(AppRoutes.more),
-          onOfflineQueueTap: () => context.go(AppRoutes.offlineQueue),
+          onBack: () => _popOrGo(context, AppRoutes.more),
+          onOfflineQueueTap: () => context.push(AppRoutes.offlineQueue),
         ),
       ),
       GoRoute(
         path: AppRoutes.offlineQueue,
         name: 'offline-queue',
-        builder: (context, state) =>
-            OfflineQueueScreen(onBack: () => context.go(AppRoutes.settings)),
+        builder: (context, state) => OfflineQueueScreen(
+          onBack: () => _popOrGo(context, AppRoutes.settings),
+        ),
       ),
       GoRoute(
         path: AppRoutes.profileEdit,
         name: 'profile-edit',
         builder: (context, state) =>
-            ProfileEditScreen(onBack: () => context.go(AppRoutes.more)),
+            ProfileEditScreen(onBack: () => _popOrGo(context, AppRoutes.more)),
       ),
       GoRoute(
         path: AppRoutes.addUser,
         name: 'add-user',
         builder: (context, state) => AddUserScreen(
-          onUserCreated: () => context.go(AppRoutes.admin),
-          onCancel: () => context.go(AppRoutes.admin),
+          onUserCreated: () => _popOrGo(context, AppRoutes.admin),
+          onCancel: () => _popOrGo(context, AppRoutes.admin),
         ),
       ),
       GoRoute(
         path: AppRoutes.addWallet,
         name: 'add-wallet',
         builder: (context, state) => AddWalletScreen(
-          onWalletCreated: () => context.go(AppRoutes.admin),
-          onCancel: () => context.go(AppRoutes.admin),
+          onWalletCreated: () => _popOrGo(context, AppRoutes.admin),
+          onCancel: () => _popOrGo(context, AppRoutes.admin),
         ),
       ),
       GoRoute(
@@ -253,7 +255,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final bazarId = state.pathParameters['bazarId']!;
           return BazarCommentsScreen(
-            onBack: () => context.go(AppRoutes.bazarDetail(bazarId)),
+            onBack: () => _popOrGo(context, AppRoutes.bazarDetail(bazarId)),
           );
         },
       ),
@@ -263,7 +265,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final bazarId = state.pathParameters['bazarId']!;
           return PriceHistoryScreen(
-            onBack: () => context.go(AppRoutes.bazarDetail(bazarId)),
+            onBack: () => _popOrGo(context, AppRoutes.bazarDetail(bazarId)),
           );
         },
       ),
@@ -328,32 +330,62 @@ class MainShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex(location),
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.text3,
-        onTap: (index) => context.go(_destinations[index].path),
-        items: [
-          for (final destination in _destinations)
-            BottomNavigationBarItem(
-              icon: Semantics(
-                label: destination.label,
-                button: true,
-                child: Icon(destination.icon),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (location != AppRoutes.home) {
+          context.go(AppRoutes.home);
+          return;
+        }
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('App বন্ধ করবেন?'),
+            content: const Text('আরেকবার confirm করুন।'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('না'),
               ),
-              activeIcon: Semantics(
-                label: destination.label,
-                button: true,
-                selected: true,
-                child: Icon(destination.selectedIcon),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('হ্যাঁ'),
               ),
-              label: destination.label,
-              tooltip: destination.label,
-            ),
-        ],
+            ],
+          ),
+        );
+        if (shouldExit == true && context.mounted) {
+          await SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        body: child,
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex(location),
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: AppColors.text3,
+          onTap: (index) => context.go(_destinations[index].path),
+          items: [
+            for (final destination in _destinations)
+              BottomNavigationBarItem(
+                icon: Semantics(
+                  label: destination.label,
+                  button: true,
+                  child: Icon(destination.icon),
+                ),
+                activeIcon: Semantics(
+                  label: destination.label,
+                  button: true,
+                  selected: true,
+                  child: Icon(destination.selectedIcon),
+                ),
+                label: destination.label,
+                tooltip: destination.label,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -428,8 +460,37 @@ String _goFromMoreMenu(BuildContext context, String key) {
     'settings' => AppRoutes.settings,
     _ => AppRoutes.more,
   };
-  context.go(destination);
+  if (_isTabRoute(destination)) {
+    context.go(destination);
+  } else {
+    context.push(destination);
+  }
   return destination;
+}
+
+bool _isTabRoute(String route) {
+  return route == AppRoutes.home ||
+      route == AppRoutes.bazarList ||
+      route == AppRoutes.balance ||
+      route == AppRoutes.reports ||
+      route == AppRoutes.more;
+}
+
+void _popOrGo(BuildContext context, String fallback) {
+  if (context.canPop()) {
+    context.pop();
+  } else {
+    context.go(fallback);
+  }
+}
+
+void _openSearchResult(BuildContext context, SearchResultItem result) {
+  final route = routeForSearchResult(result);
+  if (_isTabRoute(route)) {
+    context.go(route);
+  } else {
+    context.push(route);
+  }
 }
 
 String routeForSearchResult(SearchResultItem result) {
@@ -461,7 +522,6 @@ class HomeDashboardScreen extends ConsumerWidget {
     required this.onMoneyEntryTap,
     required this.onDirectExpenseTap,
     required this.onReportsTap,
-    required this.onMoreTap,
     super.key,
   });
 
@@ -471,7 +531,6 @@ class HomeDashboardScreen extends ConsumerWidget {
   final VoidCallback onMoneyEntryTap;
   final VoidCallback onDirectExpenseTap;
   final VoidCallback onReportsTap;
-  final VoidCallback onMoreTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -487,15 +546,8 @@ class HomeDashboardScreen extends ConsumerWidget {
       appBar: BazarAppBar(
         title: 'সহজ বাজার খাতা',
         subtitle: currentUser == null
-            ? 'ড্যাশবোর্ড'
+            ? 'Dashboard'
             : '${currentUser.name} — ${_roleLabel(currentUser.role)}',
-        actions: [
-          IconButton(
-            tooltip: 'আরো',
-            onPressed: onMoreTap,
-            icon: const Icon(Icons.menu, color: AppColors.surface),
-          ),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -528,13 +580,6 @@ class HomeDashboardScreen extends ConsumerWidget {
               _HomeAction('রিপোর্ট', Icons.bar_chart, onReportsTap),
             ],
           ),
-          const SizedBox(height: 16),
-          PrimaryButton(
-            label: 'আরো মেনু খুলুন',
-            icon: const Icon(Icons.more_horiz),
-            onPressed: onMoreTap,
-            margin: EdgeInsets.zero,
-          ),
         ],
       ),
     );
@@ -555,10 +600,10 @@ class _HomeHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final queueLabel = pendingCount == null
-        ? 'অফলাইন কাজ দেখা হচ্ছে'
+        ? 'Offline কাজ চেক হচ্ছে'
         : pendingCount == 0
-        ? 'সব কাজ সিঙ্ক হয়েছে'
-        : '${_toBanglaDigits(pendingCount!)}টি কাজ অপেক্ষায়';
+        ? 'সব কাজ synced'
+        : '${_toBanglaDigits(pendingCount!)}টা কাজ pending';
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -586,7 +631,7 @@ class _HomeHeroCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'আজকের বাজার, টাকা আর সিঙ্ক অবস্থা এক নজরে দেখুন।',
+            'আজকের বাজার, টাকা আর Sync status একসাথে দেখুন।',
             style: AppTextStyles.body.copyWith(color: Colors.white70),
           ),
           const SizedBox(height: 14),
@@ -635,7 +680,7 @@ class _WalletOverviewCard extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'হিসাবের সারাংশ',
+      label: 'Balance Summary',
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
@@ -653,7 +698,7 @@ class _WalletOverviewCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'হিসাবের সারাংশ',
+                      'Balance Summary',
                       style: AppTextStyles.screenTitle,
                     ),
                   ),
@@ -675,7 +720,7 @@ class _WalletOverviewCard extends StatelessWidget {
                   ),
                   Expanded(
                     child: _DashboardMetric(
-                      label: 'আনুমানিক টাকা',
+                      label: 'Estimated Balance',
                       value: _money(estimatedTotal),
                     ),
                   ),
@@ -694,7 +739,7 @@ class _WalletOverviewCard extends StatelessWidget {
                     child: _DashboardMetric(
                       label: 'মাসিক খরচ',
                       value: monthlySpent == null
-                          ? 'লোড হচ্ছে'
+                          ? 'Loading...'
                           : _money(monthlySpent),
                     ),
                   ),

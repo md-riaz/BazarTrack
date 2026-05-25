@@ -23,8 +23,8 @@ class OfflineQueueScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.surface2,
       appBar: BazarAppBar(
-        title: 'সিঙ্ক কিউ',
-        subtitle: 'অফলাইন আইটেম',
+        title: 'Sync queue',
+        subtitle: 'Offline items',
         leading: BackButton(onPressed: onBack),
       ),
       body: items.when(
@@ -73,9 +73,7 @@ class _OfflineQueueContent extends ConsumerWidget {
                     ),
                   ),
                   child: Text(
-                    sync == SyncStatus.syncing
-                        ? 'সিঙ্ক হচ্ছে...'
-                        : 'সব আবার সিঙ্ক করুন',
+                    sync == SyncStatus.syncing ? 'Sync হচ্ছে...' : 'Retry all',
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.primaryText,
                       fontWeight: FontWeight.w700,
@@ -92,7 +90,7 @@ class _OfflineQueueContent extends ConsumerWidget {
               ? [
                   Padding(
                     padding: const EdgeInsets.all(14),
-                    child: Text('সিঙ্ক কিউ খালি', style: AppTextStyles.body),
+                    child: Text('Sync queue empty', style: AppTextStyles.body),
                   ),
                 ]
               : [
@@ -111,7 +109,7 @@ class _OfflineQueueContent extends ConsumerWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            'ইন্টারনেট এলে ডাটা সিঙ্ক হবে। এই পেজ বন্ধ করলেও ডাটা নষ্ট হবে না।',
+            'Internet এলে ডাটা sync হবে। Page বন্ধ করলেও ডাটা থাকবে।',
             style: AppTextStyles.bodySmall,
           ),
         ),
@@ -179,10 +177,10 @@ class _StatusBanner extends StatelessWidget {
 
   String _syncLabel(SyncStatus status) {
     return switch (status) {
-      SyncStatus.online => 'সিঙ্কড',
-      SyncStatus.syncing => 'সিঙ্ক হচ্ছে…',
-      SyncStatus.offline => 'অফলাইন মোড — ইন্টারনেট নেই',
-      SyncStatus.failed => 'সিঙ্ক ব্যর্থ',
+      SyncStatus.online => 'Synced',
+      SyncStatus.syncing => 'Sync হচ্ছে…',
+      SyncStatus.offline => 'Offline mode — internet নেই',
+      SyncStatus.failed => 'Sync failed',
     };
   }
 }
@@ -240,7 +238,7 @@ class _QueueRow extends StatelessWidget {
               ),
             ),
             HPill(
-              label: failed ? 'ব্যর্থ' : 'অপেক্ষমান',
+              label: failed ? 'ব্যর্থ' : 'Pending',
               backgroundColor: failed
                   ? AppColors.negativeLight
                   : AppColors.warningLight,

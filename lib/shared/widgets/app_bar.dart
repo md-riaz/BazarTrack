@@ -23,7 +23,8 @@ class BazarAppBar extends StatelessWidget implements PreferredSizeWidget {
       toolbarHeight: subtitle == null ? 64 : 72,
       backgroundColor: AppColors.primary,
       leading: leading,
-      titleSpacing: 0,
+      titleSpacing: leading == null ? 16 : 0,
+      actionsPadding: const EdgeInsets.only(right: 8),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,

@@ -72,23 +72,23 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
-          const HLabel('ডেটা ও স্টোরেজ'),
+          const HLabel('ডেটা ও Storage'),
           HSectionCard(
             children: [
               const HMenuRow(
-                title: 'লোকাল ক্যাশ পরিষ্কার করুন',
-                subtitle: 'অফলাইন ডাটা মুছে দেবে',
+                title: 'Local cache clear করুন',
+                subtitle: 'Offline ডাটা মুছে যাবে',
               ),
               HMenuRow(
-                title: 'সিঙ্ক কিউ দেখুন',
-                subtitle: 'পাঠানো বাকি আইটেম',
+                title: 'Sync queue দেখুন',
+                subtitle: 'Pending items',
                 titleColor: AppColors.primary,
                 showDivider: false,
                 onTap: onOfflineQueueTap,
               ),
             ],
           ),
-          const HLabel('অ্যাপ তথ্য'),
+          const HLabel('App info'),
           Container(
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -99,11 +99,11 @@ class SettingsScreen extends ConsumerWidget {
             ),
             child: const Column(
               children: [
-                _InfoRow(label: 'ভার্সন', value: '1.0.0 (MVP)'),
+                _InfoRow(label: 'Version', value: '1.0.0 (MVP)'),
                 SizedBox(height: 8),
-                _InfoRow(label: 'বিল্ড', value: '2025.05.23'),
+                _InfoRow(label: 'Build', value: '2025.05.23'),
                 SizedBox(height: 8),
-                _InfoRow(label: 'ব্যাকএন্ড', value: 'api.bazarkhata.com'),
+                _InfoRow(label: 'Backend', value: 'api.bazarkhata.com'),
               ],
             ),
           ),
