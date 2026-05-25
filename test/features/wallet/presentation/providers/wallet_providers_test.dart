@@ -49,13 +49,23 @@ void main() {
     expect(wallets.map((wallet) => wallet.id), ['w1', 'w3']);
   });
 
-  test('owner wallet list provider emits member wallets only', () async {
+  test('owner wallet list provider emits active member wallets only', () async {
     final container = containerFor(_user('owner', UserRole.owner));
     await container.read(currentUserProvider.future);
 
     final wallets = await container.read(walletListProvider.future);
 
-    expect(wallets.map((wallet) => wallet.id), ['w2']);
+    expect(wallets.map((wallet) => wallet.id), ['w3']);
+  });
+
+  test('admin wallet list still includes inactive wallets', () async {
+    final container = containerFor(_user('admin', UserRole.admin));
+    await container.read(currentUserProvider.future);
+
+    final wallets = await container.read(walletListProvider.future);
+
+    expect(wallets.map((wallet) => wallet.id), contains('w2'));
+    expect(wallets.firstWhere((wallet) => wallet.id == 'w2').isActive, isFalse);
   });
 
   test('wallet balance provider emits calculated balance', () async {
@@ -124,8 +134,7 @@ Future<void> _seedWalletData(AppDatabase database) async {
         createdAt: now,
       ),
     ]);
-    batch.insert(
-      database.walletMembers,
+    batch.insertAll(database.walletMembers, [
       WalletMembersCompanion.insert(
         id: 'wm-owner-w2',
         walletId: 'w2',
@@ -133,7 +142,14 @@ Future<void> _seedWalletData(AppDatabase database) async {
         role: 'owner',
         createdAt: Value(now),
       ),
-    );
+      WalletMembersCompanion.insert(
+        id: 'wm-owner-w3',
+        walletId: 'w3',
+        userId: 'owner',
+        role: 'owner',
+        createdAt: Value(now),
+      ),
+    ]);
     batch.insert(
       database.moneyEntries,
       MoneyEntriesCompanion.insert(

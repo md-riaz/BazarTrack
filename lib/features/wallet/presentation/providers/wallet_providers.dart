@@ -206,10 +206,11 @@ List<Wallet> _visibleWalletsForUser({
     UserRole.owner =>
       wallets
           .where((wallet) {
-            return members.any(
-              (member) =>
-                  member.walletId == wallet.id && member.userId == userId,
-            );
+            return wallet.isActive &&
+                members.any(
+                  (member) =>
+                      member.walletId == wallet.id && member.userId == userId,
+                );
           })
           .toList(growable: false),
   };

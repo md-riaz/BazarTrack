@@ -5,6 +5,11 @@ abstract class AdminRemoteDataSource {
   Future<List<AdminWallet>> getWallets();
   Future<AdminUser> createUser(CreateAdminUserRequest request);
   Future<AdminWallet> createWallet(CreateAdminWalletRequest request);
+  Future<AdminWallet> updateWallet(UpdateAdminWalletRequest request);
+  Future<void> setWalletActive({
+    required String walletId,
+    required bool isActive,
+  });
 }
 
 class MockAdminRemoteDataSource implements AdminRemoteDataSource {
@@ -113,27 +118,75 @@ class MockAdminRemoteDataSource implements AdminRemoteDataSource {
   @override
   Future<AdminWallet> createWallet(CreateAdminWalletRequest request) async {
     await Future<void>.delayed(const Duration(milliseconds: 350));
-    final selectedOwners = _users
-        .where(
-          (user) =>
-              request.ownerIds.contains(user.id) &&
-              (user.role == AdminRole.owner || user.role == AdminRole.admin),
-        )
-        .toList(growable: false);
-
-    if (selectedOwners.length != request.ownerIds.toSet().length) {
-      throw ArgumentError('এক বা একাধিক মালিক সঠিক নয়');
-    }
+    final selectedOwners = _selectedOwners(request.ownerIds);
 
     final wallet = AdminWallet(
       id: 'w${_wallets.length + 1}',
       name: request.name.trim(),
       type: request.type,
       owners: selectedOwners.map(_ownerDisplayName).toList(growable: false),
+      ownerIds: selectedOwners.map((owner) => owner.id).toList(growable: false),
       balance: 0,
     );
     _wallets.insert(0, wallet);
     return wallet;
+  }
+
+  @override
+  Future<AdminWallet> updateWallet(UpdateAdminWalletRequest request) async {
+    final index = _wallets.indexWhere((wallet) => wallet.id == request.id);
+    if (index < 0) {
+      throw ArgumentError('ওয়ালেট পাওয়া যায়নি');
+    }
+    final selectedOwners = _selectedOwners(request.ownerIds);
+    final current = _wallets[index];
+    final wallet = AdminWallet(
+      id: current.id,
+      name: request.name.trim(),
+      type: request.type,
+      owners: selectedOwners.map(_ownerDisplayName).toList(growable: false),
+      ownerIds: selectedOwners.map((owner) => owner.id).toList(growable: false),
+      balance: current.balance,
+      isActive: current.isActive,
+    );
+    _wallets[index] = wallet;
+    return wallet;
+  }
+
+  @override
+  Future<void> setWalletActive({
+    required String walletId,
+    required bool isActive,
+  }) async {
+    final index = _wallets.indexWhere((wallet) => wallet.id == walletId);
+    if (index < 0) {
+      throw ArgumentError('ওয়ালেট পাওয়া যায়নি');
+    }
+    final current = _wallets[index];
+    _wallets[index] = AdminWallet(
+      id: current.id,
+      name: current.name,
+      type: current.type,
+      owners: current.owners,
+      ownerIds: current.ownerIds,
+      balance: current.balance,
+      isActive: isActive,
+    );
+  }
+
+  List<AdminUser> _selectedOwners(List<String> ownerIds) {
+    final selectedOwners = _users
+        .where(
+          (user) =>
+              ownerIds.contains(user.id) &&
+              (user.role == AdminRole.owner || user.role == AdminRole.admin),
+        )
+        .toList(growable: false);
+
+    if (selectedOwners.length != ownerIds.toSet().length) {
+      throw ArgumentError('এক বা একাধিক মালিক সঠিক নয়');
+    }
+    return selectedOwners;
   }
 
   String _ownerDisplayName(AdminUser user) {

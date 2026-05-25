@@ -3,6 +3,7 @@ import 'package:bazar/core/database/app_database.dart';
 import 'package:bazar/core/mock/mock_seed.dart';
 import 'package:bazar/features/auth/domain/entities/user.dart' as auth;
 import 'package:bazar/features/auth/presentation/providers/auth_provider.dart';
+import 'package:bazar/features/bazar/domain/entities/bazar_entities.dart';
 import 'package:bazar/features/bazar/presentation/providers/bazar_providers.dart';
 import 'package:bazar/features/wallet/presentation/providers/wallet_providers.dart';
 import 'package:bazar/shared/models/app_enums.dart';
@@ -80,6 +81,38 @@ void main() {
 
     expect(bazars.map((bazar) => bazar.id), ['b2']);
   });
+
+  test(
+    'owner-created assigned bazar is visible to selected assistant',
+    () async {
+      final ownerContainer = containerFor(_user('u3', UserRole.owner));
+      await ownerContainer.read(currentUserProvider.future);
+
+      final created = await ownerContainer
+          .read(bazarActionControllerProvider.notifier)
+          .createBazar(
+            CreateBazarInput(
+              walletId: 'w2',
+              createdBy: 'u3',
+              assignedTo: 'u1',
+              title: 'Assigned bazar',
+              status: BazarStatus.open,
+              bazarDate: DateTime(2026, 5, 25),
+              items: const [CreateBazarItemInput(name: 'চাল')],
+            ),
+          );
+
+      expect(created, isNotNull);
+      expect(created!.assignedTo, 'u1');
+
+      final assistantContainer = containerFor(_user('u1', UserRole.assistant));
+      await assistantContainer.read(currentUserProvider.future);
+
+      final bazars = await assistantContainer.read(bazarsProvider.future);
+
+      expect(bazars.map((bazar) => bazar.id), contains(created.id));
+    },
+  );
 }
 
 auth.User _user(String id, UserRole role) {

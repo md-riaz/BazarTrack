@@ -135,6 +135,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
+        path: AppRoutes.newBazar,
+        name: 'new-bazar',
+        builder: (context, state) => NewBazarScreen(
+          onBack: () => _popOrGo(context, AppRoutes.bazarList),
+          onCreated: (bazarId) =>
+              context.replace(AppRoutes.bazarDetail(bazarId)),
+        ),
+      ),
+      GoRoute(
         path: AppRoutes.bazarDetailPath,
         name: 'bazar-detail',
         builder: (context, state) {
@@ -147,15 +156,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 context.push(AppRoutes.priceHistory(bazarId)),
           );
         },
-      ),
-      GoRoute(
-        path: AppRoutes.newBazar,
-        name: 'new-bazar',
-        builder: (context, state) => NewBazarScreen(
-          onBack: () => _popOrGo(context, AppRoutes.bazarList),
-          onCreated: (bazarId) =>
-              context.replace(AppRoutes.bazarDetail(bazarId)),
-        ),
       ),
       GoRoute(
         path: AppRoutes.addItemPath,
@@ -210,6 +210,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => AdminScreen(
           onAddUserTap: () => context.push(AppRoutes.addUser),
           onAddWalletTap: () => context.push(AppRoutes.addWallet),
+          onEditWalletTap: (walletId) =>
+              context.push(AppRoutes.editWallet(walletId)),
         ),
       ),
       GoRoute(
@@ -252,6 +254,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.addWallet,
         name: 'add-wallet',
         builder: (context, state) => AddWalletScreen(
+          onWalletCreated: () => _popOrGo(context, AppRoutes.admin),
+          onCancel: () => _popOrGo(context, AppRoutes.admin),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.editWalletPath,
+        name: 'edit-wallet',
+        builder: (context, state) => AddWalletScreen(
+          walletId: state.pathParameters['walletId']!,
           onWalletCreated: () => _popOrGo(context, AppRoutes.admin),
           onCancel: () => _popOrGo(context, AppRoutes.admin),
         ),
@@ -313,6 +324,7 @@ class AppRoutes {
   static const profileEdit = '/profile/edit';
   static const addUser = '/admin/users/add';
   static const addWallet = '/admin/wallets/add';
+  static const editWalletPath = '/admin/wallets/:walletId/edit';
   static const bazarCommentsPath = '/bazars/:bazarId/comments';
   static const priceHistoryPath = '/bazars/:bazarId/price-history';
   static const assistantLedgerPath =
@@ -327,6 +339,7 @@ class AppRoutes {
       '/bazars/$bazarId/price-history';
   static String assistantLedger(String walletId, String assistantId) =>
       '/wallets/$walletId/assistant/$assistantId';
+  static String editWallet(String walletId) => '/admin/wallets/$walletId/edit';
 }
 
 class MainShell extends StatelessWidget {
@@ -479,7 +492,8 @@ List<_ShellDestination> _destinationsForRole(UserRole? role) {
 bool _canAccessRoute(String route, UserRole role) {
   if (route == AppRoutes.admin ||
       route == AppRoutes.addUser ||
-      route == AppRoutes.addWallet) {
+      route == AppRoutes.addWallet ||
+      route == AppRoutes.editWalletPath) {
     return RolePermissions.canAccessAdmin(role);
   }
   if (route == AppRoutes.reports || route == AppRoutes.monthlyClose) {

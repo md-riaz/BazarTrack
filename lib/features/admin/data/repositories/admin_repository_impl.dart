@@ -27,31 +27,60 @@ class AdminRepositoryImpl implements AdminRepository {
 
   @override
   Future<AdminWallet> createWallet(CreateAdminWalletRequest request) async {
-    if (request.name.trim().isEmpty) {
+    await _validateWalletRequest(
+      name: request.name,
+      type: request.type,
+      ownerIds: request.ownerIds,
+    );
+    return _remoteDataSource.createWallet(request);
+  }
+
+  @override
+  Future<AdminWallet> updateWallet(UpdateAdminWalletRequest request) async {
+    await _validateWalletRequest(
+      name: request.name,
+      type: request.type,
+      ownerIds: request.ownerIds,
+    );
+    return _remoteDataSource.updateWallet(request);
+  }
+
+  @override
+  Future<void> setWalletActive({
+    required String walletId,
+    required bool isActive,
+  }) {
+    return _remoteDataSource.setWalletActive(
+      walletId: walletId,
+      isActive: isActive,
+    );
+  }
+
+  Future<void> _validateWalletRequest({
+    required String name,
+    required String type,
+    required List<String> ownerIds,
+  }) async {
+    if (name.trim().isEmpty) {
       throw ArgumentError('ওয়ালেটের নাম আবশ্যক');
     }
-    if (!adminWalletTypes.contains(request.type)) {
+    if (!adminWalletTypes.contains(type)) {
       throw ArgumentError('ওয়ালেটের ধরন সঠিক নয়');
     }
-    if (request.ownerIds.isEmpty) {
+    if (ownerIds.isEmpty) {
       throw ArgumentError('কমপক্ষে একজন মালিক নির্বাচন করুন');
     }
 
     final users = await _remoteDataSource.getUsers();
     final assignableOwnerIds = users
-        .where(
-          (user) =>
-              user.role == AdminRole.owner || user.role == AdminRole.admin,
-        )
+        .where((user) => user.isActive && user.role == AdminRole.owner)
         .map((user) => user.id)
         .toSet();
-    final hasInvalidOwner = request.ownerIds.any(
+    final hasInvalidOwner = ownerIds.any(
       (ownerId) => !assignableOwnerIds.contains(ownerId),
     );
     if (hasInvalidOwner) {
       throw ArgumentError('এক বা একাধিক মালিক সঠিক নয়');
     }
-
-    return _remoteDataSource.createWallet(request);
   }
 }

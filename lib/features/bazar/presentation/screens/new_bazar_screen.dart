@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
+import '../../../admin/domain/entities/admin_entities.dart';
+import '../../../admin/presentation/providers/admin_providers.dart';
 import '../../../../features/wallet/domain/entities/wallet.dart';
 import '../../../../features/wallet/presentation/providers/wallet_providers.dart';
 import '../../../../shared/models/app_enums.dart';
@@ -41,6 +43,7 @@ class _NewBazarScreenState extends ConsumerState<NewBazarScreen> {
   _BazarInputMode _mode = _BazarInputMode.manual;
   bool _showOptional = false;
   String? _selectedWalletId;
+  String? _selectedAssistantId;
 
   @override
   void dispose() {
@@ -60,6 +63,10 @@ class _NewBazarScreenState extends ConsumerState<NewBazarScreen> {
     final frequentItems = ref.watch(frequentItemsProvider);
     final actionState = ref.watch(bazarActionControllerProvider);
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
+    final users = ref.watch(adminUsersProvider);
+    final canAssignAssistant =
+        currentUser?.role == UserRole.owner ||
+        currentUser?.role == UserRole.admin;
 
     return Scaffold(
       backgroundColor: AppColors.surface2,
@@ -88,6 +95,24 @@ class _NewBazarScreenState extends ConsumerState<NewBazarScreen> {
             error: (error, _) => _MessageCard(message: error.toString()),
             loading: () => const Center(child: CircularProgressIndicator()),
           ),
+          if (canAssignAssistant) ...[
+            SectionHeader(title: 'Assign assistant'),
+            users.when(
+              data: (items) => _AssistantSelector(
+                assistants: items
+                    .where(
+                      (user) =>
+                          user.role == AdminRole.assistant && user.isActive,
+                    )
+                    .toList(growable: false),
+                selectedAssistantId: _selectedAssistantId,
+                onChanged: (assistantId) =>
+                    setState(() => _selectedAssistantId = assistantId),
+              ),
+              error: (error, _) => _MessageCard(message: error.toString()),
+              loading: () => const Center(child: CircularProgressIndicator()),
+            ),
+          ],
           SectionHeader(title: 'Frequent Items'),
           FrequentItemsRow(items: frequentItems, onTap: _handleFrequentItem),
           if (_mode == _BazarInputMode.manual) ...[
@@ -274,6 +299,10 @@ class _NewBazarScreenState extends ConsumerState<NewBazarScreen> {
   }
 
   Future<void> _submit({required BazarStatus status, String? userId}) async {
+    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final canAssignAssistant =
+        currentUser?.role == UserRole.owner ||
+        currentUser?.role == UserRole.admin;
     final wallets =
         ref.read(walletListProvider).valueOrNull ?? const <Wallet>[];
     final walletId =
@@ -297,6 +326,7 @@ class _NewBazarScreenState extends ConsumerState<NewBazarScreen> {
             createdBy: userId ?? 'u1',
             status: status,
             bazarDate: DateTime.now(),
+            assignedTo: canAssignAssistant ? _selectedAssistantId : null,
             title: _blankToNull(_titleController.text),
             note: _blankToNull(_noteController.text),
             items: items,
@@ -459,6 +489,47 @@ class _WalletSelector extends StatelessWidget {
                   DropdownMenuItem(value: wallet.id, child: Text(wallet.name)),
             )
             .toList(growable: false),
+        onChanged: onChanged,
+      ),
+    );
+  }
+}
+
+class _AssistantSelector extends StatelessWidget {
+  const _AssistantSelector({
+    required this.assistants,
+    required this.selectedAssistantId,
+    required this.onChanged,
+  });
+
+  final List<AdminUser> assistants;
+  final String? selectedAssistantId;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    if (assistants.isEmpty) {
+      return const _MessageCard(message: 'কোনো active assistant নেই');
+    }
+    final value =
+        assistants.any((assistant) => assistant.id == selectedAssistantId)
+        ? selectedAssistantId
+        : null;
+    return _Card(
+      child: DropdownButtonFormField<String?>(
+        initialValue: value,
+        decoration: const InputDecoration(labelText: 'Assistant নির্বাচন করুন'),
+        items: [
+          const DropdownMenuItem<String?>(
+            value: null,
+            child: Text('Unassigned / সবাই দেখতে পাবে'),
+          ),
+          for (final assistant in assistants)
+            DropdownMenuItem<String?>(
+              value: assistant.id,
+              child: Text('${assistant.name} (${assistant.phone})'),
+            ),
+        ],
         onChanged: onChanged,
       ),
     );

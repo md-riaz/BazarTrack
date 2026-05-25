@@ -5,6 +5,7 @@ class AdminUser {
     required this.phone,
     required this.role,
     required this.isActive,
+    this.walletIds = const [],
   });
 
   final String id;
@@ -12,6 +13,7 @@ class AdminUser {
   final String phone;
   final AdminRole role;
   final bool isActive;
+  final List<String> walletIds;
 
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+'));
@@ -29,6 +31,7 @@ class AdminUser {
     String? phone,
     AdminRole? role,
     bool? isActive,
+    List<String>? walletIds,
   }) {
     return AdminUser(
       id: id ?? this.id,
@@ -36,6 +39,7 @@ class AdminUser {
       phone: phone ?? this.phone,
       role: role ?? this.role,
       isActive: isActive ?? this.isActive,
+      walletIds: walletIds ?? this.walletIds,
     );
   }
 }
@@ -70,6 +74,8 @@ class AdminWallet {
     required this.type,
     required this.owners,
     required this.balance,
+    this.ownerIds = const [],
+    this.isActive = true,
   });
 
   final String id;
@@ -77,6 +83,8 @@ class AdminWallet {
   final String type;
   final List<String> owners;
   final double balance;
+  final List<String> ownerIds;
+  final bool isActive;
 
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+'));
@@ -122,6 +130,20 @@ class CreateAdminWalletRequest {
     required this.ownerIds,
   });
 
+  final String name;
+  final String type;
+  final List<String> ownerIds;
+}
+
+class UpdateAdminWalletRequest {
+  const UpdateAdminWalletRequest({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.ownerIds,
+  });
+
+  final String id;
   final String name;
   final String type;
   final List<String> ownerIds;

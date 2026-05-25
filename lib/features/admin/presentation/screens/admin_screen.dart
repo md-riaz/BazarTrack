@@ -9,10 +9,16 @@ import '../../domain/entities/admin_entities.dart';
 import '../providers/admin_providers.dart';
 
 class AdminScreen extends ConsumerStatefulWidget {
-  const AdminScreen({super.key, this.onAddUserTap, this.onAddWalletTap});
+  const AdminScreen({
+    super.key,
+    this.onAddUserTap,
+    this.onAddWalletTap,
+    this.onEditWalletTap,
+  });
 
   final VoidCallback? onAddUserTap;
   final VoidCallback? onAddWalletTap;
+  final ValueChanged<String>? onEditWalletTap;
 
   @override
   ConsumerState<AdminScreen> createState() => _AdminScreenState();
@@ -43,7 +49,10 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
           if (_tab == _AdminTab.users)
             _UsersSection(onAddUserTap: widget.onAddUserTap)
           else
-            _WalletsSection(onAddWalletTap: widget.onAddWalletTap),
+            _WalletsSection(
+              onAddWalletTap: widget.onAddWalletTap,
+              onEditWalletTap: widget.onEditWalletTap,
+            ),
           const SizedBox(height: 8),
         ],
       ),
@@ -185,9 +194,10 @@ class _UsersSection extends ConsumerWidget {
 }
 
 class _WalletsSection extends ConsumerWidget {
-  const _WalletsSection({this.onAddWalletTap});
+  const _WalletsSection({this.onAddWalletTap, this.onEditWalletTap});
 
   final VoidCallback? onAddWalletTap;
+  final ValueChanged<String>? onEditWalletTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -207,6 +217,11 @@ class _WalletsSection extends ConsumerWidget {
                 _WalletTile(
                   wallet: items[index],
                   showDivider: index < items.length - 1,
+                  onEdit: onEditWalletTap == null
+                      ? null
+                      : () => onEditWalletTap!(items[index].id),
+                  onToggleActive: () =>
+                      _toggleWalletActive(context, ref, items[index]),
                 ),
             ],
           ),
@@ -218,6 +233,40 @@ class _WalletsSection extends ConsumerWidget {
       ),
     );
   }
+}
+
+Future<void> _toggleWalletActive(
+  BuildContext context,
+  WidgetRef ref,
+  AdminWallet wallet,
+) async {
+  if (wallet.isActive) {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('ওয়ালেট deactivate করবেন?'),
+        content: Text('${wallet.name} owner app থেকে hidden হবে।'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('না'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Deactivate'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) {
+      return;
+    }
+  }
+
+  await ref
+      .read(adminRepositoryProvider)
+      .setWalletActive(walletId: wallet.id, isActive: !wallet.isActive);
+  ref.invalidate(adminWalletsProvider);
 }
 
 class _SectionSummary extends StatelessWidget {
@@ -344,85 +393,126 @@ class _UserTile extends StatelessWidget {
 }
 
 class _WalletTile extends StatelessWidget {
-  const _WalletTile({required this.wallet, required this.showDivider});
+  const _WalletTile({
+    required this.wallet,
+    required this.showDivider,
+    this.onEdit,
+    this.onToggleActive,
+  });
 
   final AdminWallet wallet;
   final bool showDivider;
+  final VoidCallback? onEdit;
+  final VoidCallback? onToggleActive;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: showDivider
-            ? const Border(
-                bottom: BorderSide(color: AppColors.surface3, width: 0.5),
-              )
-            : null,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              _Avatar(
-                label: wallet.initials,
-                background: AppColors.primaryLight,
-                foreground: AppColors.primaryText,
-                size: 30,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    return Opacity(
+      opacity: wallet.isActive ? 1 : 0.55,
+      child: Container(
+        decoration: BoxDecoration(
+          border: showDivider
+              ? const Border(
+                  bottom: BorderSide(color: AppColors.surface3, width: 0.5),
+                )
+              : null,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                _Avatar(
+                  label: wallet.initials,
+                  background: AppColors.primaryLight,
+                  foreground: AppColors.primaryText,
+                  size: 30,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        wallet.name,
+                        style: AppTextStyles.bodyStrong.copyWith(fontSize: 13),
+                      ),
+                      Text(
+                        adminWalletTypeLabel(wallet.type),
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.text3,
+                          letterSpacing: 0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
+                    if (!wallet.isActive) ...[
+                      const _Chip(
+                        label: 'নিষ্ক্রিয়',
+                        background: AppColors.surface3,
+                        foreground: AppColors.text3,
+                      ),
+                      const SizedBox(height: 4),
+                    ],
                     Text(
-                      wallet.name,
-                      style: AppTextStyles.bodyStrong.copyWith(fontSize: 13),
-                    ),
-                    Text(
-                      adminWalletTypeLabel(wallet.type),
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppColors.text3,
-                        letterSpacing: 0,
+                      CurrencyFormatter.format(wallet.balance),
+                      style: AppTextStyles.bodyStrong.copyWith(
+                        color: wallet.balance >= 0
+                            ? AppColors.positive
+                            : AppColors.negative,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ],
                 ),
-              ),
-              Text(
-                CurrencyFormatter.format(wallet.balance),
-                style: AppTextStyles.bodyStrong.copyWith(
-                  color: wallet.balance >= 0
-                      ? AppColors.positive
-                      : AppColors.negative,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      onEdit?.call();
+                    } else if (value == 'toggle') {
+                      onToggleActive?.call();
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    PopupMenuItem(
+                      value: 'toggle',
+                      child: Text(
+                        wallet.isActive ? 'Deactivate' : 'Reactivate',
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                'মালিক:',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.text3,
-                  letterSpacing: 0,
-                ),
-              ),
-              const SizedBox(width: 6),
-              for (final owner in wallet.owners) ...[
-                _Chip(
-                  label: owner,
-                  background: AppColors.primaryLight,
-                  foreground: AppColors.primaryText,
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Text(
+                  'মালিক:',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.text3,
+                    letterSpacing: 0,
+                  ),
                 ),
                 const SizedBox(width: 6),
+                for (final owner in wallet.owners) ...[
+                  _Chip(
+                    label: owner,
+                    background: AppColors.primaryLight,
+                    foreground: AppColors.primaryText,
+                  ),
+                  const SizedBox(width: 6),
+                ],
               ],
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

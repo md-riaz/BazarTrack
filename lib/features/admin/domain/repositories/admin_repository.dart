@@ -5,4 +5,9 @@ abstract class AdminRepository {
   Future<List<AdminWallet>> getWallets();
   Future<AdminUser> createUser(CreateAdminUserRequest request);
   Future<AdminWallet> createWallet(CreateAdminWalletRequest request);
+  Future<AdminWallet> updateWallet(UpdateAdminWalletRequest request);
+  Future<void> setWalletActive({
+    required String walletId,
+    required bool isActive,
+  });
 }

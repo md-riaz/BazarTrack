@@ -10,8 +10,14 @@ import '../../domain/entities/admin_entities.dart';
 import '../providers/admin_providers.dart';
 
 class AddWalletScreen extends ConsumerStatefulWidget {
-  const AddWalletScreen({super.key, this.onWalletCreated, this.onCancel});
+  const AddWalletScreen({
+    super.key,
+    this.walletId,
+    this.onWalletCreated,
+    this.onCancel,
+  });
 
+  final String? walletId;
   final VoidCallback? onWalletCreated;
   final VoidCallback? onCancel;
 
@@ -25,6 +31,9 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
   final Set<String> _selectedOwnerIds = <String>{};
   String _type = adminWalletTypes.first;
   bool _isSaving = false;
+  bool _didPrefill = false;
+
+  bool get _isEditing => widget.walletId != null;
 
   @override
   void dispose() {
@@ -45,22 +54,39 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
 
     setState(() => _isSaving = true);
     try {
-      await ref
-          .read(adminRepositoryProvider)
-          .createWallet(
-            CreateAdminWalletRequest(
-              name: _nameController.text.trim(),
-              type: _type,
-              ownerIds: _selectedOwnerIds.toList(growable: false),
-            ),
-          );
+      final ownerIds = _selectedOwnerIds.toList(growable: false);
+      if (_isEditing) {
+        await ref
+            .read(adminRepositoryProvider)
+            .updateWallet(
+              UpdateAdminWalletRequest(
+                id: widget.walletId!,
+                name: _nameController.text.trim(),
+                type: _type,
+                ownerIds: ownerIds,
+              ),
+            );
+      } else {
+        await ref
+            .read(adminRepositoryProvider)
+            .createWallet(
+              CreateAdminWalletRequest(
+                name: _nameController.text.trim(),
+                type: _type,
+                ownerIds: ownerIds,
+              ),
+            );
+      }
       ref.invalidate(adminWalletsProvider);
       if (!mounted) {
         return;
       }
+      final message = _isEditing
+          ? 'ওয়ালেট আপডেট হয়েছে'
+          : 'নতুন ওয়ালেট যোগ হয়েছে';
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('নতুন ওয়ালেট যোগ হয়েছে')));
+      ).showSnackBar(SnackBar(content: Text(message)));
       widget.onWalletCreated?.call();
     } catch (error) {
       if (!mounted) {
@@ -79,9 +105,30 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
   @override
   Widget build(BuildContext context) {
     final users = ref.watch(adminUsersProvider);
+    final wallets = ref.watch(adminWalletsProvider);
+    if (_isEditing && !_didPrefill) {
+      wallets.whenData((items) {
+        AdminWallet? wallet;
+        for (final item in items) {
+          if (item.id == widget.walletId) {
+            wallet = item;
+            break;
+          }
+        }
+        if (wallet == null) {
+          return;
+        }
+        _nameController.text = wallet.name;
+        _type = wallet.type;
+        _selectedOwnerIds
+          ..clear()
+          ..addAll(wallet.ownerIds);
+        _didPrefill = true;
+      });
+    }
     return Scaffold(
       backgroundColor: AppColors.surface2,
-      appBar: const BazarAppBar(title: 'নতুন ওয়ালেট'),
+      appBar: BazarAppBar(title: _isEditing ? 'ওয়ালেট এডিট' : 'নতুন ওয়ালেট'),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -122,9 +169,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
                     final owners = items
                         .where(
                           (user) =>
-                              user.isActive &&
-                              (user.role == AdminRole.owner ||
-                                  user.role == AdminRole.admin),
+                              user.isActive && user.role == AdminRole.owner,
                         )
                         .toList(growable: false);
                     if (owners.isEmpty) {
@@ -164,7 +209,11 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
               ],
             ),
             PrimaryButton(
-              label: _isSaving ? 'সেভ হচ্ছে...' : 'ওয়ালেট যোগ করুন',
+              label: _isSaving
+                  ? 'সেভ হচ্ছে...'
+                  : _isEditing
+                  ? 'ওয়ালেট আপডেট করুন'
+                  : 'ওয়ালেট যোগ করুন',
               onPressed: _isSaving ? null : _submit,
             ),
             GhostButton(

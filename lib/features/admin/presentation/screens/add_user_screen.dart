@@ -24,6 +24,7 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   AdminRole _role = AdminRole.assistant;
+  final Set<String> _selectedWalletIds = <String>{};
   bool _canSeeAllWallets = true;
   bool _canCreateBazar = true;
   bool _canEnterMoney = false;
@@ -50,9 +51,11 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
               name: _nameController.text.trim(),
               phone: _phoneController.text.trim(),
               role: _role,
+              walletIds: _selectedWalletIds.toList(growable: false),
             ),
           );
       ref.invalidate(adminUsersProvider);
+      ref.invalidate(adminWalletsProvider);
       if (!mounted) {
         return;
       }
@@ -76,6 +79,7 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final wallets = ref.watch(adminWalletsProvider);
     return Scaffold(
       backgroundColor: AppColors.surface2,
       appBar: const BazarAppBar(title: 'নতুন ইউজার'),
@@ -120,10 +124,68 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
                   _RoleTile(
                     role: role,
                     selected: role == _role,
-                    onTap: () => setState(() => _role = role),
+                    onTap: () => setState(() {
+                      _role = role;
+                      if (role != AdminRole.owner) {
+                        _selectedWalletIds.clear();
+                      }
+                    }),
                   ),
               ],
             ),
+            if (_role == AdminRole.owner)
+              _FormCard(
+                title: 'ওয়ালেট অ্যাক্সেস',
+                children: [
+                  wallets.when(
+                    data: (items) {
+                      final activeWallets = items
+                          .where((wallet) => wallet.isActive)
+                          .toList(growable: false);
+                      if (activeWallets.isEmpty) {
+                        return Text(
+                          'কোনো active wallet নেই। পরে wallet তৈরি করে assign করা যাবে।',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.text3,
+                          ),
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Owner কোন wallet ব্যবহার করবে নির্বাচন করুন। না দিলেও পরে wallet edit করে যোগ করা যাবে।',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.text3,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          for (final wallet in activeWallets)
+                            _WalletAccessTile(
+                              wallet: wallet,
+                              selected: _selectedWalletIds.contains(wallet.id),
+                              onTap: () => setState(() {
+                                if (_selectedWalletIds.contains(wallet.id)) {
+                                  _selectedWalletIds.remove(wallet.id);
+                                } else {
+                                  _selectedWalletIds.add(wallet.id);
+                                }
+                              }),
+                            ),
+                        ],
+                      );
+                    },
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (error, stackTrace) => Text(
+                      'ওয়ালেট লোড করা যায়নি',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.negative,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             _FormCard(
               title: 'পারমিশন',
               children: [
@@ -288,6 +350,66 @@ class _RoleTile extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     role.description,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.text3,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WalletAccessTile extends StatelessWidget {
+  const _WalletAccessTile({
+    required this.wallet,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final AdminWallet wallet;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primaryLight : AppColors.surface2,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? AppColors.primaryBorder : AppColors.border,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              selected ? Icons.check_box : Icons.check_box_outline_blank,
+              color: selected ? AppColors.primary : AppColors.text4,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    wallet.name,
+                    style: AppTextStyles.bodyStrong.copyWith(fontSize: 13),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    adminWalletTypeLabel(wallet.type),
                     style: AppTextStyles.caption.copyWith(
                       color: AppColors.text3,
                       letterSpacing: 0,
