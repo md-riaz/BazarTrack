@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/sync/sync_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/models/app_enums.dart';
@@ -25,8 +26,10 @@ class MoreScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sync = ref.watch(settingsSyncStatusProvider);
-    final queue = ref.watch(offlineQueueEntriesProvider);
+    final sync = ref.watch(syncStatusProvider);
+    final queueCount = ref
+        .watch(offlineQueueEntriesProvider)
+        .maybeWhen(data: (entries) => entries.length, orElse: () => 0);
     return Scaffold(
       backgroundColor: AppColors.surface2,
       appBar: const BazarAppBar(title: 'আরো'),
@@ -35,9 +38,7 @@ class MoreScreen extends ConsumerWidget {
           _ProfileCard(onProfileEditTap: onProfileEditTap),
           _SyncStatusCard(
             sync: sync,
-            queueCount: queue.length,
-            onChanged: (value) =>
-                ref.read(settingsSyncStatusProvider.notifier).state = value,
+            queueCount: queueCount,
             onOfflineQueueTap: onOfflineQueueTap,
           ),
           HSectionCard(
@@ -51,11 +52,11 @@ class MoreScreen extends ConsumerWidget {
               ),
               _menuRow('monthlyClose', 'হিসাব বন্ধ', Icons.calendar_month),
               _menuRow('search', 'খুঁজুন', Icons.search),
-              _menuRow('admin', 'Admin Panel', Icons.admin_panel_settings),
+              _menuRow('admin', 'অ্যাডমিন প্যানেল', Icons.admin_panel_settings),
               HMenuRow(
                 icon: Icons.settings,
                 title: 'সেটিংস',
-                subtitle: 'Notification, Language, Data',
+                subtitle: 'নোটিফিকেশন, ভাষা, ডাটা',
                 showDivider: false,
                 onTap: () => onMenuTap?.call('settings'),
               ),
@@ -78,7 +79,7 @@ class MoreScreen extends ConsumerWidget {
       'notifications': '৩টি নতুন',
       'reports': 'মে ২০২৫',
       'walletDetail': 'CEO Personal বিস্তারিত',
-      'monthlyClose': 'মাসিক closing',
+      'monthlyClose': 'মাসিক হিসাব বন্ধ',
       'search': 'বাজার, আইটেম, টাকা',
       'admin': 'ইউজার ও ওয়ালেট ম্যানেজ',
     };
@@ -116,7 +117,7 @@ class _ProfileCard extends StatelessWidget {
                     Text('01711-XXXXXX', style: AppTextStyles.bodySmall),
                     const SizedBox(height: 5),
                     const HPill(
-                      label: 'assistant',
+                      label: 'সহকারী',
                       backgroundColor: AppColors.positiveLight,
                       foregroundColor: AppColors.positiveDark,
                     ),
@@ -126,7 +127,7 @@ class _ProfileCard extends StatelessWidget {
               TextButton(
                 onPressed: onProfileEditTap,
                 child: Text(
-                  'Edit',
+                  'সম্পাদনা',
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w700,
@@ -145,13 +146,11 @@ class _SyncStatusCard extends StatelessWidget {
   const _SyncStatusCard({
     required this.sync,
     required this.queueCount,
-    required this.onChanged,
     required this.onOfflineQueueTap,
   });
 
   final SyncStatus sync;
   final int queueCount;
-  final ValueChanged<SyncStatus> onChanged;
   final VoidCallback? onOfflineQueueTap;
 
   @override
@@ -167,109 +166,98 @@ class _SyncStatusCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('SYNC STATUS', style: AppTextStyles.label),
+          Text('সিঙ্ক অবস্থা', style: AppTextStyles.label),
           const SizedBox(height: 8),
           Row(
             children: [
-              _SyncChoice(
-                label: 'Online',
-                status: SyncStatus.online,
-                selected: sync == SyncStatus.online,
-                onTap: onChanged,
-                color: AppColors.positive,
-                bg: AppColors.positiveLight,
+              HPill(
+                label: _syncLabel(sync),
+                backgroundColor: _syncBackground(sync),
+                foregroundColor: _syncForeground(sync),
               ),
-              const SizedBox(width: 8),
-              _SyncChoice(
-                label: 'Syncing',
-                status: SyncStatus.syncing,
-                selected: sync == SyncStatus.syncing,
-                onTap: onChanged,
-                color: AppColors.primary,
-                bg: AppColors.primaryLight,
-              ),
-              const SizedBox(width: 8),
-              _SyncChoice(
-                label: 'Offline',
-                status: SyncStatus.offline,
-                selected: sync == SyncStatus.offline,
-                onTap: onChanged,
-                color: AppColors.warning,
-                bg: AppColors.warningLight,
-              ),
-            ],
-          ),
-          if (sync == SyncStatus.offline) ...[
-            const SizedBox(height: 10),
-            InkWell(
-              onTap: onOfflineQueueTap,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.warningLight,
-                  borderRadius: BorderRadius.circular(8),
-                ),
+              const Spacer(),
+              TextButton(
+                onPressed: onOfflineQueueTap,
                 child: Text(
-                  '$queueCountটি item sync queue-এ। দেখুন →',
+                  'কিউ দেখুন',
                   style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.warningDark,
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          InkWell(
+            onTap: onOfflineQueueTap,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: queueCount > 0
+                    ? AppColors.warningLight
+                    : AppColors.positiveLight,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                queueCount > 0
+                    ? '${_toBanglaDigits(queueCount)}টি আইটেম সিঙ্ক কিউতে আছে। দেখুন →'
+                    : 'সব ডাটা সিঙ্ক করা আছে',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: queueCount > 0
+                      ? AppColors.warningDark
+                      : AppColors.positiveDark,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
-          ],
+          ),
         ],
       ),
     );
   }
 }
 
-class _SyncChoice extends StatelessWidget {
-  const _SyncChoice({
-    required this.label,
-    required this.status,
-    required this.selected,
-    required this.onTap,
-    required this.color,
-    required this.bg,
-  });
+String _syncLabel(SyncStatus status) {
+  return switch (status) {
+    SyncStatus.online => 'সিঙ্কড',
+    SyncStatus.syncing => 'সিঙ্ক হচ্ছে',
+    SyncStatus.offline => 'অফলাইন',
+    SyncStatus.failed => 'সিঙ্ক ব্যর্থ',
+  };
+}
 
-  final String label;
-  final SyncStatus status;
-  final bool selected;
-  final ValueChanged<SyncStatus> onTap;
-  final Color color;
-  final Color bg;
+Color _syncBackground(SyncStatus status) {
+  return switch (status) {
+    SyncStatus.online => AppColors.positiveLight,
+    SyncStatus.syncing => AppColors.primaryLight,
+    SyncStatus.offline => AppColors.warningLight,
+    SyncStatus.failed => AppColors.negativeLight,
+  };
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: OutlinedButton(
-        onPressed: () => onTap(status),
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(34),
-          padding: EdgeInsets.zero,
-          backgroundColor: selected ? bg : AppColors.surface,
-          side: BorderSide(
-            color: selected ? color : AppColors.border,
-            width: 1.5,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        child: Text(
-          label,
-          style: AppTextStyles.caption.copyWith(
-            color: selected ? color : AppColors.text4,
-          ),
-        ),
-      ),
-    );
-  }
+Color _syncForeground(SyncStatus status) {
+  return switch (status) {
+    SyncStatus.online => AppColors.positiveDark,
+    SyncStatus.syncing => AppColors.primary,
+    SyncStatus.offline => AppColors.warningDark,
+    SyncStatus.failed => AppColors.negativeDark,
+  };
+}
+
+String _toBanglaDigits(Object value) {
+  return value
+      .toString()
+      .replaceAll('0', '০')
+      .replaceAll('1', '১')
+      .replaceAll('2', '২')
+      .replaceAll('3', '৩')
+      .replaceAll('4', '৪')
+      .replaceAll('5', '৫')
+      .replaceAll('6', '৬')
+      .replaceAll('7', '৭')
+      .replaceAll('8', '৮')
+      .replaceAll('9', '৯');
 }

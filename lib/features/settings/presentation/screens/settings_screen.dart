@@ -31,10 +31,10 @@ class SettingsScreen extends ConsumerWidget {
           HSectionCard(
             children: [
               HMenuRow(
-                title: 'Push Notification',
+                title: 'পুশ নোটিফিকেশন',
                 subtitle: 'বাজার ও টাকার আপডেট',
                 trailing: HSwitch(
-                  semanticLabel: 'Push Notification',
+                  semanticLabel: 'পুশ নোটিফিকেশন',
                   value: notifications,
                   onChanged: (value) =>
                       ref.read(settingsNotificationProvider.notifier).state =
@@ -42,11 +42,11 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
               HMenuRow(
-                title: 'Sound',
+                title: 'শব্দ',
                 subtitle: 'নোটিফিকেশন শব্দ',
                 showDivider: false,
                 trailing: HSwitch(
-                  semanticLabel: 'Sound',
+                  semanticLabel: 'শব্দ',
                   value: sound,
                   onChanged: (value) =>
                       ref.read(settingsSoundProvider.notifier).state = value,
@@ -72,16 +72,16 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
-          const HLabel('ডেটা ও Storage'),
+          const HLabel('ডেটা ও স্টোরেজ'),
           HSectionCard(
             children: [
               const HMenuRow(
-                title: 'Local Cache পরিষ্কার করুন',
-                subtitle: 'Offline data মুছে দেবে',
+                title: 'লোকাল ক্যাশ পরিষ্কার করুন',
+                subtitle: 'অফলাইন ডাটা মুছে দেবে',
               ),
               HMenuRow(
-                title: 'Sync Queue দেখুন',
-                subtitle: 'Pending items',
+                title: 'সিঙ্ক কিউ দেখুন',
+                subtitle: 'পাঠানো বাকি আইটেম',
                 titleColor: AppColors.primary,
                 showDivider: false,
                 onTap: onOfflineQueueTap,
@@ -99,11 +99,11 @@ class SettingsScreen extends ConsumerWidget {
             ),
             child: const Column(
               children: [
-                _InfoRow(label: 'Version', value: '1.0.0 (MVP)'),
+                _InfoRow(label: 'ভার্সন', value: '1.0.0 (MVP)'),
                 SizedBox(height: 8),
-                _InfoRow(label: 'Build', value: '2025.05.23'),
+                _InfoRow(label: 'বিল্ড', value: '2025.05.23'),
                 SizedBox(height: 8),
-                _InfoRow(label: 'Backend', value: 'api.bazarkhata.com'),
+                _InfoRow(label: 'ব্যাকএন্ড', value: 'api.bazarkhata.com'),
               ],
             ),
           ),

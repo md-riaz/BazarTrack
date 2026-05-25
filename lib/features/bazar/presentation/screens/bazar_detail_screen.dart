@@ -16,10 +16,20 @@ import '../widgets/bazar_status_widgets.dart';
 import '../widgets/item_edit_sheet.dart';
 
 class BazarDetailScreen extends ConsumerWidget {
-  const BazarDetailScreen({required this.bazarId, super.key, this.userId});
+  const BazarDetailScreen({
+    required this.bazarId,
+    super.key,
+    this.userId,
+    this.onAddItemTap,
+    this.onCommentsTap,
+    this.onPriceHistoryTap,
+  });
 
   final String bazarId;
   final String? userId;
+  final VoidCallback? onAddItemTap;
+  final VoidCallback? onCommentsTap;
+  final VoidCallback? onPriceHistoryTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,6 +56,11 @@ class BazarDetailScreen extends ConsumerWidget {
               padding: const EdgeInsets.only(bottom: 18),
               children: [
                 _SummaryCard(bazar: bazar, items: itemList),
+                _ActionCard(
+                  onAddItemTap: onAddItemTap,
+                  onCommentsTap: onCommentsTap,
+                  onPriceHistoryTap: onPriceHistoryTap,
+                ),
                 const SectionHeader(title: 'আইটেম তালিকা'),
                 ...itemList.map(
                   (item) => _ItemTile(
@@ -59,7 +74,7 @@ class BazarDetailScreen extends ConsumerWidget {
                           ),
                   ),
                 ),
-                const SectionHeader(title: 'Activity'),
+                const SectionHeader(title: 'কার্যক্রম'),
                 activity.when(
                   data: (events) => ActivityTimelineWidget(events: events),
                   error: (error, _) => Padding(
@@ -84,7 +99,7 @@ class BazarDetailScreen extends ConsumerWidget {
                   PrimaryButton(
                     label: actionState.isLoading
                         ? 'শেষ হচ্ছে...'
-                        : 'আজকের বাজার শেষ ✓',
+                        : 'আজকের বাজার শেষ',
                     onPressed: bazar.isClosed || actionState.isLoading
                         ? null
                         : () => ref
@@ -155,6 +170,83 @@ class _SummaryCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ActionCard extends StatelessWidget {
+  const _ActionCard({
+    this.onAddItemTap,
+    this.onCommentsTap,
+    this.onPriceHistoryTap,
+  });
+
+  final VoidCallback? onAddItemTap;
+  final VoidCallback? onCommentsTap;
+  final VoidCallback? onPriceHistoryTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          _ActionButton(
+            label: 'আইটেম যোগ',
+            icon: Icons.add_shopping_cart,
+            onTap: onAddItemTap,
+          ),
+          _ActionButton(
+            label: 'কমেন্টস',
+            icon: Icons.chat_bubble_outline,
+            onTap: onCommentsTap,
+          ),
+          _ActionButton(
+            label: 'দাম ইতিহাস',
+            icon: Icons.history,
+            onTap: onPriceHistoryTap,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({required this.label, required this.icon, this.onTap});
+
+  final String label;
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Semantics(
+        button: true,
+        label: label,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: AppColors.primary, size: 22),
+                const SizedBox(height: 6),
+                Text(label, style: AppTextStyles.bodySmall),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

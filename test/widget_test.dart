@@ -41,12 +41,22 @@ void main() {
     await tester.tap(find.text('লগইন করুন →'));
     await tester.pumpAndSettle();
 
+    expect(find.text('সহজ বাজার খাতা'), findsOneWidget);
+    expect(find.text('আজকের বাজার ও টাকা'), findsOneWidget);
+    expect(find.text('বাজার তালিকা'), findsOneWidget);
+    expect(find.text('নতুন বাজার'), findsOneWidget);
     expect(find.text('হোম'), findsOneWidget);
-    expect(
-      find.textContaining('Dashboard shell and quick actions'),
-      findsOneWidget,
+    expect(find.text('বাজার'), findsOneWidget);
+    expect(find.text('হিসাব'), findsOneWidget);
+    expect(find.text('রিপোর্ট'), findsOneWidget);
+    expect(find.text('আরো'), findsOneWidget);
+
+    tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar)).onTap!(
+      1,
     );
-    expect(find.text('লগআউট'), findsOneWidget);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('সাম্প্রতিক বাজার'), findsOneWidget);
   });
 
   testWidgets('authenticated state can logout back to login', (tester) async {
@@ -60,7 +70,10 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('হোম'), findsOneWidget);
+    expect(find.text('সহজ বাজার খাতা'), findsOneWidget);
+    await tester.tap(find.text('আরো'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('লগআউট'), 300);
     await tester.tap(find.text('লগআউট'));
     await tester.pumpAndSettle();
 

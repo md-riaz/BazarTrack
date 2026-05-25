@@ -12,10 +12,10 @@ class SyncBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final data = switch (status) {
-      SyncStatus.online => ('✓', 'Synced', AppColors.positive),
-      SyncStatus.syncing => ('⟳', 'Syncing…', AppColors.primary),
-      SyncStatus.offline => ('⚡', 'Offline', AppColors.warning),
-      SyncStatus.failed => ('●', 'Sync failed', AppColors.negative),
+      SyncStatus.online => ('✓', 'সিঙ্কড', AppColors.positive),
+      SyncStatus.syncing => ('⟳', 'সিঙ্ক হচ্ছে…', AppColors.primary),
+      SyncStatus.offline => ('⚡', 'অফলাইন', AppColors.warning),
+      SyncStatus.failed => ('●', 'সিঙ্ক ব্যর্থ', AppColors.negative),
     };
 
     return DecoratedBox(

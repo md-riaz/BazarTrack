@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/sync/sync_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -17,92 +18,105 @@ class OfflineQueueScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sync = ref.watch(settingsSyncStatusProvider);
+    final sync = ref.watch(syncStatusProvider);
     final items = ref.watch(offlineQueueEntriesProvider);
-    final failed = ref.watch(offlineQueueFailedCountProvider);
     return Scaffold(
       backgroundColor: AppColors.surface2,
       appBar: BazarAppBar(
-        title: 'Sync Queue',
-        subtitle: 'OFFLINE PENDING ITEMS',
+        title: 'সিঙ্ক কিউ',
+        subtitle: 'অফলাইন আইটেম',
         leading: BackButton(onPressed: onBack),
       ),
-      body: ListView(
-        children: [
-          _StatusBanner(sync: sync, count: items.length, failed: failed),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(38),
-                      backgroundColor: AppColors.primaryLight,
-                      side: const BorderSide(
-                        color: AppColors.primary,
-                        width: 1.5,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: Text(
-                      'সব Retry করুন',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.primaryText,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(38),
-                      backgroundColor: AppColors.surface,
-                      side: const BorderSide(
-                        color: AppColors.border,
-                        width: 1.5,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text('Queue মুছুন'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          HSectionCard(
-            margin: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      body: items.when(
+        data: (entries) => _OfflineQueueContent(sync: sync, items: entries),
+        error: (error, _) => Center(child: Text(error.toString())),
+        loading: () => const Center(child: CircularProgressIndicator()),
+      ),
+    );
+  }
+}
+
+class _OfflineQueueContent extends ConsumerWidget {
+  const _OfflineQueueContent({required this.sync, required this.items});
+
+  final SyncStatus sync;
+  final List<OfflineQueueEntry> items;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final failed = items
+        .where((entry) => entry.status == OfflineQueueStatus.failed)
+        .length;
+    return ListView(
+      children: [
+        _StatusBanner(sync: sync, count: items.length, failed: failed),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Row(
             children: [
-              for (var index = 0; index < items.length; index++)
-                _QueueRow(
-                  entry: items[index],
-                  showDivider: index < items.length - 1,
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: sync == SyncStatus.syncing
+                      ? null
+                      : () => ref
+                            .read(offlineQueueRetryControllerProvider)
+                            .retryAll(),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(38),
+                    backgroundColor: AppColors.primaryLight,
+                    side: const BorderSide(
+                      color: AppColors.primary,
+                      width: 1.5,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    sync == SyncStatus.syncing
+                        ? 'সিঙ্ক হচ্ছে...'
+                        : 'সব আবার সিঙ্ক করুন',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.primaryText,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
+              ),
             ],
           ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-            decoration: BoxDecoration(
-              color: AppColors.surface3,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              'Internet এলে automatically sync হবে। এই page বন্ধ করলেও data নষ্ট হবে না।',
-              style: AppTextStyles.bodySmall,
-            ),
+        ),
+        HSectionCard(
+          margin: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+          children: items.isEmpty
+              ? [
+                  Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Text('সিঙ্ক কিউ খালি', style: AppTextStyles.body),
+                  ),
+                ]
+              : [
+                  for (var index = 0; index < items.length; index++)
+                    _QueueRow(
+                      entry: items[index],
+                      showDivider: index < items.length - 1,
+                    ),
+                ],
+        ),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.surface3,
+            borderRadius: BorderRadius.circular(12),
           ),
-          const SizedBox(height: 8),
-        ],
-      ),
+          child: Text(
+            'ইন্টারনেট এলে ডাটা সিঙ্ক হবে। এই পেজ বন্ধ করলেও ডাটা নষ্ট হবে না।',
+            style: AppTextStyles.bodySmall,
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
     );
   }
 }
@@ -137,7 +151,7 @@ class _StatusBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  offline ? 'Offline মোড — Internet নেই' : 'Sync হচ্ছে…',
+                  _syncLabel(sync),
                   style: AppTextStyles.bodySmall.copyWith(
                     color: color,
                     fontWeight: FontWeight.w700,
@@ -145,7 +159,7 @@ class _StatusBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  '${CurrencyFormatter.toBanglaDigits(count.toString())}টি item পাঠানো বাকি আছে',
+                  '${CurrencyFormatter.toBanglaDigits(count.toString())}টি আইটেম পাঠানো বাকি আছে',
                   style: AppTextStyles.bodySmall.copyWith(color: color),
                 ),
               ],
@@ -153,13 +167,23 @@ class _StatusBanner extends StatelessWidget {
           ),
           if (failed > 0)
             HPill(
-              label: '$failed failed',
+              label:
+                  '${CurrencyFormatter.toBanglaDigits(failed.toString())} ব্যর্থ',
               backgroundColor: AppColors.negativeLight,
               foregroundColor: AppColors.negativeDark,
             ),
         ],
       ),
     );
+  }
+
+  String _syncLabel(SyncStatus status) {
+    return switch (status) {
+      SyncStatus.online => 'সিঙ্কড',
+      SyncStatus.syncing => 'সিঙ্ক হচ্ছে…',
+      SyncStatus.offline => 'অফলাইন মোড — ইন্টারনেট নেই',
+      SyncStatus.failed => 'সিঙ্ক ব্যর্থ',
+    };
   }
 }
 
@@ -206,7 +230,7 @@ class _QueueRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     entry.retryCount > 0
-                        ? '${entry.ageLabel} · ${entry.retryCount} retry'
+                        ? '${entry.ageLabel} · ${CurrencyFormatter.toBanglaDigits(entry.retryCount.toString())} চেষ্টা'
                         : '${entry.ageLabel} · ${entry.operation}',
                     style: AppTextStyles.caption.copyWith(
                       color: AppColors.text3,
@@ -216,7 +240,7 @@ class _QueueRow extends StatelessWidget {
               ),
             ),
             HPill(
-              label: failed ? 'failed' : 'pending',
+              label: failed ? 'ব্যর্থ' : 'অপেক্ষমান',
               backgroundColor: failed
                   ? AppColors.negativeLight
                   : AppColors.warningLight,

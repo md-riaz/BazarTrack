@@ -40,7 +40,6 @@ final syncStatusProvider =
         queueDao: ref.watch(syncQueueDaoProvider),
         syncEngine: ref.watch(syncEngineProvider),
       );
-      ref.onDispose(notifier.dispose);
       notifier.start();
       return notifier;
     });
@@ -59,6 +58,7 @@ class SyncStatusNotifier extends StateNotifier<SyncStatus> {
 
   Future<void> start() async {
     _onlineSubscription = _syncEngine.onlineChanges.listen((isOnline) {
+      if (!mounted) return;
       if (!isOnline) {
         state = SyncStatus.offline;
         return;
@@ -69,22 +69,24 @@ class SyncStatusNotifier extends StateNotifier<SyncStatus> {
   }
 
   Future<void> syncNow() async {
+    if (!mounted) return;
     state = SyncStatus.syncing;
     final result = await _syncEngine.syncPending();
+    if (!mounted) return;
     if (result.offline) {
       state = SyncStatus.offline;
     } else if (result.failed > 0) {
       state = SyncStatus.failed;
-    } else if (await _queueDao.pendingCount() > 0) {
-      state = SyncStatus.failed;
     } else {
-      state = SyncStatus.online;
+      final pending = await _queueDao.pendingCount();
+      if (!mounted) return;
+      state = pending > 0 ? SyncStatus.failed : SyncStatus.online;
     }
   }
 
   @override
   void dispose() {
-    _onlineSubscription?.cancel();
+    unawaited(_onlineSubscription?.cancel());
     super.dispose();
   }
 }

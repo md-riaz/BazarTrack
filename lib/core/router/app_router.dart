@@ -18,6 +18,7 @@ import '../../features/money/presentation/screens/money_entry_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/reports/presentation/screens/monthly_close_screen.dart';
 import '../../features/reports/presentation/screens/reports_screen.dart';
+import '../../features/search/domain/entities/search_entities.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
 import '../../features/settings/presentation/screens/more_screen.dart';
 import '../../features/settings/presentation/screens/offline_queue_screen.dart';
@@ -28,6 +29,8 @@ import '../../features/wallet/presentation/screens/balance_screen.dart';
 import '../../features/wallet/presentation/screens/wallet_detail_screen.dart';
 import '../../shared/widgets/app_bar.dart';
 import '../../shared/widgets/primary_button.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final currentUser = ref.watch(currentUserProvider);
@@ -57,31 +60,201 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'login',
         builder: (context, state) => const LoginScreen(),
       ),
-      for (final route in AppRoutes.all.where(
-        (route) => route.path != AppRoutes.login,
-      ))
-        GoRoute(
-          path: route.path,
-          name: route.name,
-          builder: (context, state) => AppRouteScreen(route: route),
+      ShellRoute(
+        builder: (context, state, child) =>
+            MainShell(location: state.uri.path, child: child),
+        routes: [
+          GoRoute(
+            path: AppRoutes.home,
+            name: 'home',
+            builder: (context, state) => HomeDashboardScreen(
+              onBazarTap: () => context.go(AppRoutes.bazarList),
+              onNewBazarTap: () => context.go(AppRoutes.newBazar),
+              onBalanceTap: () => context.go(AppRoutes.balance),
+              onMoneyEntryTap: () => context.go(AppRoutes.moneyEntry),
+              onDirectExpenseTap: () => context.go(AppRoutes.directExpense),
+              onReportsTap: () => context.go(AppRoutes.reports),
+              onMoreTap: () => context.go(AppRoutes.more),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.bazarList,
+            name: 'bazar-list',
+            builder: (context, state) => BazarListScreen(
+              onBazarTap: (id) => context.go(AppRoutes.bazarDetail(id)),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.balance,
+            name: 'balance',
+            builder: (context, state) => BalanceScreen(
+              onWalletTap: (id) => context.go(AppRoutes.walletDetail(id)),
+              onMoneyEntryTap: () => context.go(AppRoutes.moneyEntry),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.reports,
+            name: 'reports',
+            builder: (context, state) => const ReportsScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.more,
+            name: 'more',
+            builder: (context, state) => MoreScreen(
+              onProfileEditTap: () => context.go(AppRoutes.profileEdit),
+              onOfflineQueueTap: () => context.go(AppRoutes.offlineQueue),
+              onMenuTap: (key) => _goFromMoreMenu(context, key),
+              onLogoutTap: () async {
+                await ref.read(loginControllerProvider.notifier).logout();
+                if (context.mounted) {
+                  context.go(AppRoutes.login);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: AppRoutes.bazarDetailPath,
+        name: 'bazar-detail',
+        builder: (context, state) {
+          final bazarId = state.pathParameters['bazarId']!;
+          return BazarDetailScreen(
+            bazarId: bazarId,
+            onAddItemTap: () => context.go(AppRoutes.addItem(bazarId)),
+            onCommentsTap: () => context.go(AppRoutes.bazarComments(bazarId)),
+            onPriceHistoryTap: () =>
+                context.go(AppRoutes.priceHistory(bazarId)),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.newBazar,
+        name: 'new-bazar',
+        builder: (context, state) => NewBazarScreen(
+          onBack: () => context.go(AppRoutes.bazarList),
+          onCreated: (bazarId) => context.go(AppRoutes.bazarDetail(bazarId)),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.addItemPath,
+        name: 'add-item',
+        builder: (context, state) {
+          final bazarId = state.pathParameters['bazarId']!;
+          return AddItemScreen(
+            bazarId: bazarId,
+            onBack: () => context.go(AppRoutes.bazarDetail(bazarId)),
+            onDone: () => context.go(AppRoutes.bazarDetail(bazarId)),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.directExpense,
+        name: 'direct-expense',
+        builder: (context, state) => DirectExpenseScreen(
+          onBack: () => context.go(AppRoutes.home),
+          onSaved: () => context.go(AppRoutes.home),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.bazarSummaryPath,
+        name: 'bazar-summary',
+        builder: (context, state) =>
+            BazarSummaryScreen(bazarId: state.pathParameters['bazarId']!),
+      ),
+      GoRoute(
+        path: AppRoutes.moneyEntry,
+        name: 'money-entry',
+        builder: (context, state) => const MoneyEntryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        name: 'notifications',
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.walletDetailPath,
+        name: 'wallet-detail',
+        builder: (context, state) =>
+            WalletDetailScreen(walletId: state.pathParameters['walletId']!),
+      ),
+      GoRoute(
+        path: AppRoutes.monthlyClose,
+        name: 'monthly-close',
+        builder: (context, state) => const MonthlyCloseScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.admin,
+        name: 'admin',
+        builder: (context, state) =>
+            AdminScreen(onAddUserTap: () => context.go(AppRoutes.addUser)),
+      ),
+      GoRoute(
+        path: AppRoutes.search,
+        name: 'search',
+        builder: (context, state) => SearchScreen(
+          onResultTap: (result) => context.go(_routeForSearchResult(result)),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.settings,
+        name: 'settings',
+        builder: (context, state) => SettingsScreen(
+          onBack: () => context.go(AppRoutes.more),
+          onOfflineQueueTap: () => context.go(AppRoutes.offlineQueue),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.offlineQueue,
+        name: 'offline-queue',
+        builder: (context, state) =>
+            OfflineQueueScreen(onBack: () => context.go(AppRoutes.settings)),
+      ),
+      GoRoute(
+        path: AppRoutes.profileEdit,
+        name: 'profile-edit',
+        builder: (context, state) =>
+            ProfileEditScreen(onBack: () => context.go(AppRoutes.more)),
+      ),
+      GoRoute(
+        path: AppRoutes.addUser,
+        name: 'add-user',
+        builder: (context, state) => AddUserScreen(
+          onUserCreated: () => context.go(AppRoutes.admin),
+          onCancel: () => context.go(AppRoutes.admin),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.bazarCommentsPath,
+        name: 'bazar-comments',
+        builder: (context, state) {
+          final bazarId = state.pathParameters['bazarId']!;
+          return BazarCommentsScreen(
+            onBack: () => context.go(AppRoutes.bazarDetail(bazarId)),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.priceHistoryPath,
+        name: 'price-history',
+        builder: (context, state) {
+          final bazarId = state.pathParameters['bazarId']!;
+          return PriceHistoryScreen(
+            onBack: () => context.go(AppRoutes.bazarDetail(bazarId)),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.assistantLedgerPath,
+        name: 'assistant-ledger',
+        builder: (context, state) => AssistantLedgerScreen(
+          walletId: state.pathParameters['walletId']!,
+          assistantId: state.pathParameters['assistantId']!,
+        ),
+      ),
     ],
   );
 });
-
-class AppRouteSpec {
-  const AppRouteSpec({
-    required this.name,
-    required this.path,
-    required this.title,
-    required this.description,
-  });
-
-  final String name;
-  final String path;
-  final String title;
-  final String description;
-}
 
 class AppRoutes {
   const AppRoutes._();
@@ -89,16 +262,16 @@ class AppRoutes {
   static const login = '/login';
   static const home = '/';
   static const bazarList = '/bazars';
-  static const bazarDetail = '/bazars/detail';
+  static const bazarDetailPath = '/bazars/:bazarId';
   static const newBazar = '/bazars/new';
-  static const addItem = '/bazars/items/add';
+  static const addItemPath = '/bazars/:bazarId/items/add';
   static const directExpense = '/money/direct-expense';
-  static const bazarSummary = '/bazars/summary';
+  static const bazarSummaryPath = '/bazars/:bazarId/summary';
   static const balance = '/balance';
   static const moneyEntry = '/money/entry';
   static const notifications = '/notifications';
   static const reports = '/reports';
-  static const walletDetail = '/wallets/detail';
+  static const walletDetailPath = '/wallets/:walletId';
   static const monthlyClose = '/reports/monthly-close';
   static const admin = '/admin';
   static const search = '/search';
@@ -107,312 +280,302 @@ class AppRoutes {
   static const more = '/more';
   static const profileEdit = '/profile/edit';
   static const addUser = '/admin/users/add';
-  static const bazarComments = '/comments';
-  static const priceHistory = '/items/price-history';
-  static const assistantLedger = '/wallets/assistant-ledger';
+  static const bazarCommentsPath = '/bazars/:bazarId/comments';
+  static const priceHistoryPath = '/bazars/:bazarId/price-history';
+  static const assistantLedgerPath =
+      '/wallets/:walletId/assistant/:assistantId';
 
-  static const all = <AppRouteSpec>[
-    AppRouteSpec(
-      name: 'login',
-      path: login,
-      title: 'লগইন',
-      description: 'Auth entry screen',
-    ),
-    AppRouteSpec(
-      name: 'home',
-      path: home,
-      title: 'হোম',
-      description: 'Dashboard shell and quick actions',
-    ),
-    AppRouteSpec(
-      name: 'bazar-list',
-      path: bazarList,
-      title: 'বাজার তালিকা',
-      description: 'All bazars with filters',
-    ),
-    AppRouteSpec(
-      name: 'bazar-detail',
-      path: bazarDetail,
-      title: 'বাজার বিস্তারিত',
-      description: 'Single bazar tracking view',
-    ),
-    AppRouteSpec(
-      name: 'new-bazar',
-      path: newBazar,
-      title: 'নতুন বাজার',
-      description: 'Create bazar request flow',
-    ),
-    AppRouteSpec(
-      name: 'add-item',
-      path: addItem,
-      title: 'আইটেম যোগ',
-      description: 'Item capture and parsing flow',
-    ),
-    AppRouteSpec(
-      name: 'direct-expense',
-      path: directExpense,
-      title: 'সরাসরি খরচ',
-      description: 'Direct expense entry flow',
-    ),
-    AppRouteSpec(
-      name: 'bazar-summary',
-      path: bazarSummary,
-      title: 'বাজার সারাংশ',
-      description: 'Closed bazar summary view',
-    ),
-    AppRouteSpec(
-      name: 'balance',
-      path: balance,
-      title: 'ব্যালেন্স',
-      description: 'Wallet and assistant balance board',
-    ),
-    AppRouteSpec(
-      name: 'money-entry',
-      path: moneyEntry,
-      title: 'টাকা এন্ট্রি',
-      description: 'Money receive/return/adjustment flow',
-    ),
-    AppRouteSpec(
-      name: 'notifications',
-      path: notifications,
-      title: 'নোটিফিকেশন',
-      description: 'Alerts and activity feed',
-    ),
-    AppRouteSpec(
-      name: 'reports',
-      path: reports,
-      title: 'রিপোর্টস',
-      description: 'Wallet reports and analytics',
-    ),
-    AppRouteSpec(
-      name: 'wallet-detail',
-      path: walletDetail,
-      title: 'ওয়ালেট বিস্তারিত',
-      description: 'Wallet ledger summary',
-    ),
-    AppRouteSpec(
-      name: 'monthly-close',
-      path: monthlyClose,
-      title: 'মাসিক ক্লোজ',
-      description: 'Snapshot and close flow',
-    ),
-    AppRouteSpec(
-      name: 'admin',
-      path: admin,
-      title: 'অ্যাডমিন',
-      description: 'Admin control panel',
-    ),
-    AppRouteSpec(
-      name: 'search',
-      path: search,
-      title: 'সার্চ',
-      description: 'Cross-wallet search view',
-    ),
-    AppRouteSpec(
-      name: 'settings',
-      path: settings,
-      title: 'সেটিংস',
-      description: 'Settings and preferences',
-    ),
-    AppRouteSpec(
-      name: 'offline-queue',
-      path: offlineQueue,
-      title: 'অফলাইন কিউ',
-      description: 'Sync backlog and conflict queue',
-    ),
-    AppRouteSpec(
-      name: 'more',
-      path: more,
-      title: 'আরও',
-      description: 'Secondary menu hub',
-    ),
-    AppRouteSpec(
-      name: 'profile-edit',
-      path: profileEdit,
-      title: 'প্রোফাইল এডিট',
-      description: 'User profile editing form',
-    ),
-    AppRouteSpec(
-      name: 'add-user',
-      path: addUser,
-      title: 'ইউজার যোগ',
-      description: 'Admin user creation form',
-    ),
-    AppRouteSpec(
-      name: 'bazar-comments',
-      path: bazarComments,
-      title: 'বাজার কমেন্টস',
-      description: 'Comment thread for bazar',
-    ),
-    AppRouteSpec(
-      name: 'price-history',
-      path: priceHistory,
-      title: 'দাম ইতিহাস',
-      description: 'Item price history timeline',
-    ),
-    AppRouteSpec(
-      name: 'assistant-ledger',
-      path: assistantLedger,
-      title: 'অ্যাসিস্ট্যান্ট লেজার',
-      description: 'Assistant-level ledger and balances',
-    ),
-  ];
+  static String bazarDetail(String bazarId) => '/bazars/$bazarId';
+  static String addItem(String bazarId) => '/bazars/$bazarId/items/add';
+  static String bazarSummary(String bazarId) => '/bazars/$bazarId/summary';
+  static String walletDetail(String walletId) => '/wallets/$walletId';
+  static String bazarComments(String bazarId) => '/bazars/$bazarId/comments';
+  static String priceHistory(String bazarId) =>
+      '/bazars/$bazarId/price-history';
+  static String assistantLedger(String walletId, String assistantId) =>
+      '/wallets/$walletId/assistant/$assistantId';
 }
 
-class AppRouteScreen extends ConsumerWidget {
-  const AppRouteScreen({required this.route, super.key});
+class MainShell extends StatelessWidget {
+  const MainShell({required this.location, required this.child, super.key});
 
-  final AppRouteSpec route;
-
-  static const _defaultBazarId = 'b1';
-  static const _defaultWalletId = 'w2';
-  static const _defaultAssistantId = 'u1';
+  final String location;
+  final Widget child;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return switch (route.path) {
-      AppRoutes.home => const RoutePlaceholderScreen(
-        title: 'হোম',
-        description: 'Dashboard shell and quick actions',
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: child,
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex(location),
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.text3,
+        onTap: (index) => context.go(_destinations[index].path),
+        items: [
+          for (final destination in _destinations)
+            BottomNavigationBarItem(
+              icon: Semantics(
+                label: destination.label,
+                button: true,
+                child: Icon(destination.icon),
+              ),
+              activeIcon: Semantics(
+                label: destination.label,
+                button: true,
+                selected: true,
+                child: Icon(destination.selectedIcon),
+              ),
+              label: destination.label,
+              tooltip: destination.label,
+            ),
+        ],
       ),
-      AppRoutes.bazarList => BazarListScreen(
-        onBazarTap: (id) => context.go(AppRoutes.bazarDetail),
-      ),
-      AppRoutes.bazarDetail => const BazarDetailScreen(
-        bazarId: _defaultBazarId,
-      ),
-      AppRoutes.newBazar => NewBazarScreen(
-        onBack: () => context.go(AppRoutes.bazarList),
-        onCreated: (_) => context.go(AppRoutes.bazarDetail),
-      ),
-      AppRoutes.addItem => AddItemScreen(
-        bazarId: _defaultBazarId,
-        onBack: () => context.go(AppRoutes.bazarDetail),
-        onDone: () => context.go(AppRoutes.bazarDetail),
-      ),
-      AppRoutes.directExpense => DirectExpenseScreen(
-        onBack: () => context.go(AppRoutes.home),
-        onSaved: () => context.go(AppRoutes.home),
-      ),
-      AppRoutes.bazarSummary => const BazarSummaryScreen(
-        bazarId: _defaultBazarId,
-      ),
-      AppRoutes.balance => BalanceScreen(
-        onWalletTap: (_) => context.go(AppRoutes.walletDetail),
-        onMoneyEntryTap: () => context.go(AppRoutes.moneyEntry),
-      ),
-      AppRoutes.moneyEntry => const MoneyEntryScreen(),
-      AppRoutes.notifications => const NotificationsScreen(),
-      AppRoutes.reports => const ReportsScreen(),
-      AppRoutes.walletDetail => const WalletDetailScreen(
-        walletId: _defaultWalletId,
-        assistantId: _defaultAssistantId,
-      ),
-      AppRoutes.monthlyClose => const MonthlyCloseScreen(),
-      AppRoutes.admin => AdminScreen(
-        onAddUserTap: () => context.go(AppRoutes.addUser),
-      ),
-      AppRoutes.search => SearchScreen(
-        onResultTap: (_) => context.go(AppRoutes.bazarDetail),
-      ),
-      AppRoutes.settings => SettingsScreen(
-        onBack: () => context.go(AppRoutes.more),
-        onOfflineQueueTap: () => context.go(AppRoutes.offlineQueue),
-      ),
-      AppRoutes.offlineQueue => OfflineQueueScreen(
-        onBack: () => context.go(AppRoutes.settings),
-      ),
-      AppRoutes.more => MoreScreen(
-        onProfileEditTap: () => context.go(AppRoutes.profileEdit),
-        onOfflineQueueTap: () => context.go(AppRoutes.offlineQueue),
-        onMenuTap: (key) => _goFromMoreMenu(context, key),
-        onLogoutTap: () async {
-          await ref.read(loginControllerProvider.notifier).logout();
-          if (context.mounted) {
-            context.go(AppRoutes.login);
-          }
-        },
-      ),
-      AppRoutes.profileEdit => ProfileEditScreen(
-        onBack: () => context.go(AppRoutes.more),
-      ),
-      AppRoutes.addUser => AddUserScreen(
-        onUserCreated: () => context.go(AppRoutes.admin),
-        onCancel: () => context.go(AppRoutes.admin),
-      ),
-      AppRoutes.bazarComments => BazarCommentsScreen(
-        onBack: () => context.go(AppRoutes.bazarDetail),
-      ),
-      AppRoutes.priceHistory => PriceHistoryScreen(
-        onBack: () => context.go(AppRoutes.bazarDetail),
-      ),
-      AppRoutes.assistantLedger => const AssistantLedgerScreen(
-        walletId: _defaultWalletId,
-        assistantId: _defaultAssistantId,
-      ),
-      _ => RoutePlaceholderScreen(
-        title: route.title,
-        description: route.description,
-      ),
-    };
+    );
   }
 
-  void _goFromMoreMenu(BuildContext context, String key) {
-    final destination = switch (key) {
-      'notifications' => AppRoutes.notifications,
-      'reports' => AppRoutes.reports,
-      'walletDetail' => AppRoutes.walletDetail,
-      'monthlyClose' => AppRoutes.monthlyClose,
-      'search' => AppRoutes.search,
-      'admin' => AppRoutes.admin,
-      'settings' => AppRoutes.settings,
-      _ => AppRoutes.more,
-    };
-    context.go(destination);
+  int _selectedIndex(String location) {
+    final index = _destinations.indexWhere((destination) {
+      if (destination.path == AppRoutes.home) {
+        return location == AppRoutes.home;
+      }
+      return location == destination.path ||
+          location.startsWith('${destination.path}/');
+    });
+    return index < 0 ? 0 : index;
   }
 }
 
-class RoutePlaceholderScreen extends ConsumerWidget {
-  const RoutePlaceholderScreen({
-    required this.title,
-    required this.description,
+class _ShellDestination {
+  const _ShellDestination({
+    required this.path,
+    required this.label,
+    required this.icon,
+    required this.selectedIcon,
+  });
+
+  final String path;
+  final String label;
+  final IconData icon;
+  final IconData selectedIcon;
+}
+
+const _destinations = <_ShellDestination>[
+  _ShellDestination(
+    path: AppRoutes.home,
+    label: 'হোম',
+    icon: Icons.home_outlined,
+    selectedIcon: Icons.home,
+  ),
+  _ShellDestination(
+    path: AppRoutes.bazarList,
+    label: 'বাজার',
+    icon: Icons.shopping_basket_outlined,
+    selectedIcon: Icons.shopping_basket,
+  ),
+  _ShellDestination(
+    path: AppRoutes.balance,
+    label: 'হিসাব',
+    icon: Icons.account_balance_wallet_outlined,
+    selectedIcon: Icons.account_balance_wallet,
+  ),
+  _ShellDestination(
+    path: AppRoutes.reports,
+    label: 'রিপোর্ট',
+    icon: Icons.bar_chart_outlined,
+    selectedIcon: Icons.bar_chart,
+  ),
+  _ShellDestination(
+    path: AppRoutes.more,
+    label: 'আরো',
+    icon: Icons.more_horiz,
+    selectedIcon: Icons.more,
+  ),
+];
+
+String _goFromMoreMenu(BuildContext context, String key) {
+  final destination = switch (key) {
+    'notifications' => AppRoutes.notifications,
+    'reports' => AppRoutes.reports,
+    'walletDetail' => AppRoutes.walletDetail('w2'),
+    'monthlyClose' => AppRoutes.monthlyClose,
+    'search' => AppRoutes.search,
+    'admin' => AppRoutes.admin,
+    'settings' => AppRoutes.settings,
+    _ => AppRoutes.more,
+  };
+  context.go(destination);
+  return destination;
+}
+
+String _routeForSearchResult(SearchResultItem result) {
+  return switch (result.type) {
+    SearchResultType.bazar || SearchResultType.item => AppRoutes.bazarDetail(
+      result.title.contains('Office Lunch') ? 'b2' : 'b1',
+    ),
+    SearchResultType.money => AppRoutes.walletDetail('w2'),
+  };
+}
+
+class HomeDashboardScreen extends ConsumerWidget {
+  const HomeDashboardScreen({
+    required this.onBazarTap,
+    required this.onNewBazarTap,
+    required this.onBalanceTap,
+    required this.onMoneyEntryTap,
+    required this.onDirectExpenseTap,
+    required this.onReportsTap,
+    required this.onMoreTap,
     super.key,
   });
 
-  final String title;
-  final String description;
+  final VoidCallback onBazarTap;
+  final VoidCallback onNewBazarTap;
+  final VoidCallback onBalanceTap;
+  final VoidCallback onMoneyEntryTap;
+  final VoidCallback onDirectExpenseTap;
+  final VoidCallback onReportsTap;
+  final VoidCallback onMoreTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
 
     return Scaffold(
+      backgroundColor: AppColors.surface2,
       appBar: BazarAppBar(
-        title: title,
+        title: 'সহজ বাজার খাতা',
         subtitle: currentUser == null
-            ? 'AUTH REQUIRED'
+            ? 'ড্যাশবোর্ড'
             : 'লগইন: ${currentUser.name}',
+        actions: [
+          IconButton(
+            tooltip: 'আরো',
+            onPressed: onMoreTap,
+            icon: const Icon(Icons.menu, color: AppColors.surface),
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(description, style: Theme.of(context).textTheme.bodyLarge),
-            const Spacer(),
-            PrimaryButton(
-              label: 'লগআউট',
-              onPressed: () async {
-                await ref.read(loginControllerProvider.notifier).logout();
-                if (context.mounted) {
-                  context.go(AppRoutes.login);
-                }
-              },
-              margin: EdgeInsets.zero,
-            ),
-          ],
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        children: [
+          const _HomeHeroCard(),
+          const SizedBox(height: 16),
+          Text('দ্রুত কাজ', style: AppTextStyles.screenTitle),
+          const SizedBox(height: 10),
+          _HomeActionGrid(
+            actions: [
+              _HomeAction('বাজার তালিকা', Icons.shopping_basket, onBazarTap),
+              _HomeAction('নতুন বাজার', Icons.add_shopping_cart, onNewBazarTap),
+              _HomeAction(
+                'ব্যালেন্স',
+                Icons.account_balance_wallet,
+                onBalanceTap,
+              ),
+              _HomeAction('টাকা এন্ট্রি', Icons.payments, onMoneyEntryTap),
+              _HomeAction('সরাসরি খরচ', Icons.receipt_long, onDirectExpenseTap),
+              _HomeAction('রিপোর্টস', Icons.bar_chart, onReportsTap),
+            ],
+          ),
+          const SizedBox(height: 16),
+          PrimaryButton(
+            label: 'আরো মেনু খুলুন',
+            icon: const Icon(Icons.more_horiz),
+            onPressed: onMoreTap,
+            margin: EdgeInsets.zero,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeHeroCard extends StatelessWidget {
+  const _HomeHeroCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.primary, AppColors.primaryDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(21, 101, 192, 0.22),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('আজকের বাজার ও টাকা', style: AppTextStyles.appBarTitle),
+          const SizedBox(height: 8),
+          Text(
+            'বাজারের তালিকা, খরচ, আর টাকা কার কাছে কত আছে — সব এক জায়গায়।',
+            style: AppTextStyles.body.copyWith(color: Colors.white70),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeAction {
+  const _HomeAction(this.label, this.icon, this.onTap);
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+}
+
+class _HomeActionGrid extends StatelessWidget {
+  const _HomeActionGrid({required this.actions});
+
+  final List<_HomeAction> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 10,
+      crossAxisSpacing: 10,
+      childAspectRatio: 1.55,
+      children: [
+        for (final action in actions)
+          Semantics(
+            button: true,
+            label: action.label,
+            child: InkWell(
+              onTap: action.onTap,
+              borderRadius: BorderRadius.circular(16),
+              child: Ink(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Icon(action.icon, color: AppColors.primary, size: 24),
+                    Text(action.label, style: AppTextStyles.bodyStrong),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
