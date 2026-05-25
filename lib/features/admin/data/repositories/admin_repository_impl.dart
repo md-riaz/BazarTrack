@@ -24,4 +24,34 @@ class AdminRepositoryImpl implements AdminRepository {
     }
     return _remoteDataSource.createUser(request);
   }
+
+  @override
+  Future<AdminWallet> createWallet(CreateAdminWalletRequest request) async {
+    if (request.name.trim().isEmpty) {
+      throw ArgumentError('ওয়ালেটের নাম আবশ্যক');
+    }
+    if (!adminWalletTypes.contains(request.type)) {
+      throw ArgumentError('ওয়ালেটের ধরন সঠিক নয়');
+    }
+    if (request.ownerIds.isEmpty) {
+      throw ArgumentError('কমপক্ষে একজন মালিক নির্বাচন করুন');
+    }
+
+    final users = await _remoteDataSource.getUsers();
+    final assignableOwnerIds = users
+        .where(
+          (user) =>
+              user.role == AdminRole.owner || user.role == AdminRole.admin,
+        )
+        .map((user) => user.id)
+        .toSet();
+    final hasInvalidOwner = request.ownerIds.any(
+      (ownerId) => !assignableOwnerIds.contains(ownerId),
+    );
+    if (hasInvalidOwner) {
+      throw ArgumentError('এক বা একাধিক মালিক সঠিক নয়');
+    }
+
+    return _remoteDataSource.createWallet(request);
+  }
 }

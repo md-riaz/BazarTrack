@@ -60,5 +60,80 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    test('creates wallet and puts it first in mock list', () async {
+      final repository = AdminRepositoryImpl(MockAdminRemoteDataSource());
+
+      final created = await repository.createWallet(
+        const CreateAdminWalletRequest(
+          name: 'Project Wallet',
+          type: 'shared',
+          ownerIds: ['u3', 'u4'],
+        ),
+      );
+      final wallets = await repository.getWallets();
+
+      expect(created.name, 'Project Wallet');
+      expect(created.type, 'shared');
+      expect(created.owners, ['CEO', 'Fatema']);
+      expect(created.balance, 0);
+      expect(wallets.first.name, 'Project Wallet');
+      expect(wallets, hasLength(4));
+    });
+
+    test('rejects invalid wallet create request', () async {
+      final repository = AdminRepositoryImpl(MockAdminRemoteDataSource());
+
+      expect(
+        () => repository.createWallet(
+          const CreateAdminWalletRequest(
+            name: '',
+            type: 'shared',
+            ownerIds: ['u3'],
+          ),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => repository.createWallet(
+          const CreateAdminWalletRequest(
+            name: 'Project Wallet',
+            type: 'unknown',
+            ownerIds: ['u3'],
+          ),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => repository.createWallet(
+          const CreateAdminWalletRequest(
+            name: 'Project Wallet',
+            type: 'shared',
+            ownerIds: [],
+          ),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => repository.createWallet(
+          const CreateAdminWalletRequest(
+            name: 'Project Wallet',
+            type: 'shared',
+            ownerIds: ['u1'],
+          ),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => repository.createWallet(
+          const CreateAdminWalletRequest(
+            name: 'Project Wallet',
+            type: 'shared',
+            ownerIds: ['missing'],
+          ),
+        ),
+        throwsArgumentError,
+      );
+    });
   });
 }

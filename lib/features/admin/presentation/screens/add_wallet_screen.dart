@@ -9,30 +9,26 @@ import '../../../../shared/widgets/primary_button.dart';
 import '../../domain/entities/admin_entities.dart';
 import '../providers/admin_providers.dart';
 
-class AddUserScreen extends ConsumerStatefulWidget {
-  const AddUserScreen({super.key, this.onUserCreated, this.onCancel});
+class AddWalletScreen extends ConsumerStatefulWidget {
+  const AddWalletScreen({super.key, this.onWalletCreated, this.onCancel});
 
-  final VoidCallback? onUserCreated;
+  final VoidCallback? onWalletCreated;
   final VoidCallback? onCancel;
 
   @override
-  ConsumerState<AddUserScreen> createState() => _AddUserScreenState();
+  ConsumerState<AddWalletScreen> createState() => _AddWalletScreenState();
 }
 
-class _AddUserScreenState extends ConsumerState<AddUserScreen> {
+class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  AdminRole _role = AdminRole.assistant;
-  bool _canSeeAllWallets = true;
-  bool _canCreateBazar = true;
-  bool _canEnterMoney = false;
+  final Set<String> _selectedOwnerIds = <String>{};
+  String _type = adminWalletTypes.first;
   bool _isSaving = false;
 
   @override
   void dispose() {
     _nameController.dispose();
-    _phoneController.dispose();
     super.dispose();
   }
 
@@ -40,26 +36,32 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    if (_selectedOwnerIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('কমপক্ষে একজন মালিক নির্বাচন করুন')),
+      );
+      return;
+    }
 
     setState(() => _isSaving = true);
     try {
       await ref
           .read(adminRepositoryProvider)
-          .createUser(
-            CreateAdminUserRequest(
+          .createWallet(
+            CreateAdminWalletRequest(
               name: _nameController.text.trim(),
-              phone: _phoneController.text.trim(),
-              role: _role,
+              type: _type,
+              ownerIds: _selectedOwnerIds.toList(growable: false),
             ),
           );
-      ref.invalidate(adminUsersProvider);
+      ref.invalidate(adminWalletsProvider);
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('নতুন ইউজার যোগ হয়েছে')));
-      widget.onUserCreated?.call();
+      ).showSnackBar(const SnackBar(content: Text('নতুন ওয়ালেট যোগ হয়েছে')));
+      widget.onWalletCreated?.call();
     } catch (error) {
       if (!mounted) {
         return;
@@ -76,37 +78,25 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final users = ref.watch(adminUsersProvider);
     return Scaffold(
       backgroundColor: AppColors.surface2,
-      appBar: const BazarAppBar(title: 'নতুন ইউজার'),
+      appBar: const BazarAppBar(title: 'নতুন ওয়ালেট'),
       body: Form(
         key: _formKey,
         child: ListView(
           children: [
             const SizedBox(height: 10),
             _FormCard(
-              title: 'ইউজার তথ্য',
+              title: 'ওয়ালেট তথ্য',
               children: [
                 _TextInput(
                   controller: _nameController,
-                  label: 'নাম',
-                  hintText: 'যেমন: Rahim Uddin',
+                  label: 'ওয়ালেটের নাম',
+                  hintText: 'যেমন: Office Wallet',
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'নাম দিন';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                _TextInput(
-                  controller: _phoneController,
-                  label: 'ফোন নম্বর',
-                  hintText: '01XXXXXXXXX',
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'ফোন নম্বর দিন';
+                      return 'ওয়ালেটের নাম দিন';
                     }
                     return null;
                   },
@@ -114,39 +104,67 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
               ],
             ),
             _FormCard(
-              title: 'রোল নির্বাচন',
+              title: 'ধরন নির্বাচন',
               children: [
-                for (final role in AdminRole.values)
-                  _RoleTile(
-                    role: role,
-                    selected: role == _role,
-                    onTap: () => setState(() => _role = role),
+                for (final type in adminWalletTypes)
+                  _TypeTile(
+                    type: type,
+                    selected: type == _type,
+                    onTap: () => setState(() => _type = type),
                   ),
               ],
             ),
             _FormCard(
-              title: 'পারমিশন',
+              title: 'মালিক নির্বাচন',
               children: [
-                _PermissionSwitch(
-                  title: 'সব ওয়ালেট দেখতে পারবে',
-                  value: _canSeeAllWallets,
-                  onChanged: (value) =>
-                      setState(() => _canSeeAllWallets = value),
-                ),
-                _PermissionSwitch(
-                  title: 'বাজার তৈরি করতে পারবে',
-                  value: _canCreateBazar,
-                  onChanged: (value) => setState(() => _canCreateBazar = value),
-                ),
-                _PermissionSwitch(
-                  title: 'টাকা এন্ট্রি করতে পারবে',
-                  value: _canEnterMoney,
-                  onChanged: (value) => setState(() => _canEnterMoney = value),
+                users.when(
+                  data: (items) {
+                    final owners = items
+                        .where(
+                          (user) =>
+                              user.isActive &&
+                              (user.role == AdminRole.owner ||
+                                  user.role == AdminRole.admin),
+                        )
+                        .toList(growable: false);
+                    if (owners.isEmpty) {
+                      return Text(
+                        'কোনো সক্রিয় মালিক নেই',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.text3,
+                        ),
+                      );
+                    }
+                    return Column(
+                      children: [
+                        for (final owner in owners)
+                          _OwnerTile(
+                            owner: owner,
+                            selected: _selectedOwnerIds.contains(owner.id),
+                            onTap: () => setState(() {
+                              if (_selectedOwnerIds.contains(owner.id)) {
+                                _selectedOwnerIds.remove(owner.id);
+                              } else {
+                                _selectedOwnerIds.add(owner.id);
+                              }
+                            }),
+                          ),
+                      ],
+                    );
+                  },
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stackTrace) => Text(
+                    'মালিক লোড করা যায়নি',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.negative,
+                    ),
+                  ),
                 ),
               ],
             ),
             PrimaryButton(
-              label: _isSaving ? 'সেভ হচ্ছে...' : 'ইউজার যোগ করুন',
+              label: _isSaving ? 'সেভ হচ্ছে...' : 'ওয়ালেট যোগ করুন',
               onPressed: _isSaving ? null : _submit,
             ),
             GhostButton(
@@ -196,14 +214,12 @@ class _TextInput extends StatelessWidget {
     required this.controller,
     required this.label,
     required this.hintText,
-    this.keyboardType,
     this.validator,
   });
 
   final TextEditingController controller;
   final String label;
   final String hintText;
-  final TextInputType? keyboardType;
   final String? Function(String?)? validator;
 
   @override
@@ -215,7 +231,6 @@ class _TextInput extends StatelessWidget {
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,
-          keyboardType: keyboardType,
           validator: validator,
           decoration: InputDecoration(
             hintText: hintText,
@@ -243,14 +258,14 @@ class _TextInput extends StatelessWidget {
   }
 }
 
-class _RoleTile extends StatelessWidget {
-  const _RoleTile({
-    required this.role,
+class _TypeTile extends StatelessWidget {
+  const _TypeTile({
+    required this.type,
     required this.selected,
     required this.onTap,
   });
 
-  final AdminRole role;
+  final String type;
   final bool selected;
   final VoidCallback onTap;
 
@@ -277,24 +292,9 @@ class _RoleTile extends StatelessWidget {
               size: 20,
             ),
             const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    role.label,
-                    style: AppTextStyles.bodyStrong.copyWith(fontSize: 13),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    role.description,
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.text3,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                ],
-              ),
+            Text(
+              adminWalletTypeLabel(type),
+              style: AppTextStyles.bodyStrong.copyWith(fontSize: 13),
             ),
           ],
         ),
@@ -303,29 +303,36 @@ class _RoleTile extends StatelessWidget {
   }
 }
 
-class _PermissionSwitch extends StatelessWidget {
-  const _PermissionSwitch({
-    required this.title,
-    required this.value,
-    required this.onChanged,
+class _OwnerTile extends StatelessWidget {
+  const _OwnerTile({
+    required this.owner,
+    required this.selected,
+    required this.onTap,
   });
 
-  final String title;
-  final bool value;
-  final ValueChanged<bool> onChanged;
+  final AdminUser owner;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return SwitchListTile.adaptive(
-      value: value,
-      onChanged: onChanged,
+    return CheckboxListTile(
+      value: selected,
+      onChanged: (_) => onTap(),
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+      activeColor: AppColors.primary,
       title: Text(
-        title,
+        owner.name,
         style: AppTextStyles.bodyStrong.copyWith(fontSize: 13),
       ),
-      activeThumbColor: AppColors.primary,
-      dense: true,
-      contentPadding: EdgeInsets.zero,
+      subtitle: Text(
+        owner.role.shortLabel,
+        style: AppTextStyles.caption.copyWith(
+          color: AppColors.text3,
+          letterSpacing: 0,
+        ),
+      ),
     );
   }
 }

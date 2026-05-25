@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/admin/presentation/screens/add_user_screen.dart';
+import '../../features/admin/presentation/screens/add_wallet_screen.dart';
 import '../../features/admin/presentation/screens/admin_screen.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/bazar/domain/entities/bazar_entities.dart';
+import '../../features/bazar/presentation/providers/bazar_providers.dart';
 import '../../features/bazar/presentation/screens/add_item_screen.dart';
 import '../../features/bazar/presentation/screens/bazar_detail_screen.dart';
 import '../../features/bazar/presentation/screens/bazar_list_screen.dart';
@@ -16,19 +19,29 @@ import '../../features/comments/presentation/screens/price_history_screen.dart';
 import '../../features/money/presentation/screens/direct_expense_screen.dart';
 import '../../features/money/presentation/screens/money_entry_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
+import '../../features/reports/domain/entities/report_summary.dart';
+import '../../features/reports/presentation/providers/report_providers.dart';
 import '../../features/reports/presentation/screens/monthly_close_screen.dart';
 import '../../features/reports/presentation/screens/reports_screen.dart';
 import '../../features/search/domain/entities/search_entities.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
+import '../../features/settings/presentation/providers/settings_providers.dart';
 import '../../features/settings/presentation/screens/more_screen.dart';
 import '../../features/settings/presentation/screens/offline_queue_screen.dart';
 import '../../features/settings/presentation/screens/profile_edit_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/wallet/domain/entities/wallet_summary.dart';
+import '../../features/wallet/presentation/providers/wallet_providers.dart';
 import '../../features/wallet/presentation/screens/assistant_ledger_screen.dart';
 import '../../features/wallet/presentation/screens/balance_screen.dart';
 import '../../features/wallet/presentation/screens/wallet_detail_screen.dart';
+import '../../shared/models/app_enums.dart';
 import '../../shared/widgets/app_bar.dart';
 import '../../shared/widgets/primary_button.dart';
+import '../../shared/widgets/section_header.dart';
+import '../../shared/widgets/status_chip.dart';
+import '../../shared/widgets/sync_badge.dart';
+import '../sync/sync_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
@@ -186,14 +199,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.admin,
         name: 'admin',
-        builder: (context, state) =>
-            AdminScreen(onAddUserTap: () => context.go(AppRoutes.addUser)),
+        builder: (context, state) => AdminScreen(
+          onAddUserTap: () => context.go(AppRoutes.addUser),
+          onAddWalletTap: () => context.go(AppRoutes.addWallet),
+        ),
       ),
       GoRoute(
         path: AppRoutes.search,
         name: 'search',
         builder: (context, state) => SearchScreen(
-          onResultTap: (result) => context.go(_routeForSearchResult(result)),
+          onResultTap: (result) => context.go(routeForSearchResult(result)),
         ),
       ),
       GoRoute(
@@ -221,6 +236,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'add-user',
         builder: (context, state) => AddUserScreen(
           onUserCreated: () => context.go(AppRoutes.admin),
+          onCancel: () => context.go(AppRoutes.admin),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.addWallet,
+        name: 'add-wallet',
+        builder: (context, state) => AddWalletScreen(
+          onWalletCreated: () => context.go(AppRoutes.admin),
           onCancel: () => context.go(AppRoutes.admin),
         ),
       ),
@@ -280,6 +303,7 @@ class AppRoutes {
   static const more = '/more';
   static const profileEdit = '/profile/edit';
   static const addUser = '/admin/users/add';
+  static const addWallet = '/admin/wallets/add';
   static const bazarCommentsPath = '/bazars/:bazarId/comments';
   static const priceHistoryPath = '/bazars/:bazarId/price-history';
   static const assistantLedgerPath =
@@ -397,7 +421,7 @@ String _goFromMoreMenu(BuildContext context, String key) {
   final destination = switch (key) {
     'notifications' => AppRoutes.notifications,
     'reports' => AppRoutes.reports,
-    'walletDetail' => AppRoutes.walletDetail('w2'),
+    'walletDetail' => AppRoutes.balance,
     'monthlyClose' => AppRoutes.monthlyClose,
     'search' => AppRoutes.search,
     'admin' => AppRoutes.admin,
@@ -408,12 +432,24 @@ String _goFromMoreMenu(BuildContext context, String key) {
   return destination;
 }
 
-String _routeForSearchResult(SearchResultItem result) {
+String routeForSearchResult(SearchResultItem result) {
   return switch (result.type) {
-    SearchResultType.bazar || SearchResultType.item => AppRoutes.bazarDetail(
-      result.title.contains('Office Lunch') ? 'b2' : 'b1',
-    ),
-    SearchResultType.money => AppRoutes.walletDetail('w2'),
+    SearchResultType.bazar =>
+      result.bazarId != null
+          ? AppRoutes.bazarDetail(result.bazarId!)
+          : result.entityId != null
+          ? AppRoutes.bazarDetail(result.entityId!)
+          : AppRoutes.bazarList,
+    SearchResultType.item =>
+      result.bazarId != null
+          ? AppRoutes.bazarDetail(result.bazarId!)
+          : result.parentId != null
+          ? AppRoutes.bazarDetail(result.parentId!)
+          : AppRoutes.bazarList,
+    SearchResultType.money =>
+      result.walletId != null
+          ? AppRoutes.walletDetail(result.walletId!)
+          : AppRoutes.balance,
   };
 }
 
@@ -440,6 +476,11 @@ class HomeDashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
+    final syncStatus = ref.watch(syncStatusProvider);
+    final offlineQueue = ref.watch(offlineQueueEntriesProvider);
+    final bazars = ref.watch(bazarsProvider);
+    final walletSummaries = ref.watch(walletSummariesProvider);
+    final report = ref.watch(monthlyReportProvider(currentPeriodMonth()));
 
     return Scaffold(
       backgroundColor: AppColors.surface2,
@@ -447,7 +488,7 @@ class HomeDashboardScreen extends ConsumerWidget {
         title: 'সহজ বাজার খাতা',
         subtitle: currentUser == null
             ? 'ড্যাশবোর্ড'
-            : 'লগইন: ${currentUser.name}',
+            : '${currentUser.name} — ${_roleLabel(currentUser.role)}',
         actions: [
           IconButton(
             tooltip: 'আরো',
@@ -459,22 +500,32 @@ class HomeDashboardScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
-          const _HomeHeroCard(),
-          const SizedBox(height: 16),
-          Text('দ্রুত কাজ', style: AppTextStyles.screenTitle),
-          const SizedBox(height: 10),
+          _HomeHeroCard(
+            userName: currentUser?.name,
+            syncStatus: syncStatus,
+            pendingCount: offlineQueue.valueOrNull?.length,
+          ),
+          const SizedBox(height: 14),
+          _WalletOverviewCard(
+            summaries: walletSummaries,
+            report: report,
+            onTap: onBalanceTap,
+          ),
+          SectionHeader(
+            title: 'সাম্প্রতিক বাজার',
+            action: 'সব দেখুন',
+            onAction: onBazarTap,
+          ),
+          _RecentBazarList(bazars: bazars, onBazarTap: onBazarTap),
+          SectionHeader(title: 'দ্রুত কাজ'),
           _HomeActionGrid(
             actions: [
               _HomeAction('বাজার তালিকা', Icons.shopping_basket, onBazarTap),
               _HomeAction('নতুন বাজার', Icons.add_shopping_cart, onNewBazarTap),
-              _HomeAction(
-                'ব্যালেন্স',
-                Icons.account_balance_wallet,
-                onBalanceTap,
-              ),
+              _HomeAction('হিসাব', Icons.account_balance_wallet, onBalanceTap),
               _HomeAction('টাকা এন্ট্রি', Icons.payments, onMoneyEntryTap),
               _HomeAction('সরাসরি খরচ', Icons.receipt_long, onDirectExpenseTap),
-              _HomeAction('রিপোর্টস', Icons.bar_chart, onReportsTap),
+              _HomeAction('রিপোর্ট', Icons.bar_chart, onReportsTap),
             ],
           ),
           const SizedBox(height: 16),
@@ -491,10 +542,24 @@ class HomeDashboardScreen extends ConsumerWidget {
 }
 
 class _HomeHeroCard extends StatelessWidget {
-  const _HomeHeroCard();
+  const _HomeHeroCard({
+    required this.syncStatus,
+    required this.pendingCount,
+    this.userName,
+  });
+
+  final String? userName;
+  final SyncStatus syncStatus;
+  final int? pendingCount;
 
   @override
   Widget build(BuildContext context) {
+    final queueLabel = pendingCount == null
+        ? 'অফলাইন কাজ দেখা হচ্ছে'
+        : pendingCount == 0
+        ? 'সব কাজ সিঙ্ক হয়েছে'
+        : '${_toBanglaDigits(pendingCount!)}টি কাজ অপেক্ষায়';
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -515,12 +580,322 @@ class _HomeHeroCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('আজকের বাজার ও টাকা', style: AppTextStyles.appBarTitle),
+          Text(
+            'স্বাগতম, ${userName ?? 'টিম'}',
+            style: AppTextStyles.appBarTitle,
+          ),
           const SizedBox(height: 8),
           Text(
-            'বাজারের তালিকা, খরচ, আর টাকা কার কাছে কত আছে — সব এক জায়গায়।',
+            'আজকের বাজার, টাকা আর সিঙ্ক অবস্থা এক নজরে দেখুন।',
             style: AppTextStyles.body.copyWith(color: Colors.white70),
           ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              SyncBadge(status: syncStatus),
+              StatusChip(
+                label: queueLabel,
+                backgroundColor: Colors.white.withValues(alpha: 0.16),
+                foregroundColor: Colors.white,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WalletOverviewCard extends StatelessWidget {
+  const _WalletOverviewCard({
+    required this.summaries,
+    required this.report,
+    required this.onTap,
+  });
+
+  final AsyncValue<List<WalletSummary>> summaries;
+  final AsyncValue<ReportSummary> report;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final walletSummaries = summaries.valueOrNull ?? const <WalletSummary>[];
+    final walletCount = walletSummaries.length;
+    final estimatedTotal = walletSummaries.fold<double>(
+      0,
+      (total, summary) => total + summary.balance.estimatedBalance,
+    );
+    final inProgressTotal = walletSummaries.fold<double>(
+      0,
+      (total, summary) => total + summary.balance.inProgressAmount,
+    );
+    final monthlySpent = report.valueOrNull?.totalSpent;
+
+    return Semantics(
+      button: true,
+      label: 'হিসাবের সারাংশ',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Ink(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'হিসাবের সারাংশ',
+                      style: AppTextStyles.screenTitle,
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: AppColors.text3,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _DashboardMetric(
+                      label: 'ওয়ালেট',
+                      value: _toBanglaDigits(walletCount),
+                    ),
+                  ),
+                  Expanded(
+                    child: _DashboardMetric(
+                      label: 'আনুমানিক টাকা',
+                      value: _money(estimatedTotal),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _DashboardMetric(
+                      label: 'চলমান খরচ',
+                      value: _money(inProgressTotal),
+                    ),
+                  ),
+                  Expanded(
+                    child: _DashboardMetric(
+                      label: 'মাসিক খরচ',
+                      value: monthlySpent == null
+                          ? 'লোড হচ্ছে'
+                          : _money(monthlySpent),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DashboardMetric extends StatelessWidget {
+  const _DashboardMetric({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTextStyles.caption),
+        const SizedBox(height: 3),
+        Text(value, style: AppTextStyles.bodyStrong),
+      ],
+    );
+  }
+}
+
+class _RecentBazarList extends StatelessWidget {
+  const _RecentBazarList({required this.bazars, required this.onBazarTap});
+
+  final AsyncValue<List<Bazar>> bazars;
+  final VoidCallback onBazarTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return bazars.when(
+      data: (items) {
+        final recent = items.take(3).toList(growable: false);
+        if (recent.isEmpty) {
+          return _EmptyDashboardCard(
+            title: 'এখনও বাজার নেই',
+            subtitle: 'নতুন বাজার তৈরি করলে এখানে দেখা যাবে।',
+            actionLabel: 'নতুন বাজার',
+            onTap: onBazarTap,
+          );
+        }
+        return Column(
+          children: [
+            for (final bazar in recent) ...[
+              _RecentBazarCard(bazar: bazar, onTap: onBazarTap),
+              const SizedBox(height: 10),
+            ],
+          ],
+        );
+      },
+      loading: () => const _LoadingDashboardCard(label: 'বাজার লোড হচ্ছে'),
+      error: (error, stackTrace) => _EmptyDashboardCard(
+        title: 'বাজার দেখা যাচ্ছে না',
+        subtitle: 'তালিকা খুলে আবার চেষ্টা করুন।',
+        actionLabel: 'বাজার তালিকা',
+        onTap: onBazarTap,
+      ),
+    );
+  }
+}
+
+class _RecentBazarCard extends StatelessWidget {
+  const _RecentBazarCard({required this.bazar, required this.onTap});
+
+  final Bazar bazar;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: bazar.title ?? 'বাজার',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.shopping_basket,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      bazar.title ?? 'নামহীন বাজার',
+                      style: AppTextStyles.bodyStrong,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${_toBanglaDigits(bazar.itemCount)}টি আইটেম • ${_money(bazar.spent)}',
+                      style: AppTextStyles.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              StatusChip(
+                label: _bazarStatusLabel(bazar.status),
+                backgroundColor: _bazarStatusBackground(bazar.status),
+                foregroundColor: _bazarStatusForeground(bazar.status),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyDashboardCard extends StatelessWidget {
+  const _EmptyDashboardCard({
+    required this.title,
+    required this.subtitle,
+    required this.actionLabel,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final String actionLabel;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: AppTextStyles.bodyStrong),
+          const SizedBox(height: 4),
+          Text(subtitle, style: AppTextStyles.bodySmall),
+          const SizedBox(height: 12),
+          PrimaryButton(
+            label: actionLabel,
+            onPressed: onTap,
+            margin: EdgeInsets.zero,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LoadingDashboardCard extends StatelessWidget {
+  const _LoadingDashboardCard({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: 12),
+          Text(label, style: AppTextStyles.body),
         ],
       ),
     );
@@ -578,4 +953,63 @@ class _HomeActionGrid extends StatelessWidget {
       ],
     );
   }
+}
+
+String _roleLabel(UserRole role) {
+  return switch (role) {
+    UserRole.owner => 'মালিক',
+    UserRole.admin => 'অ্যাডমিন',
+    UserRole.assistant => 'সহকারী',
+  };
+}
+
+String _bazarStatusLabel(BazarStatus status) {
+  return switch (status) {
+    BazarStatus.draft => 'খসড়া',
+    BazarStatus.open => 'চলমান',
+    BazarStatus.closed => 'শেষ',
+    BazarStatus.cancelled => 'বাতিল',
+  };
+}
+
+Color _bazarStatusBackground(BazarStatus status) {
+  return switch (status) {
+    BazarStatus.draft => AppColors.warningLight,
+    BazarStatus.open => AppColors.primaryLight,
+    BazarStatus.closed => AppColors.positiveLight,
+    BazarStatus.cancelled => AppColors.negativeLight,
+  };
+}
+
+Color _bazarStatusForeground(BazarStatus status) {
+  return switch (status) {
+    BazarStatus.draft => AppColors.warningDark,
+    BazarStatus.open => AppColors.primary,
+    BazarStatus.closed => AppColors.positiveDark,
+    BazarStatus.cancelled => AppColors.negativeDark,
+  };
+}
+
+String _money(double value) {
+  final sign = value < 0 ? '-' : '';
+  final amount = value.abs();
+  final text = amount == amount.roundToDouble()
+      ? amount.toInt().toString()
+      : amount.toStringAsFixed(2);
+  return '$sign৳ ${_toBanglaDigits(text)}';
+}
+
+String _toBanglaDigits(Object value) {
+  return value
+      .toString()
+      .replaceAll('0', '০')
+      .replaceAll('1', '১')
+      .replaceAll('2', '২')
+      .replaceAll('3', '৩')
+      .replaceAll('4', '৪')
+      .replaceAll('5', '৫')
+      .replaceAll('6', '৬')
+      .replaceAll('7', '৭')
+      .replaceAll('8', '৮')
+      .replaceAll('9', '৯');
 }

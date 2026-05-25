@@ -24,6 +24,9 @@ class MockSearchDataSource implements SearchDataSource {
         chipBackgroundColor: AppColors.warningLight,
         chipTextColor: AppColors.warningDark,
         icon: Icons.shopping_basket_outlined,
+        entityId: 'b1',
+        bazarId: 'b1',
+        walletId: 'w2',
       ),
       SearchResultItem(
         type: SearchResultType.bazar,
@@ -33,6 +36,9 @@ class MockSearchDataSource implements SearchDataSource {
         chipBackgroundColor: AppColors.positiveLight,
         chipTextColor: AppColors.positiveDark,
         icon: Icons.shopping_basket_outlined,
+        entityId: 'b2',
+        bazarId: 'b2',
+        walletId: 'w1',
       ),
     ],
     SearchResultType.item: [
@@ -44,6 +50,10 @@ class MockSearchDataSource implements SearchDataSource {
         chipBackgroundColor: AppColors.warningLight,
         chipTextColor: AppColors.warningDark,
         icon: Icons.egg_alt_outlined,
+        entityId: 'i4',
+        parentId: 'b1',
+        bazarId: 'b1',
+        walletId: 'w2',
       ),
       SearchResultItem(
         type: SearchResultType.item,
@@ -53,6 +63,10 @@ class MockSearchDataSource implements SearchDataSource {
         chipBackgroundColor: AppColors.positiveLight,
         chipTextColor: AppColors.positiveDark,
         icon: Icons.local_drink_outlined,
+        entityId: 'i3',
+        parentId: 'b1',
+        bazarId: 'b1',
+        walletId: 'w2',
       ),
     ],
     SearchResultType.money: [
@@ -64,6 +78,9 @@ class MockSearchDataSource implements SearchDataSource {
         chipBackgroundColor: AppColors.positiveLight,
         chipTextColor: AppColors.positiveDark,
         icon: Icons.payments_outlined,
+        entityId: 'm2',
+        bazarId: 'b1',
+        walletId: 'w2',
       ),
       SearchResultItem(
         type: SearchResultType.money,
@@ -73,6 +90,8 @@ class MockSearchDataSource implements SearchDataSource {
         chipBackgroundColor: AppColors.warningLight,
         chipTextColor: AppColors.warningDark,
         icon: Icons.keyboard_return_outlined,
+        entityId: 'm4',
+        walletId: 'w1',
       ),
     ],
   };

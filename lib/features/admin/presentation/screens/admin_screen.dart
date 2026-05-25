@@ -9,9 +9,10 @@ import '../../domain/entities/admin_entities.dart';
 import '../providers/admin_providers.dart';
 
 class AdminScreen extends ConsumerStatefulWidget {
-  const AdminScreen({super.key, this.onAddUserTap});
+  const AdminScreen({super.key, this.onAddUserTap, this.onAddWalletTap});
 
   final VoidCallback? onAddUserTap;
+  final VoidCallback? onAddWalletTap;
 
   @override
   ConsumerState<AdminScreen> createState() => _AdminScreenState();
@@ -25,7 +26,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
     return Scaffold(
       backgroundColor: AppColors.surface2,
       appBar: const BazarAppBar(
-        title: 'Admin Panel',
+        title: 'অ্যাডমিন প্যানেল',
         actions: [
           Padding(
             padding: EdgeInsets.only(right: 16),
@@ -42,7 +43,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
           if (_tab == _AdminTab.users)
             _UsersSection(onAddUserTap: widget.onAddUserTap)
           else
-            const _WalletsSection(),
+            _WalletsSection(onAddWalletTap: widget.onAddWalletTap),
           const SizedBox(height: 8),
         ],
       ),
@@ -184,7 +185,9 @@ class _UsersSection extends ConsumerWidget {
 }
 
 class _WalletsSection extends ConsumerWidget {
-  const _WalletsSection();
+  const _WalletsSection({this.onAddWalletTap});
+
+  final VoidCallback? onAddWalletTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -196,6 +199,7 @@ class _WalletsSection extends ConsumerWidget {
             label:
                 '${CurrencyFormatter.toBanglaDigits('${items.length}')}টি ওয়ালেট',
             action: '+ নতুন ওয়ালেট',
+            onAction: onAddWalletTap,
           ),
           _CardList(
             children: [
@@ -322,13 +326,13 @@ class _UserTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 _Chip(
-                  label: user.role.value,
+                  label: user.role.shortLabel,
                   background: colors.$1,
                   foreground: colors.$2,
                 ),
                 if (!user.isActive) ...[
                   const SizedBox(height: 4),
-                  Text('INACTIVE', style: AppTextStyles.caption),
+                  Text('নিষ্ক্রিয়', style: AppTextStyles.caption),
                 ],
               ],
             ),
@@ -376,7 +380,7 @@ class _WalletTile extends StatelessWidget {
                       style: AppTextStyles.bodyStrong.copyWith(fontSize: 13),
                     ),
                     Text(
-                      wallet.type,
+                      adminWalletTypeLabel(wallet.type),
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.text3,
                         letterSpacing: 0,
@@ -401,7 +405,7 @@ class _WalletTile extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Owner:',
+                'মালিক:',
                 style: AppTextStyles.caption.copyWith(
                   color: AppColors.text3,
                   letterSpacing: 0,

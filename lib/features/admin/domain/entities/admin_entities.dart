@@ -44,15 +44,22 @@ enum AdminRole {
   assistant(
     'assistant',
     'সহকারী (Assistant)',
+    'সহকারী',
     'সব ওয়ালেট দেখতে পাবে, বাজার করবে',
   ),
-  owner('owner', 'মালিক (Owner)', 'নির্দিষ্ট wallet-এর হিসাব ম্যানেজ করবে'),
-  admin('admin', 'অ্যাডমিন (Admin)', 'সম্পূর্ণ সিস্টেম অ্যাক্সেস');
+  owner(
+    'owner',
+    'মালিক (Owner)',
+    'মালিক',
+    'নির্দিষ্ট wallet-এর হিসাব ম্যানেজ করবে',
+  ),
+  admin('admin', 'অ্যাডমিন (Admin)', 'অ্যাডমিন', 'সম্পূর্ণ সিস্টেম অ্যাক্সেস');
 
-  const AdminRole(this.value, this.label, this.description);
+  const AdminRole(this.value, this.label, this.shortLabel, this.description);
 
   final String value;
   final String label;
+  final String shortLabel;
   final String description;
 }
 
@@ -82,6 +89,18 @@ class AdminWallet {
   }
 }
 
+const adminWalletTypes = <String>['shared', 'personal', 'event', 'other'];
+
+String adminWalletTypeLabel(String type) {
+  return switch (type) {
+    'shared' => 'শেয়ার্ড',
+    'personal' => 'ব্যক্তিগত',
+    'event' => 'ইভেন্ট',
+    'other' => 'অন্যান্য',
+    _ => type,
+  };
+}
+
 class CreateAdminUserRequest {
   const CreateAdminUserRequest({
     required this.name,
@@ -94,4 +113,16 @@ class CreateAdminUserRequest {
   final String phone;
   final AdminRole role;
   final List<String> walletIds;
+}
+
+class CreateAdminWalletRequest {
+  const CreateAdminWalletRequest({
+    required this.name,
+    required this.type,
+    required this.ownerIds,
+  });
+
+  final String name;
+  final String type;
+  final List<String> ownerIds;
 }

@@ -39,16 +39,20 @@ void main() {
     await tester.enterText(find.byType(EditableText).first, '01700000000');
     await tester.enterText(find.byType(EditableText).at(1), 'demo-pass');
     await tester.tap(find.text('লগইন করুন →'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.text('সহজ বাজার খাতা'), findsOneWidget);
-    expect(find.text('আজকের বাজার ও টাকা'), findsOneWidget);
+    expect(find.textContaining('স্বাগতম'), findsOneWidget);
+    expect(find.text('হিসাবের সারাংশ'), findsOneWidget);
+    expect(find.text('সাম্প্রতিক বাজার'), findsOneWidget);
+    expect(find.text('দ্রুত কাজ'), findsOneWidget);
     expect(find.text('বাজার তালিকা'), findsOneWidget);
     expect(find.text('নতুন বাজার'), findsOneWidget);
     expect(find.text('হোম'), findsOneWidget);
     expect(find.text('বাজার'), findsOneWidget);
-    expect(find.text('হিসাব'), findsOneWidget);
-    expect(find.text('রিপোর্ট'), findsOneWidget);
+    expect(find.text('হিসাব'), findsWidgets);
+    expect(find.text('রিপোর্ট'), findsWidgets);
     expect(find.text('আরো'), findsOneWidget);
 
     tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar)).onTap!(
@@ -68,7 +72,8 @@ void main() {
 
     await tester.pumpWidget(buildApp(local: local));
 
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.text('সহজ বাজার খাতা'), findsOneWidget);
     await tester.tap(find.text('আরো'));

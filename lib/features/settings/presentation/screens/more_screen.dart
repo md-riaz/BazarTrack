@@ -78,7 +78,7 @@ class MoreScreen extends ConsumerWidget {
     final subtitles = <String, String>{
       'notifications': '৩টি নতুন',
       'reports': 'মে ২০২৫',
-      'walletDetail': 'CEO Personal বিস্তারিত',
+      'walletDetail': 'ব্যালেন্স বিস্তারিত',
       'monthlyClose': 'মাসিক হিসাব বন্ধ',
       'search': 'বাজার, আইটেম, টাকা',
       'admin': 'ইউজার ও ওয়ালেট ম্যানেজ',

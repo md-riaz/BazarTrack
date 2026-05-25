@@ -4,6 +4,7 @@ abstract class AdminRemoteDataSource {
   Future<List<AdminUser>> getUsers();
   Future<List<AdminWallet>> getWallets();
   Future<AdminUser> createUser(CreateAdminUserRequest request);
+  Future<AdminWallet> createWallet(CreateAdminWalletRequest request);
 }
 
 class MockAdminRemoteDataSource implements AdminRemoteDataSource {
@@ -107,5 +108,43 @@ class MockAdminRemoteDataSource implements AdminRemoteDataSource {
     );
     _users.insert(0, user);
     return user;
+  }
+
+  @override
+  Future<AdminWallet> createWallet(CreateAdminWalletRequest request) async {
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    final selectedOwners = _users
+        .where(
+          (user) =>
+              request.ownerIds.contains(user.id) &&
+              (user.role == AdminRole.owner || user.role == AdminRole.admin),
+        )
+        .toList(growable: false);
+
+    if (selectedOwners.length != request.ownerIds.toSet().length) {
+      throw ArgumentError('এক বা একাধিক মালিক সঠিক নয়');
+    }
+
+    final wallet = AdminWallet(
+      id: 'w${_wallets.length + 1}',
+      name: request.name.trim(),
+      type: request.type,
+      owners: selectedOwners.map(_ownerDisplayName).toList(growable: false),
+      balance: 0,
+    );
+    _wallets.insert(0, wallet);
+    return wallet;
+  }
+
+  String _ownerDisplayName(AdminUser user) {
+    final name = user.name.trim();
+    if (name.startsWith('Mr. ')) {
+      return name.substring(4);
+    }
+    final parenthesisStart = name.indexOf(' (');
+    if (parenthesisStart > 0) {
+      return name.substring(0, parenthesisStart);
+    }
+    return name;
   }
 }

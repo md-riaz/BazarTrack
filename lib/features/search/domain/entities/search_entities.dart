@@ -9,6 +9,10 @@ class SearchResultItem {
     required this.chipBackgroundColor,
     required this.chipTextColor,
     required this.icon,
+    this.entityId,
+    this.parentId,
+    this.bazarId,
+    this.walletId,
   });
 
   final SearchResultType type;
@@ -18,6 +22,10 @@ class SearchResultItem {
   final Color chipBackgroundColor;
   final Color chipTextColor;
   final IconData icon;
+  final String? entityId;
+  final String? parentId;
+  final String? bazarId;
+  final String? walletId;
 }
 
 enum SearchResultType {
