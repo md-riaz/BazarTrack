@@ -10,7 +10,7 @@ BazarTrack is an offline-first Flutter app for collaborative office market manag
 - Add bazar items from frequent items, manual entry, or parsed text.
 - Wallet balance and assistant ledger tracking.
 - Money received/returned entries and direct expenses.
-- Reports and monthly close flows.
+- Reports and admin monthly close flows.
 - Admin panel for user/wallet management.
 - Offline-first Drift SQLite storage with sync queue UI.
 - GoRouter navigation with bottom tabs, inner page back navigation, and root exit confirmation.
@@ -58,8 +58,8 @@ The login screen currently exposes temporary demo buttons so QA can verify role-
 
 | Button | Mock user | Role | Main purpose |
 | --- | --- | --- | --- |
-| `Login as Admin` | Admin User | Admin | Verify admin panel, all wallets/bazars, reports, money entry, direct expense |
-| `Login as Owner` | Mr. CEO | Owner | Verify owned wallets, reports, monthly close, money entry |
+| `Login as Admin` | Admin User | Admin | Verify admin panel, all wallets/bazars, reports, monthly close, money entry, direct expense |
+| `Login as Owner` | Mr. CEO | Owner | Verify owned wallets, reports, money entry |
 | `Login as Assistant` | Rahim Uddin | Assistant | Verify shopping/bazar flow, direct expense, restricted reports/admin access |
 
 The demo buttons are controlled by a compile-time flag in `login_screen.dart`:
@@ -149,7 +149,6 @@ Expected visible actions:
 - Balance
 - Reports tab
 - Money entry
-- Monthly close from More menu
 
 Expected hidden/restricted actions:
 
@@ -165,7 +164,7 @@ Suggested verification path:
 5. Go to **Reports** and verify monthly summary/report UI.
 6. Go to **More** and verify:
    - Reports visible
-   - Close হিসাব visible
+   - Close হিসাব not visible
    - Admin panel not visible
 7. Go to **Balance** and verify owner-scoped wallets only.
 8. Create a bazar from **নতুন বাজার** if you need to verify owner-created bazar flow for an owned wallet.
@@ -293,22 +292,21 @@ Expected restrictions:
 - Monthly close hidden.
 - Admin panel hidden.
 
-### Owner Reviews Work and Closes Month
+### Owner Reviews Work Continuously
 
 Use this after assistants have entered bazar prices and direct expenses.
 
 1. Login with **Login as Owner**.
 2. Open **Balance** to review wallet and assistant balances.
 3. Open **Reports** to review monthly spend.
-4. Open **More**.
-5. Tap **Close হিসাব**.
-6. Review monthly close data.
-7. Complete close only after checking outstanding balances and pending sync queue.
+4. Use **টাকা এন্ট্রি** when money is given to an assistant or returned by an assistant.
+5. Keep the assistant balance active until the employee/assistant leaves or is fired.
+6. Settle the assistant balance back to 0 through money entries instead of monthly close.
 
 Expected restrictions:
 
-- Owner can access reports/monthly close.
-- Owner cannot access admin panel.
+- Owner can access reports and money entry.
+- Owner cannot access monthly close or admin panel.
 
 ### Admin Sets Up Demo Operating Structure
 
@@ -378,6 +376,13 @@ Important behavior:
 - The screen supports **Manual** and **Text** input modes.
 - Manual mode supports adding multiple items before creating the bazar.
 - Text mode parses one item per line.
+- If the role has exactly one visible wallet, the wallet is auto-selected and the selector is hidden.
+- If the role has multiple visible wallets, the wallet selector is shown.
+
+Tracking handoff notes:
+
+- Monthly close events should allow `admin` only as actor role; owner monthly-close entry/impression/click/submit events are unexpected.
+- Bazar creation analytics should include the resolved `wallet_id` and `wallet_selection_method` with values `auto_single_wallet` or `manual_selector`.
 - Create button: **বাজার তৈরি করুন →**
 - Draft button: **Draft সংরক্ষণ করুন**
 
@@ -416,7 +421,7 @@ Use this to verify:
 | Direct expense | Yes | No | Yes |
 | Money entry | No | Yes | Yes |
 | Reports tab | No | Yes | Yes |
-| Monthly close | No | Yes | Yes |
+| Monthly close | No | No | Yes |
 | Admin panel | No | No | Yes |
 | Wallet visibility | Active wallets | Owned/member wallets | All wallets |
 | Bazar visibility | Unassigned or assigned to self | Bazars in visible wallets | All bazars |
@@ -561,7 +566,7 @@ flutter build apk --debug
 Recently verified baseline:
 
 - `flutter analyze` — passed
-- `flutter test` — passed, 78 tests
+- `flutter test` — passed, 84 tests
 - `flutter build apk --debug` — passed
 
 ## Known Non-Production Gaps
@@ -599,8 +604,7 @@ Admin-specific:
 
 Owner-specific:
 
-- Verify reports/monthly close.
-- Verify money entry.
+- Verify reports and money entry.
 - Verify admin/direct expense restrictions.
 
 Assistant-specific:

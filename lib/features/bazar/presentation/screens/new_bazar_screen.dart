@@ -84,14 +84,24 @@ class _NewBazarScreenState extends ConsumerState<NewBazarScreen> {
             mode: _mode,
             onChanged: (mode) => setState(() => _mode = mode),
           ),
-          SectionHeader(title: 'Wallet'),
           wallets.when(
-            data: (items) => _WalletSelector(
-              wallets: items,
-              selectedWalletId: _selectedWalletId,
-              onChanged: (walletId) =>
-                  setState(() => _selectedWalletId = walletId),
-            ),
+            data: (items) {
+              if (items.length == 1) {
+                return const SizedBox.shrink();
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SectionHeader(title: 'Wallet'),
+                  _WalletSelector(
+                    wallets: items,
+                    selectedWalletId: _selectedWalletId,
+                    onChanged: (walletId) =>
+                        setState(() => _selectedWalletId = walletId),
+                  ),
+                ],
+              );
+            },
             error: (error, _) => _MessageCard(message: error.toString()),
             loading: () => const Center(child: CircularProgressIndicator()),
           ),

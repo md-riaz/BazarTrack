@@ -8,6 +8,8 @@ class RolePermissions {
   static bool canAccessReports(UserRole role) =>
       role == UserRole.owner || role == UserRole.admin;
 
+  static bool canCloseMonthlyPeriod(UserRole role) => role == UserRole.admin;
+
   static bool canRecordMoneyEntry(UserRole role) =>
       role == UserRole.owner || role == UserRole.admin;
 

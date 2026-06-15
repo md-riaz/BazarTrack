@@ -55,7 +55,8 @@ class MoreScreen extends ConsumerWidget {
                 'Wallet details',
                 Icons.account_balance_wallet,
               ),
-              if (user == null || RolePermissions.canAccessReports(user!.role))
+              if (user == null ||
+                  RolePermissions.canCloseMonthlyPeriod(user!.role))
                 _menuRow('monthlyClose', 'Close হিসাব', Icons.calendar_month),
               _menuRow('search', 'খুঁজুন', Icons.search),
               if (user != null && RolePermissions.canSeeAdminMenu(user!.role))

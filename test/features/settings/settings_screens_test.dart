@@ -88,7 +88,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 1));
     });
 
-    testWidgets('MoreScreen shows owner reports and monthly close only', (
+    testWidgets('MoreScreen shows owner reports without monthly close', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -99,7 +99,7 @@ void main() {
       expect(find.text('Rahim Uddin'), findsOneWidget);
       expect(find.text('Owner'), findsOneWidget);
       expect(find.text('রিপোর্ট'), findsOneWidget);
-      expect(find.text('Close হিসাব'), findsOneWidget);
+      expect(find.text('Close হিসাব'), findsNothing);
       expect(find.text('অ্যাডমিন প্যানেল'), findsNothing);
     });
 

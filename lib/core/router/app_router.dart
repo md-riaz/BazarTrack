@@ -496,8 +496,11 @@ bool _canAccessRoute(String route, UserRole role) {
       route == AppRoutes.editWalletPath) {
     return RolePermissions.canAccessAdmin(role);
   }
-  if (route == AppRoutes.reports || route == AppRoutes.monthlyClose) {
+  if (route == AppRoutes.reports) {
     return RolePermissions.canAccessReports(role);
+  }
+  if (route == AppRoutes.monthlyClose) {
+    return RolePermissions.canCloseMonthlyPeriod(role);
   }
   if (route == AppRoutes.moneyEntry) {
     return RolePermissions.canRecordMoneyEntry(role);

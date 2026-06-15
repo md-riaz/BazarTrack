@@ -55,11 +55,37 @@ void main() {
       expect(find.text('পরিমাণ / ব্র্যান্ড (optional)'), findsOneWidget);
       expect(find.text('পরিমাণ'), findsNothing);
 
+      expect(find.text('Wallet'), findsNothing);
+      expect(find.text('Wallet নির্বাচন করুন'), findsNothing);
+
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(milliseconds: 1));
       await tester.pump(const Duration(milliseconds: 1));
     },
   );
+  testWidgets('NewBazarScreen shows wallet selector for multiple wallets', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _testApp(database, const NewBazarScreen(), [
+        ...wallets,
+        Wallet(
+          id: 'w2',
+          name: 'CEO Wallet',
+          type: 'personal',
+          isActive: true,
+          createdAt: DateTime(2026, 5, 24),
+        ),
+      ], currentUser),
+    );
+    await tester.pump(const Duration(milliseconds: 1));
+
+    expect(find.text('Wallet'), findsOneWidget);
+    expect(find.text('Wallet নির্বাচন করুন'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(milliseconds: 1));
+  });
 
   testWidgets('AddItemScreen keeps optional item fields collapsed by default', (
     tester,
