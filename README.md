@@ -31,7 +31,6 @@ BazarTrack is an offline-first Flutter app for collaborative office market manag
 
 - Flutter SDK with Dart compatible with `sdk: ^3.11.1`
 - Android SDK for APK builds
-- iOS tooling if building for iOS
 
 ## Getting Started
 

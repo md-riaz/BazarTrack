@@ -49,7 +49,6 @@ class PushNotificationHandler {
           importance: Importance.high,
           priority: Priority.high,
         ),
-        iOS: DarwinNotificationDetails(),
       ),
     );
   }

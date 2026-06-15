@@ -400,7 +400,7 @@ class BalanceCalculator {
 
 **Tasks:**
 ```
-A1. Initialize Flutter project (android + ios targets)
+A1. Initialize Flutter project (android target)
 A2. Add all packages from Section 3, run flutter pub get
 A3. Implement app_colors.dart — ALL tokens from prototype.jsx
 A4. Implement app_text_styles.dart + app_theme.dart (Material 3, light mode only for MVP)
@@ -597,7 +597,7 @@ Create this file at project root on day 1. Every agent updates it.
 # Build Progress Log
 
 ## [DATE TIME] — Agent A — Project initialized
-- Created Flutter project targeting Android + iOS
+- Created Flutter project targeting Android
 - Added all packages. `flutter pub get` successful.
 - Known issues: none
 ```
