@@ -93,7 +93,7 @@ lib/
 │   │       ├── screens/login_screen.dart
 │   │       └── providers/auth_provider.dart
 │   │
-│   ├── wallet/         ← Balance, Wallet Detail, Assistant Ledger
+│   ├── wallet/         ← Fund account balance, Fund Account Detail, Assistant Ledger
 │   ├── bazar/          ← Bazar List, Detail, New Bazar, Add Item, Summary
 │   ├── item/           ← Item edit sheet, Price History
 │   ├── money/          ← Money Entry, Direct Expense
@@ -112,7 +112,7 @@ lib/
     │   ├── bazar_card.dart
     │   ├── item_tile.dart
     │   ├── status_chip.dart
-    │   ├── wallet_selector.dart
+    │   ├── fund_account_selector.dart
     │   ├── sync_badge.dart
     │   ├── bottom_sheet_handle.dart
     │   ├── primary_button.dart
@@ -138,7 +138,7 @@ Every remote data source follows this pattern:
 ```dart
 // 1. Define abstract interface
 abstract class BazarRemoteDataSource {
-  Future<List<BazarModel>> getBazars({String? walletId, String? status});
+  Future<List<BazarModel>> getBazars({String? fundAccountId, String? status});
   Future<BazarModel> createBazar(CreateBazarDto dto);
   Future<void> closeBazar(String id);
   // ... all API methods
@@ -166,7 +166,7 @@ BazarRemoteDataSource bazarRemoteDataSource(Ref ref) {
 }
 ```
 
-**Rule:** Mock data must exactly match the entities shown in `prototype.jsx` (same wallets, same bazar names, same items, same balances). This ensures the UI looks identical to the prototype from the first run.
+**Rule:** Mock data must exactly match the entities shown in `prototype.jsx` (same fund accounts/current wallet rows, same bazar names, same items, same balances). This ensures the UI looks identical to the prototype from the first run.
 
 ---
 
@@ -362,15 +362,16 @@ class SyncQueueItems extends Table {
 class BalanceCalculator {
   /// Called in repository layer. Returns live Stream via Drift.
   Stream<BalanceResult> watchBalance({
-    required String walletId,
+    required String fundAccountId,
     required String assistantId,
   }) {
     // Uses last snapshot closing_balance as base (if exists)
-    // + SUM(money_received) since snapshot
+    // + SUM(fund money given) since snapshot
     // - SUM(item prices where status=done) since snapshot
     // - SUM(direct_expenses) since snapshot
-    // - SUM(money_returned) since snapshot
+    // - SUM(manager-confirmed returns) since snapshot
     // +/- SUM(adjustments) since snapshot
+
     //
     // Returns BalanceResult {
     //   confirmedBalance,

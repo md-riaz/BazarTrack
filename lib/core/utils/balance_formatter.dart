@@ -27,14 +27,14 @@ class BalanceFormatter {
 
     if (balance > 0) {
       return BalancePresentation(
-        label: 'হাতে আছে',
+        label: 'সহকারীর কাছে আছে',
         amountText: CurrencyFormatter.format(balance),
         status: inProgress == 0 ? SyncStatus.online : SyncStatus.syncing,
       );
     }
 
     return BalancePresentation(
-      label: 'পাওনা আছে',
+      label: 'সহকারী পাবে',
       amountText: CurrencyFormatter.format(balance),
       status: inProgress == 0 ? SyncStatus.failed : SyncStatus.offline,
     );

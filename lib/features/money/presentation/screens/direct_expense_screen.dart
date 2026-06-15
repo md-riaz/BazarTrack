@@ -57,7 +57,7 @@ class _DirectExpenseScreenState extends ConsumerState<DirectExpenseScreen> {
         padding: const EdgeInsets.only(bottom: 18),
         children: [
           const _InfoCard(),
-          SectionHeader(title: 'Wallet'),
+          SectionHeader(title: 'Fund account'),
           wallets.when(
             data: (items) => _WalletSelector(
               wallets: items,
@@ -170,7 +170,7 @@ class _DirectExpenseScreenState extends ConsumerState<DirectExpenseScreen> {
     final walletId =
         _selectedWalletId ?? (wallets.isEmpty ? null : wallets.first.id);
     if (walletId == null) {
-      _showSnack('Wallet নির্বাচন করুন');
+      _showSnack('Fund account নির্বাচন করুন');
       return;
     }
     final amount = _parseAmount(_amountController.text);
@@ -267,7 +267,9 @@ class _WalletSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (wallets.isEmpty) {
-      return _Card(child: Text('কোনো Wallet নেই', style: AppTextStyles.body));
+      return _Card(
+        child: Text('কোনো Fund account নেই', style: AppTextStyles.body),
+      );
     }
     final value = wallets.any((wallet) => wallet.id == selectedWalletId)
         ? selectedWalletId
@@ -275,7 +277,9 @@ class _WalletSelector extends StatelessWidget {
     return _Card(
       child: DropdownButtonFormField<String>(
         initialValue: value,
-        decoration: const InputDecoration(labelText: 'Wallet নির্বাচন করুন'),
+        decoration: const InputDecoration(
+          labelText: 'Fund account নির্বাচন করুন',
+        ),
         items: wallets
             .map(
               (wallet) =>

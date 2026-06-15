@@ -86,7 +86,7 @@ class _AdminTabs extends StatelessWidget {
             onTap: () => onChanged(_AdminTab.users),
           ),
           _TabButton(
-            label: 'ওয়ালেট',
+            label: 'ফান্ড হিসাব',
             icon: Icons.account_balance_wallet_outlined,
             selected: selected == _AdminTab.wallets,
             onTap: () => onChanged(_AdminTab.wallets),
@@ -207,8 +207,8 @@ class _WalletsSection extends ConsumerWidget {
         children: [
           _SectionSummary(
             label:
-                '${CurrencyFormatter.toBanglaDigits('${items.length}')}টি ওয়ালেট',
-            action: '+ নতুন ওয়ালেট',
+                '${CurrencyFormatter.toBanglaDigits('${items.length}')}টি ফান্ড হিসাব',
+            action: '+ নতুন ফান্ড হিসাব',
             onAction: onAddWalletTap,
           ),
           _CardList(
@@ -229,7 +229,7 @@ class _WalletsSection extends ConsumerWidget {
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stackTrace) => Center(
-        child: Text('ওয়ালেট লোড করা যায়নি', style: AppTextStyles.body),
+        child: Text('ফান্ড হিসাব লোড করা যায়নি', style: AppTextStyles.body),
       ),
     );
   }
@@ -244,8 +244,8 @@ Future<void> _toggleWalletActive(
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('ওয়ালেট deactivate করবেন?'),
-        content: Text('${wallet.name} owner app থেকে hidden হবে।'),
+        title: const Text('ফান্ড হিসাব deactivate করবেন?'),
+        content: Text('${wallet.name} ম্যানেজার app থেকে hidden হবে।'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -494,7 +494,7 @@ class _WalletTile extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  'মালিক:',
+                  'ম্যানেজার:',
                   style: AppTextStyles.caption.copyWith(
                     color: AppColors.text3,
                     letterSpacing: 0,

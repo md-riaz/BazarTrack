@@ -135,7 +135,7 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
             ),
             if (_role == AdminRole.owner)
               _FormCard(
-                title: 'ওয়ালেট অ্যাক্সেস',
+                title: 'ফান্ড হিসাব অ্যাক্সেস',
                 children: [
                   wallets.when(
                     data: (items) {
@@ -144,7 +144,7 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
                           .toList(growable: false);
                       if (activeWallets.isEmpty) {
                         return Text(
-                          'কোনো active wallet নেই। পরে wallet তৈরি করে assign করা যাবে।',
+                          'কোনো active fund account নেই। পরে fund account তৈরি করে assign করা যাবে।',
                           style: AppTextStyles.bodySmall.copyWith(
                             color: AppColors.text3,
                           ),
@@ -154,7 +154,7 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Owner কোন wallet ব্যবহার করবে নির্বাচন করুন। না দিলেও পরে wallet edit করে যোগ করা যাবে।',
+                            'Manager কোন fund account ব্যবহার করবে নির্বাচন করুন। না দিলেও পরে fund account edit করে যোগ করা যাবে।',
                             style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.text3,
                             ),
@@ -178,7 +178,7 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
                     error: (error, stackTrace) => Text(
-                      'ওয়ালেট লোড করা যায়নি',
+                      'ফান্ড হিসাব লোড করা যায়নি',
                       style: AppTextStyles.bodySmall.copyWith(
                         color: AppColors.negative,
                       ),
@@ -190,7 +190,7 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
               title: 'পারমিশন',
               children: [
                 _PermissionSwitch(
-                  title: 'সব ওয়ালেট দেখতে পারবে',
+                  title: 'সব ফান্ড হিসাব দেখতে পারবে',
                   value: _canSeeAllWallets,
                   onChanged: (value) =>
                       setState(() => _canSeeAllWallets = value),

@@ -23,7 +23,7 @@ class RolePermissions {
   static String label(UserRole role) {
     return switch (role) {
       UserRole.admin => 'Admin',
-      UserRole.owner => 'Owner',
+      UserRole.owner => 'Fund Manager',
       UserRole.assistant => 'Assistant',
     };
   }

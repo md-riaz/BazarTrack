@@ -68,7 +68,7 @@ void main() {
       expect(find.text('01711-XXXXXX'), findsOneWidget);
       expect(find.text('Assistant'), findsOneWidget);
       expect(find.text('নোটিফিকেশন'), findsOneWidget);
-      expect(find.text('Wallet details'), findsOneWidget);
+      expect(find.text('Fund account details'), findsOneWidget);
       expect(find.text('খুঁজুন'), findsOneWidget);
       expect(find.text('সেটিংস'), findsOneWidget);
       expect(find.text('রিপোর্ট'), findsNothing);
@@ -97,7 +97,7 @@ void main() {
       await tester.pump();
 
       expect(find.text('Rahim Uddin'), findsOneWidget);
-      expect(find.text('Owner'), findsOneWidget);
+      expect(find.text('Fund Manager'), findsOneWidget);
       expect(find.text('রিপোর্ট'), findsOneWidget);
       expect(find.text('Close হিসাব'), findsNothing);
       expect(find.text('অ্যাডমিন প্যানেল'), findsNothing);

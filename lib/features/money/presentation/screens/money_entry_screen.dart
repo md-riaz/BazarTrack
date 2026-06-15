@@ -205,8 +205,8 @@ class _EntryFormCard extends StatelessWidget {
 
   String _labelFor(EntryType type) {
     return switch (type) {
-      EntryType.moneyReceived => 'টাকা নিলাম',
-      EntryType.moneyReturned => 'টাকা ফেরত দিলাম',
+      EntryType.moneyReceived => 'ফান্ড থেকে দিলাম',
+      EntryType.moneyReturned => 'ফেরত নিশ্চিত করলাম',
       EntryType.adjustment => 'সমন্বয়',
     };
   }

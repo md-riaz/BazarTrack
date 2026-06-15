@@ -136,7 +136,7 @@ class MockAdminRemoteDataSource implements AdminRemoteDataSource {
   Future<AdminWallet> updateWallet(UpdateAdminWalletRequest request) async {
     final index = _wallets.indexWhere((wallet) => wallet.id == request.id);
     if (index < 0) {
-      throw ArgumentError('ওয়ালেট পাওয়া যায়নি');
+      throw ArgumentError('ফান্ড হিসাব পাওয়া যায়নি');
     }
     final selectedOwners = _selectedOwners(request.ownerIds);
     final current = _wallets[index];
@@ -160,7 +160,7 @@ class MockAdminRemoteDataSource implements AdminRemoteDataSource {
   }) async {
     final index = _wallets.indexWhere((wallet) => wallet.id == walletId);
     if (index < 0) {
-      throw ArgumentError('ওয়ালেট পাওয়া যায়নি');
+      throw ArgumentError('ফান্ড হিসাব পাওয়া যায়নি');
     }
     final current = _wallets[index];
     _wallets[index] = AdminWallet(

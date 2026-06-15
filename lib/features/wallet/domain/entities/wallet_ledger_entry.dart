@@ -35,10 +35,10 @@ class WalletLedgerEntry extends Equatable {
 
   String get label {
     return switch (type) {
-      WalletLedgerEntryType.moneyReceived => 'টাকা নিলাম',
+      WalletLedgerEntryType.moneyReceived => 'ফান্ড থেকে দিলাম',
       WalletLedgerEntryType.bazarExpense => 'বাজার খরচ',
       WalletLedgerEntryType.directExpense => 'সরাসরি খরচ',
-      WalletLedgerEntryType.moneyReturned => 'ফেরত দিলাম',
+      WalletLedgerEntryType.moneyReturned => 'ফেরত নিশ্চিত',
       WalletLedgerEntryType.adjustment => 'সমন্বয়',
     };
   }

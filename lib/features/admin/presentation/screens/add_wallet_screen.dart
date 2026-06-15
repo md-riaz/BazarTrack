@@ -47,7 +47,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
     }
     if (_selectedOwnerIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('কমপক্ষে একজন মালিক নির্বাচন করুন')),
+        const SnackBar(content: Text('কমপক্ষে একজন ম্যানেজার নির্বাচন করুন')),
       );
       return;
     }
@@ -82,8 +82,8 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
         return;
       }
       final message = _isEditing
-          ? 'ওয়ালেট আপডেট হয়েছে'
-          : 'নতুন ওয়ালেট যোগ হয়েছে';
+          ? 'ফান্ড হিসাব আপডেট হয়েছে'
+          : 'নতুন ফান্ড হিসাব যোগ হয়েছে';
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
@@ -128,22 +128,24 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
     }
     return Scaffold(
       backgroundColor: AppColors.surface2,
-      appBar: BazarAppBar(title: _isEditing ? 'ওয়ালেট এডিট' : 'নতুন ওয়ালেট'),
+      appBar: BazarAppBar(
+        title: _isEditing ? 'ফান্ড হিসাব এডিট' : 'নতুন ফান্ড হিসাব',
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
           children: [
             const SizedBox(height: 10),
             _FormCard(
-              title: 'ওয়ালেট তথ্য',
+              title: 'ফান্ড হিসাব তথ্য',
               children: [
                 _TextInput(
                   controller: _nameController,
-                  label: 'ওয়ালেটের নাম',
-                  hintText: 'যেমন: Office Wallet',
+                  label: 'ফান্ড হিসাবের নাম',
+                  hintText: 'যেমন: Office Lunch Bazar',
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'ওয়ালেটের নাম দিন';
+                      return 'ফান্ড হিসাবের নাম দিন';
                     }
                     return null;
                   },
@@ -162,7 +164,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
               ],
             ),
             _FormCard(
-              title: 'মালিক নির্বাচন',
+              title: 'ম্যানেজার নির্বাচন',
               children: [
                 users.when(
                   data: (items) {
@@ -174,7 +176,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
                         .toList(growable: false);
                     if (owners.isEmpty) {
                       return Text(
-                        'কোনো সক্রিয় মালিক নেই',
+                        'কোনো সক্রিয় ম্যানেজার নেই',
                         style: AppTextStyles.bodySmall.copyWith(
                           color: AppColors.text3,
                         ),
@@ -200,7 +202,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
                   error: (error, stackTrace) => Text(
-                    'মালিক লোড করা যায়নি',
+                    'ম্যানেজার লোড করা যায়নি',
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.negative,
                     ),
@@ -212,8 +214,8 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
               label: _isSaving
                   ? 'সেভ হচ্ছে...'
                   : _isEditing
-                  ? 'ওয়ালেট আপডেট করুন'
-                  : 'ওয়ালেট যোগ করুন',
+                  ? 'ফান্ড হিসাব আপডেট করুন'
+                  : 'ফান্ড হিসাব যোগ করুন',
               onPressed: _isSaving ? null : _submit,
             ),
             GhostButton(

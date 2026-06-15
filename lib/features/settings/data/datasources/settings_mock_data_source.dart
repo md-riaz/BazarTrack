@@ -37,7 +37,7 @@ class SettingsMockDataSource {
         id: 'q4',
         entityType: 'money_entry',
         operation: 'create',
-        entityLabel: 'টাকা নিলাম — ৳ ৩,০০০',
+        entityLabel: 'ফান্ড থেকে দিলাম — ৳ ৩,০০০',
         ageLabel: '১২ মিনিট আগে',
         retryCount: 2,
         status: OfflineQueueStatus.failed,

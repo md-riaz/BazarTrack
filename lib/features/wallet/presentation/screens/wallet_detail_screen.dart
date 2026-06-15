@@ -278,7 +278,7 @@ class _WalletError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Text('ওয়ালেট লোড করা যায়নি', style: AppTextStyles.body),
+      child: Text('ফান্ড হিসাব লোড করা যায়নি', style: AppTextStyles.body),
     );
   }
 }

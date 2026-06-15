@@ -35,8 +35,8 @@ class MoneyEntry {
 
   String get label {
     return switch (type) {
-      EntryType.moneyReceived => 'টাকা নিলাম',
-      EntryType.moneyReturned => 'টাকা ফেরত দিলাম',
+      EntryType.moneyReceived => 'ফান্ড থেকে দিলাম',
+      EntryType.moneyReturned => 'ফেরত নিশ্চিত করলাম',
       EntryType.adjustment => 'সমন্বয়',
     };
   }

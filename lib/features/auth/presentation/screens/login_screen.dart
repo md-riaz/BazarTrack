@@ -160,7 +160,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                       _DemoRoleButton(
-                        label: 'Login as Owner',
+                        label: 'Login as Fund Manager',
                         icon: Icons.account_balance_wallet,
                         enabled: !loginState.isLoading,
                         onTap: () => _loginWith(

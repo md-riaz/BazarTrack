@@ -52,7 +52,7 @@ class MoreScreen extends ConsumerWidget {
                 _menuRow('reports', 'রিপোর্ট', Icons.bar_chart),
               _menuRow(
                 'walletDetail',
-                'Wallet details',
+                'Fund account details',
                 Icons.account_balance_wallet,
               ),
               if (user == null ||
@@ -93,7 +93,7 @@ class MoreScreen extends ConsumerWidget {
       'walletDetail': 'ব্যালেন্স বিস্তারিত',
       'monthlyClose': 'মাসিক হিসাব বন্ধ',
       'search': 'বাজার, আইটেম, টাকা',
-      'admin': 'ইউজার ও ওয়ালেট ম্যানেজ',
+      'admin': 'ইউজার ও ফান্ড হিসাব ম্যানেজ',
     };
     return HMenuRow(
       icon: icon,

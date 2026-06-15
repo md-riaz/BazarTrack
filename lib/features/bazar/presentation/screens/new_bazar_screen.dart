@@ -92,7 +92,7 @@ class _NewBazarScreenState extends ConsumerState<NewBazarScreen> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SectionHeader(title: 'Wallet'),
+                  SectionHeader(title: 'Fund account'),
                   _WalletSelector(
                     wallets: items,
                     selectedWalletId: _selectedWalletId,
@@ -318,7 +318,7 @@ class _NewBazarScreenState extends ConsumerState<NewBazarScreen> {
     final walletId =
         _selectedWalletId ?? (wallets.isEmpty ? null : wallets.first.id);
     if (walletId == null) {
-      _showSnack('Wallet নির্বাচন করুন');
+      _showSnack('Fund account নির্বাচন করুন');
       return;
     }
 
@@ -484,7 +484,7 @@ class _WalletSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (wallets.isEmpty) {
-      return const _MessageCard(message: 'কোনো Wallet নেই');
+      return const _MessageCard(message: 'কোনো Fund account নেই');
     }
     final value = wallets.any((wallet) => wallet.id == selectedWalletId)
         ? selectedWalletId
@@ -492,7 +492,9 @@ class _WalletSelector extends StatelessWidget {
     return _Card(
       child: DropdownButtonFormField<String>(
         initialValue: value,
-        decoration: const InputDecoration(labelText: 'Wallet নির্বাচন করুন'),
+        decoration: const InputDecoration(
+          labelText: 'Fund account নির্বাচন করুন',
+        ),
         items: wallets
             .map(
               (wallet) =>

@@ -27,7 +27,7 @@ class BalanceResult extends Equatable {
     if (isSettled) {
       return 'হিসাব মিলে গেছে ✓';
     }
-    return isPositive ? 'হাতে আছে' : 'পাওনা আছে — দিতে হবে';
+    return isPositive ? 'সহকারীর কাছে আছে' : 'সহকারী পাবে — দিতে হবে';
   }
 
   @override

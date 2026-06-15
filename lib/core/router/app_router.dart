@@ -1087,7 +1087,7 @@ class _HomeActionGrid extends StatelessWidget {
 
 String _roleLabel(UserRole role) {
   return switch (role) {
-    UserRole.owner => 'মালিক',
+    UserRole.owner => 'হিসাব ম্যানেজার',
     UserRole.admin => 'অ্যাডমিন',
     UserRole.assistant => 'সহকারী',
   };

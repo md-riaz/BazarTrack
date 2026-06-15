@@ -62,13 +62,13 @@ class AdminRepositoryImpl implements AdminRepository {
     required List<String> ownerIds,
   }) async {
     if (name.trim().isEmpty) {
-      throw ArgumentError('ওয়ালেটের নাম আবশ্যক');
+      throw ArgumentError('ফান্ড হিসাবের নাম আবশ্যক');
     }
     if (!adminWalletTypes.contains(type)) {
-      throw ArgumentError('ওয়ালেটের ধরন সঠিক নয়');
+      throw ArgumentError('ফান্ড হিসাবের ধরন সঠিক নয়');
     }
     if (ownerIds.isEmpty) {
-      throw ArgumentError('কমপক্ষে একজন মালিক নির্বাচন করুন');
+      throw ArgumentError('কমপক্ষে একজন ম্যানেজার নির্বাচন করুন');
     }
 
     final users = await _remoteDataSource.getUsers();
@@ -80,7 +80,7 @@ class AdminRepositoryImpl implements AdminRepository {
       (ownerId) => !assignableOwnerIds.contains(ownerId),
     );
     if (hasInvalidOwner) {
-      throw ArgumentError('এক বা একাধিক মালিক সঠিক নয়');
+      throw ArgumentError('এক বা একাধিক ম্যানেজার সঠিক নয়');
     }
   }
 }

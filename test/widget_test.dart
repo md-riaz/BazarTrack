@@ -98,7 +98,7 @@ void main() {
       expect(find.text('ফোন নম্বর'), findsWidgets);
       expect(find.text('লগইন করুন →'), findsOneWidget);
       expect(find.text('Login as Admin'), findsOneWidget);
-      expect(find.text('Login as Owner'), findsOneWidget);
+      expect(find.text('Login as Fund Manager'), findsOneWidget);
       expect(find.text('Login as Assistant'), findsOneWidget);
     },
   );
@@ -135,10 +135,10 @@ void main() {
     'owner demo role login reaches reports and hides direct expense',
     (tester) async {
       await pumpApp(tester);
-      await tapDemoRole(tester, 'Login as Owner');
+      await tapDemoRole(tester, 'Login as Fund Manager');
 
       expectHomeShell();
-      expect(find.text('Mr. CEO — মালিক'), findsOneWidget);
+      expect(find.text('Mr. CEO — হিসাব ম্যানেজার'), findsOneWidget);
       expect(find.text('রিপোর্ট'), findsWidgets);
       expect(find.text('টাকা এন্ট্রি'), findsOneWidget);
       expect(find.text('সরাসরি খরচ'), findsNothing);

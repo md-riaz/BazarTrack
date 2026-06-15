@@ -32,11 +32,11 @@ Owns:
 - auth guard
 - logout flow
 
-### Agent C — Wallet + Balance
+### Agent C — Fund Account + Balance
 Owns:
-- wallet screens
+- fund account screens
 - balance calculation
-- wallet detail
+- fund account detail
 - assistant ledger
 
 ### Agent D — Bazar Core

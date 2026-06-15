@@ -55,8 +55,8 @@ void main() {
       expect(find.text('পরিমাণ / ব্র্যান্ড (optional)'), findsOneWidget);
       expect(find.text('পরিমাণ'), findsNothing);
 
-      expect(find.text('Wallet'), findsNothing);
-      expect(find.text('Wallet নির্বাচন করুন'), findsNothing);
+      expect(find.text('Fund account'), findsNothing);
+      expect(find.text('Fund account নির্বাচন করুন'), findsNothing);
 
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(milliseconds: 1));
@@ -80,8 +80,8 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 1));
 
-    expect(find.text('Wallet'), findsOneWidget);
-    expect(find.text('Wallet নির্বাচন করুন'), findsOneWidget);
+    expect(find.text('Fund account'), findsOneWidget);
+    expect(find.text('Fund account নির্বাচন করুন'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(milliseconds: 1));

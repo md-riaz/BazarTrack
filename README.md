@@ -1,17 +1,17 @@
 # সহজ বাজার খাতা — BazarTrack
 
-BazarTrack is an offline-first Flutter app for collaborative office market management: bazar lists, wallet balances, assistant advances, direct expenses, reports, and monthly closing. The UI is Bangla-first with common English/Banglish product terms where they are more natural for daily users.
+BazarTrack is an offline-first Flutter app for collaborative office market management: bazar lists, fund-account balances, assistant advances, direct expenses, reports, and admin monthly closing. The UI is Bangla-first with common English/Banglish product terms where they are more natural for daily users.
 
 ## Key Features
 
-- Role-based demo login for **Admin**, **Owner**, and **Assistant** verification.
-- Real dashboard with wallet summary, recent bazars, sync status, and quick actions.
+- Role-based demo login for **Admin**, **Fund Manager**, and **Assistant** verification.
+- Real dashboard with fund-account summary, recent bazars, sync status, and quick actions.
 - Create bazars manually or from pasted text lists.
 - Add bazar items from frequent items, manual entry, or parsed text.
-- Wallet balance and assistant ledger tracking.
-- Money received/returned entries and direct expenses.
+- Fund-account balance and assistant ledger tracking.
+- Fund money given entries, two-step returned-money confirmation plan, and direct expenses.
 - Reports and admin monthly close flows.
-- Admin panel for user/wallet management.
+- Admin panel for user/fund-account management.
 - Offline-first Drift SQLite storage with sync queue UI.
 - GoRouter navigation with bottom tabs, inner page back navigation, and root exit confirmation.
 
@@ -58,8 +58,8 @@ The login screen currently exposes temporary demo buttons so QA can verify role-
 
 | Button | Mock user | Role | Main purpose |
 | --- | --- | --- | --- |
-| `Login as Admin` | Admin User | Admin | Verify admin panel, all wallets/bazars, reports, monthly close, money entry, direct expense |
-| `Login as Owner` | Mr. CEO | Owner | Verify owned wallets, reports, money entry |
+| `Login as Admin` | Admin User | Admin | Verify admin panel, all fund accounts/bazars, reports, monthly close, money entry, direct expense |
+| `Login as Fund Manager` | Mr. CEO | Fund Manager (`owner` role key) | Verify managed fund accounts, reports, money entry |
 | `Login as Assistant` | Rahim Uddin | Assistant | Verify shopping/bazar flow, direct expense, restricted reports/admin access |
 
 The demo buttons are controlled by a compile-time flag in `login_screen.dart`:
@@ -106,7 +106,7 @@ Expected hidden/restricted actions:
 1. Tap **Login as Assistant**.
 2. From Home, tap **নতুন বাজার**.
 3. On **নতুন বাজার** screen:
-   - Select a **Wallet**.
+   - Select a **Fund account** when more than one is visible.
    - Choose input mode:
      - **Manual**: type item name and optionally quantity/unit/brand.
      - **Text**: paste one item per line, e.g.
@@ -135,11 +135,11 @@ Relevant screens:
 - `lib/features/bazar/presentation/screens/bazar_detail_screen.dart`
 - `lib/features/bazar/presentation/screens/add_item_screen.dart`
 
-### Owner Flow
+### Fund Manager Flow
 
-Use **Login as Owner**.
+Use **Login as Fund Manager**.
 
-Owner is for money and reporting verification.
+Fund Manager is for account-dept/fund-owner money and reporting verification. The underlying demo role key is still `owner` for compatibility.
 
 Expected visible actions:
 
@@ -157,17 +157,17 @@ Expected hidden/restricted actions:
 
 Suggested verification path:
 
-1. Tap **Login as Owner**.
-2. Confirm Home shows `Mr. CEO — মালিক`.
+1. Tap **Login as Fund Manager**.
+2. Confirm Home shows `Mr. CEO — হিসাব ম্যানেজার`.
 3. Confirm Reports tab is visible.
-4. Tap **টাকা এন্ট্রি** to verify owner/admin money entry access.
+4. Tap **টাকা এন্ট্রি** to verify fund-manager/admin money entry access.
 5. Go to **Reports** and verify monthly summary/report UI.
 6. Go to **More** and verify:
    - Reports visible
    - Close হিসাব not visible
    - Admin panel not visible
-7. Go to **Balance** and verify owner-scoped wallets only.
-8. Create a bazar from **নতুন বাজার** if you need to verify owner-created bazar flow for an owned wallet.
+7. Go to **Balance** and verify manager-scoped fund accounts only.
+8. Create a bazar from **নতুন বাজার** if you need to verify manager-created bazar flow for a managed fund account.
 
 ### Admin Flow
 
@@ -185,7 +185,7 @@ Expected visible actions:
 - Direct expense
 - Admin panel
 - Add user
-- Add wallet
+- Add fund account
 - More/settings/offline queue
 
 Suggested verification path:
@@ -195,8 +195,8 @@ Suggested verification path:
 3. Verify Reports tab is visible.
 4. Verify both **টাকা এন্ট্রি** and **সরাসরি খরচ** are visible.
 5. Go to **More** and verify **অ্যাডমিন প্যানেল** is visible.
-6. Open Admin panel and verify add user/add wallet entry points.
-7. Go to Balance and verify all wallets are visible.
+6. Open Admin panel and verify add user/add fund account entry points.
+7. Go to Balance and verify all fund accounts are visible.
 8. Go to Bazar list and verify all bazars are visible.
 9. Create a bazar and add items using the same flow as Assistant.
 
@@ -204,22 +204,22 @@ Suggested verification path:
 
 These are end-to-end ways to use the app with the current demo roles. They are written as real QA/user stories, not just permission checks.
 
-### Owner Places a Bazar List for an Assistant
+### Fund Manager Places a Bazar List for an Assistant
 
-Use this when an owner wants to prepare a shopping list and let an assistant complete the market work.
+Use this when a fund manager/account-dept user wants to prepare a shopping list and let an assistant complete the market work.
 
 Current supported app behavior:
 
-- Owner can create a bazar under an owned wallet.
-- Owner/Admin can pick a specific assistant in **Assign assistant**.
+- Fund Manager can create a bazar under a managed fund account.
+- Fund Manager/Admin can pick a specific assistant in **Assign assistant**.
 - Assistant can see bazars where `assignedTo == null` or `assignedTo == assistant.id`.
 - If no assistant is selected, the bazar stays unassigned/team-visible for assistants.
 
 Steps:
 
-1. Login with **Login as Owner**.
+1. Login with **Login as Fund Manager**.
 2. Tap **নতুন বাজার** from Home.
-3. Select the owner wallet, for example `CEO Personal`.
+3. Select the fund account, for example `Office Lunch Bazar`, if more than one fund account is visible.
 4. Under **Assign assistant**, pick an active assistant such as `Rahim Uddin`, or leave it as unassigned if any assistant can take it.
 5. Choose input mode:
    - **একে একে** for adding items one by one.
@@ -233,7 +233,7 @@ Steps:
    দুধ ২ প্যাকেট
    ```
 
-7. Keep title as `আজকের বাজার` or rename it, e.g. `CEO Personal বাজার`.
+7. Keep title as `আজকের বাজার` or rename it, e.g. `Office Lunch Bazar`.
 8. Tap **বাজার তৈরি করুন →**.
 9. Logout from More.
 10. Login with **Login as Assistant**.
@@ -243,32 +243,32 @@ Steps:
     - **আইটেম যোগ** if more items are needed.
     - item tap/edit sheet to mark items done/not found and enter price.
 14. Tap **আজকের বাজার শেষ** when shopping is done.
-15. Logout and login as Owner again.
-16. Owner checks **Balance** and **Reports** to review spend and remaining balance.
+15. Logout and login as Fund Manager again.
+16. Fund Manager checks **Balance** and **Reports** to review spend and remaining balance.
 
-This flow is the direct owner-to-assistant handoff path in the app.
+This flow is the direct fund-manager-to-assistant handoff path in the app.
 
-### Owner Gives Money to Assistant Before Shopping
+### Fund Manager Gives Money to Assistant Before Shopping
 
-Use this when an owner advances cash to an assistant.
+Use this when a fund manager/account-dept user advances cash to an assistant.
 
-1. Login with **Login as Owner**.
+1. Login with **Login as Fund Manager**.
 2. Tap **টাকা এন্ট্রি** from Home.
-3. Select wallet/assistant fields shown on the money entry screen.
+3. Select fund account/assistant fields shown on the money entry screen.
 4. Enter the amount given to the assistant.
 5. Save the entry.
 6. Go to **Balance**.
-7. Open the wallet or assistant ledger to verify the assistant balance changed.
+7. Open the fund account or assistant ledger to verify the assistant balance changed.
 8. Assistant can then login and complete bazar shopping.
 
 Expected restrictions:
 
 - Assistant should not see **টাকা এন্ট্রি**.
-- Owner should not see **সরাসরি খরচ** from Home quick actions.
+- Fund Manager should not see **সরাসরি খরচ** from Home quick actions.
 
-### Assistant Completes Shopping from an Owner List
+### Assistant Completes Shopping from a Fund Manager List
 
-Use this after an owner has created a bazar list.
+Use this after a fund manager has created a bazar list.
 
 1. Login with **Login as Assistant**.
 2. Open **বাজার** tab.
@@ -292,21 +292,22 @@ Expected restrictions:
 - Monthly close hidden.
 - Admin panel hidden.
 
-### Owner Reviews Work Continuously
+### Fund Manager Reviews Work Continuously
 
 Use this after assistants have entered bazar prices and direct expenses.
 
-1. Login with **Login as Owner**.
-2. Open **Balance** to review wallet and assistant balances.
+1. Login with **Login as Fund Manager**.
+2. Open **Balance** to review fund-account and assistant balances.
 3. Open **Reports** to review monthly spend.
-4. Use **টাকা এন্ট্রি** when money is given to an assistant or returned by an assistant.
-5. Keep the assistant balance active until the employee/assistant leaves or is fired.
-6. Settle the assistant balance back to 0 through money entries instead of monthly close.
+4. Use **টাকা এন্ট্রি** when fund money is given to an assistant.
+5. For returned money, use the backend two-step flow: assistant creates a return request, then a fund manager confirms after counting cash.
+6. Keep the assistant balance active until the employee/assistant leaves or is fired.
+7. Settle the assistant balance back to 0 through confirmed money entries/return confirmations instead of monthly close.
 
 Expected restrictions:
 
-- Owner can access reports and money entry.
-- Owner cannot access monthly close or admin panel.
+- Fund Manager can access reports and money entry.
+- Fund Manager cannot access monthly close or admin panel.
 
 ### Admin Sets Up Demo Operating Structure
 
@@ -315,15 +316,15 @@ Use this when verifying admin-only operations.
 1. Login with **Login as Admin**.
 2. Open **More**.
 3. Tap **অ্যাডমিন প্যানেল**.
-4. Verify user and wallet management options.
-5. Use add user/add wallet entry points if needed.
+4. Verify user and fund-account management options.
+5. Use add user/add fund account entry points if needed.
 6. Return to Home.
 7. Verify Admin can see:
    - Reports
    - Money entry
    - Direct expense
    - Admin panel
-   - all wallets
+   - all fund accounts
    - all bazars
 8. Create a bazar and add items to verify Admin can perform operational work too.
 
@@ -331,22 +332,22 @@ Use this when verifying admin-only operations.
 
 Use this to confirm role scoping during QA.
 
-1. Login as Admin and note all wallets/bazars are visible.
+1. Login as Admin and note all fund accounts/bazars are visible.
 2. Logout.
-3. Login as Owner and confirm only owner/member wallets are visible.
+3. Login as Fund Manager and confirm only managed fund accounts are visible.
 4. Logout.
 5. Login as Assistant and confirm only unassigned/self-assigned bazars are visible.
 6. Verify assistant cannot see Reports/Admin/Money Entry.
 
 ## Direct Assistant Assignment
 
-The **নতুন বাজার** screen includes an **Assign assistant** section for Owner/Admin. It lists active assistants and also supports an unassigned option.
+The **নতুন বাজার** screen includes an **Assign assistant** section for Fund Manager/Admin. It lists active assistants and also supports an unassigned option.
 
 Supported handoff flows:
 
 ```text
-Owner/Admin assigns bazar to Rahim → Rahim sees it → Rahim completes shopping
-Owner/Admin leaves bazar unassigned → assistants can see it → any assistant can take/action it
+Fund Manager/Admin assigns bazar to Rahim → Rahim sees it → Rahim completes shopping
+Fund Manager/Admin leaves bazar unassigned → assistants can see it → any assistant can take/action it
 ```
 
 Assistant filtering respects:
@@ -376,13 +377,16 @@ Important behavior:
 - The screen supports **Manual** and **Text** input modes.
 - Manual mode supports adding multiple items before creating the bazar.
 - Text mode parses one item per line.
-- If the role has exactly one visible wallet, the wallet is auto-selected and the selector is hidden.
-- If the role has multiple visible wallets, the wallet selector is shown.
+- If the role has exactly one visible fund account, the account is auto-selected and the selector is hidden.
+- If the role has multiple visible fund accounts, the fund account selector is shown.
 
 Tracking handoff notes:
 
-- Monthly close events should allow `admin` only as actor role; owner monthly-close entry/impression/click/submit events are unexpected.
-- Bazar creation analytics should include the resolved `wallet_id` and `wallet_selection_method` with values `auto_single_wallet` or `manual_selector`.
+- Monthly close events should allow `admin` only as actor role; fund-manager monthly-close entry/impression/click/submit events are unexpected.
+- Bazar creation analytics should include the resolved `fund_account_id` and `fund_account_selection_method` with values `auto_single_account` or `manual_selector`.
+- Analytics should store `actor_product_role = fund_manager` separately from compatibility `actor_role_key = owner`.
+- Returned-money analytics should use return-request lifecycle events, not normal money-entry create events, and balance/report totals should update only after `return_request_confirmed` / `assistant_return_confirmed`.
+- Return-request tracking should include confirmation status, permission result, sync state, idempotency/client operation id, and `ledger_entry_id` only after confirmation.
 - Create button: **বাজার তৈরি করুন →**
 - Draft button: **Draft সংরক্ষণ করুন**
 
@@ -412,7 +416,7 @@ Use this to verify:
 
 ## Role Permissions Summary
 
-| Capability | Assistant | Owner | Admin |
+| Capability | Assistant | Fund Manager | Admin |
 | --- | --- | --- | --- |
 | Login via demo button | Yes | Yes | Yes |
 | Home dashboard | Yes | Yes | Yes |
@@ -420,11 +424,12 @@ Use this to verify:
 | Add bazar item | Yes | Yes, where accessible | Yes |
 | Direct expense | Yes | No | Yes |
 | Money entry | No | Yes | Yes |
+| Returned-money confirmation | Request only | Confirm for managed fund | Yes |
 | Reports tab | No | Yes | Yes |
 | Monthly close | No | No | Yes |
 | Admin panel | No | No | Yes |
-| Wallet visibility | Active wallets | Owned/member wallets | All wallets |
-| Bazar visibility | Unassigned or assigned to self | Bazars in visible wallets | All bazars |
+| Fund account visibility | Linked fund accounts | Managed fund accounts | All fund accounts |
+| Bazar visibility | Unassigned or assigned to self | Bazars in managed fund accounts | All bazars |
 
 ## Architecture
 
@@ -449,7 +454,7 @@ lib/
     reports/
     search/
     settings/
-    wallet/
+    wallet/       current local feature name for fund-account balance/ledger
   shared/
     models/
     providers/
@@ -475,25 +480,32 @@ Presentation should use providers/repositories rather than directly reaching acr
 
 Balance is computed from:
 
-- money received
-- money returned
+- fund money given to assistant
+- manager-confirmed returned money
 - adjustments
 - direct expenses
 - done bazar item prices
-- latest wallet snapshot base
+- latest fund-account snapshot base
 - in-progress bazar spending
 
-Balance is not stored as a wallet field.
+Balance is not stored as a fund-account field in the current app; future backend may cache `current_balance` transactionally while keeping ledger entries as source of truth.
 
 ## Mock-to-API Handoff
 
 The app is backend-ready through abstract seams:
 
 - Auth: `lib/features/auth/data/datasources/auth_remote_datasource.dart`
-- Wallet: `lib/features/wallet/data/datasources/mock_wallet_remote_datasource.dart`
+- Fund account / current wallet seam: `lib/features/wallet/data/datasources/mock_wallet_remote_datasource.dart`
 - Bazar: `lib/features/bazar/data/datasources/mock_bazar_remote_data_source.dart`
 - Money: `lib/features/money/data/datasources/mock_money_remote_datasource.dart`
 - Sync API seam: `lib/core/sync/sync_api_client.dart`
+
+Backend planning note:
+
+- The approved backend direction is fund-account based, not fixed wallet/moneybag based.
+- `owner` remains the compatibility role key, but product label is **Fund Manager** / **হিসাব ম্যানেজার**.
+- Returned money must use two-step confirmation: assistant creates a return request; authorized fund manager confirms before ledger balance changes.
+- Full backend plan: `docs/backend-fund-account-api-plan.md`.
 
 When backend is ready:
 
@@ -598,14 +610,14 @@ For each role:
 
 Admin-specific:
 
-- Verify Admin panel is visible.
-- Verify Add User/Add Wallet entry points.
-- Verify all wallets/bazars are visible.
+- Verify Add User/Add Fund Account entry points.
+- Verify all fund accounts/bazars are visible.
 
-Owner-specific:
+Fund Manager-specific:
 
 - Verify reports and money entry.
 - Verify admin/direct expense restrictions.
+- Verify returned-money confirmation is not treated as direct assistant balance mutation.
 
 Assistant-specific:
 
