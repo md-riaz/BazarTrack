@@ -26,9 +26,9 @@ class SettingsMockDataSource {
       ),
       OfflineQueueEntry(
         id: 'q3',
-        entityType: 'direct_expense',
+        entityType: 'money_return_request',
         operation: 'create',
-        entityLabel: 'সরাসরি খরচ — ৳ ৫০',
+        entityLabel: 'ফেরত অনুরোধ — ৳ ৫০',
         ageLabel: '৮ মিনিট আগে',
         retryCount: 1,
         status: OfflineQueueStatus.waiting,

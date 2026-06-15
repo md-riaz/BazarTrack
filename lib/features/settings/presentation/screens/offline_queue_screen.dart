@@ -255,7 +255,7 @@ class _QueueRow extends StatelessWidget {
   IconData _iconFor(String type) {
     return switch (type) {
       'bazar_item' => Icons.shopping_cart,
-      'direct_expense' => Icons.receipt_long,
+      'money_return_request' => Icons.assignment_return,
       'money_entry' => Icons.payments,
       'comment' => Icons.chat_bubble_outline,
       _ => Icons.sync,

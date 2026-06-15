@@ -1,6 +1,6 @@
 # সহজ বাজার খাতা — BazarTrack
 
-BazarTrack is an offline-first Flutter app for collaborative office market management: bazar lists, fund-account balances, assistant advances, direct expenses, reports, and admin monthly closing. The UI is Bangla-first with common English/Banglish product terms where they are more natural for daily users.
+BazarTrack is an offline-first Flutter app for collaborative office market management: bazar lists, fund-account balances, assistant advances, bazar item expenses, reports, and admin monthly closing. The UI is Bangla-first with common English/Banglish product terms where they are more natural for daily users.
 
 ## Key Features
 
@@ -9,7 +9,7 @@ BazarTrack is an offline-first Flutter app for collaborative office market manag
 - Create bazars manually or from pasted text lists.
 - Add bazar items from frequent items, manual entry, or parsed text.
 - Fund-account balance and assistant ledger tracking.
-- Fund money given entries, two-step returned-money confirmation plan, and direct expenses.
+- Fund money given entries, two-step returned-money confirmation plan, and bazar item expenses.
 - Reports and admin monthly close flows.
 - Admin panel for user/fund-account management.
 - Offline-first Drift SQLite storage with sync queue UI.
@@ -58,9 +58,9 @@ The login screen currently exposes temporary demo buttons so QA can verify role-
 
 | Button | Mock user | Role | Main purpose |
 | --- | --- | --- | --- |
-| `Login as Admin` | Admin User | Admin | Verify admin panel, all fund accounts/bazars, reports, monthly close, money entry, direct expense |
+| `Login as Admin` | Admin User | Admin | Verify admin panel, all fund accounts/bazars, reports, monthly close, money entry |
 | `Login as Fund Manager` | Mr. CEO | Fund Manager (`owner` role key) | Verify managed fund accounts, reports, money entry |
-| `Login as Assistant` | Rahim Uddin | Assistant | Verify shopping/bazar flow, direct expense, restricted reports/admin access |
+| `Login as Assistant` | Rahim Uddin | Assistant | Verify shopping/bazar flow and restricted reports/admin/money-entry access |
 
 The demo buttons are controlled by a compile-time flag in `login_screen.dart`:
 
@@ -91,7 +91,6 @@ Expected visible actions:
 - Bazar list
 - New bazar
 - Balance
-- Direct expense
 - More/settings/offline queue
 
 Expected hidden/restricted actions:
@@ -153,7 +152,6 @@ Expected visible actions:
 Expected hidden/restricted actions:
 
 - Admin panel hidden
-- Direct expense hidden from home quick actions
 
 Suggested verification path:
 
@@ -182,7 +180,6 @@ Expected visible actions:
 - Balance
 - Reports
 - Money entry
-- Direct expense
 - Admin panel
 - Add user
 - Add fund account
@@ -193,7 +190,7 @@ Suggested verification path:
 1. Tap **Login as Admin**.
 2. Confirm Home shows `Admin User — অ্যাডমিন`.
 3. Verify Reports tab is visible.
-4. Verify both **টাকা এন্ট্রি** and **সরাসরি খরচ** are visible.
+4. Verify **টাকা এন্ট্রি** is visible.
 5. Go to **More** and verify **অ্যাডমিন প্যানেল** is visible.
 6. Open Admin panel and verify add user/add fund account entry points.
 7. Go to Balance and verify all fund accounts are visible.
@@ -264,7 +261,6 @@ Use this when a fund manager/account-dept user advances cash to an assistant.
 Expected restrictions:
 
 - Assistant should not see **টাকা এন্ট্রি**.
-- Fund Manager should not see **সরাসরি খরচ** from Home quick actions.
 
 ### Assistant Completes Shopping from a Fund Manager List
 
@@ -281,9 +277,8 @@ Use this after a fund manager has created a bazar list.
    - notes
 6. Tap **আইটেম যোগ** if an extra item needs to be added.
 7. Use **+ আরেকটি** for multiple items or **✓ শেষ করুন** to return.
-8. If there is a direct expense outside a bazar, go Home and tap **সরাসরি খরচ**.
-9. Finish the bazar with **আজকের বাজার শেষ**.
-10. Check More → Sync queue if offline work is pending.
+8. Finish the bazar with **আজকের বাজার শেষ**.
+9. Check More → Sync queue if offline work is pending.
 
 Expected restrictions:
 
@@ -294,7 +289,7 @@ Expected restrictions:
 
 ### Fund Manager Reviews Work Continuously
 
-Use this after assistants have entered bazar prices and direct expenses.
+Use this after assistants have entered bazar item prices.
 
 1. Login with **Login as Fund Manager**.
 2. Open **Balance** to review fund-account and assistant balances.
@@ -322,7 +317,6 @@ Use this when verifying admin-only operations.
 7. Verify Admin can see:
    - Reports
    - Money entry
-   - Direct expense
    - Admin panel
    - all fund accounts
    - all bazars
@@ -422,7 +416,6 @@ Use this to verify:
 | Home dashboard | Yes | Yes | Yes |
 | Create bazar | Yes | Yes | Yes |
 | Add bazar item | Yes | Yes, where accessible | Yes |
-| Direct expense | Yes | No | Yes |
 | Money entry | No | Yes | Yes |
 | Returned-money confirmation | Request only | Confirm for managed fund | Yes |
 | Reports tab | No | Yes | Yes |
@@ -483,7 +476,6 @@ Balance is computed from:
 - fund money given to assistant
 - manager-confirmed returned money
 - adjustments
-- direct expenses
 - done bazar item prices
 - latest fund-account snapshot base
 - in-progress bazar spending
@@ -531,7 +523,6 @@ When backend is ready:
 /wallets/:walletId
 /wallets/:walletId/assistant/:assistantId
 /money/entry
-/money/direct-expense
 /reports
 /reports/monthly-close
 /admin
@@ -616,11 +607,10 @@ Admin-specific:
 Fund Manager-specific:
 
 - Verify reports and money entry.
-- Verify admin/direct expense restrictions.
+- Verify admin restrictions.
 - Verify returned-money confirmation is not treated as direct assistant balance mutation.
 
 Assistant-specific:
 
-- Verify direct expense.
 - Verify reports/monthly close/admin are hidden.
 - Verify bazar visibility is unassigned/self-assigned only.

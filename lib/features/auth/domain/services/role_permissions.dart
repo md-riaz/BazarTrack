@@ -13,9 +13,6 @@ class RolePermissions {
   static bool canRecordMoneyEntry(UserRole role) =>
       role == UserRole.owner || role == UserRole.admin;
 
-  static bool canAddDirectExpense(UserRole role) =>
-      role == UserRole.assistant || role == UserRole.admin;
-
   static bool canSeeReportsTab(UserRole role) => canAccessReports(role);
 
   static bool canSeeAdminMenu(UserRole role) => canAccessAdmin(role);

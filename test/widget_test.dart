@@ -131,28 +131,26 @@ void main() {
     },
   );
 
-  testWidgets(
-    'owner demo role login reaches reports and hides direct expense',
-    (tester) async {
-      await pumpApp(tester);
-      await tapDemoRole(tester, 'Login as Fund Manager');
+  testWidgets('owner demo role login reaches reports and money entry', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    await tapDemoRole(tester, 'Login as Fund Manager');
 
-      expectHomeShell();
-      expect(find.text('Mr. CEO — হিসাব ম্যানেজার'), findsOneWidget);
-      expect(find.text('রিপোর্ট'), findsWidgets);
-      expect(find.text('টাকা এন্ট্রি'), findsOneWidget);
-      expect(find.text('সরাসরি খরচ'), findsNothing);
+    expectHomeShell();
+    expect(find.text('Mr. CEO — হিসাব ম্যানেজার'), findsOneWidget);
+    expect(find.text('রিপোর্ট'), findsWidgets);
+    expect(find.text('টাকা এন্ট্রি'), findsOneWidget);
 
-      tester
-          .widget<BottomNavigationBar>(find.byType(BottomNavigationBar))
-          .onTap!(3);
-      await tester.pump();
-      await tester.pump(settleDuration);
+    tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar)).onTap!(
+      3,
+    );
+    await tester.pump();
+    await tester.pump(settleDuration);
 
-      expect(find.text('Export ↓'), findsOneWidget);
-      expect(find.text('মাসের সারসংক্ষেপ'), findsOneWidget);
-    },
-  );
+    expect(find.text('Export ↓'), findsOneWidget);
+    expect(find.text('মাসের সারসংক্ষেপ'), findsOneWidget);
+  });
 
   testWidgets('admin demo role login reaches reports and admin menu', (
     tester,

@@ -25,7 +25,7 @@ void main() {
 
       expect(entries, hasLength(2));
       expect(entries.first.entityLabel, 'দুধ ২ প্যাকেট');
-      expect(entries.last.entityType, 'direct_expense');
+      expect(entries.last.entityType, 'money_return_request');
       expect(failed, 1);
       expect(
         entries.where((entry) => entry.status == OfflineQueueStatus.failed),
@@ -68,10 +68,10 @@ Future<void> _insertQueueRows(AppDatabase database) async {
       .into(database.syncQueueItems)
       .insert(
         SyncQueueItemsCompanion.insert(
-          entityType: 'direct_expense',
-          entityId: 'd1',
+          entityType: 'money_return_request',
+          entityId: 'r1',
           operation: 'create',
-          payload: '{"entity":"সরাসরি খরচ — ৳ ৫০"}',
+          payload: '{"entity":"ফেরত অনুরোধ — ৳ ৫০"}',
           createdAt: DateTime(2026, 5, 24, 9, 5),
           retryCount: const Value(1),
         ),

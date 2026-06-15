@@ -403,10 +403,10 @@ class MockSeed {
           createdAt: now.subtract(const Duration(minutes: 5)),
         ),
         SyncQueueItemsCompanion.insert(
-          entityType: 'direct_expense',
-          entityId: 'd1',
+          entityType: 'money_return_request',
+          entityId: 'r1',
           operation: 'create',
-          payload: '{"entity":"সরাসরি খরচ — ৳ ৫০"}',
+          payload: '{"entity":"ফেরত অনুরোধ — ৳ ৫০"}',
           createdAt: now.subtract(const Duration(minutes: 8)),
           retryCount: const Value(1),
         ),

@@ -5,7 +5,6 @@ import 'package:bazar/features/auth/domain/entities/user.dart';
 import 'package:bazar/features/auth/presentation/providers/auth_provider.dart';
 import 'package:bazar/features/bazar/presentation/screens/add_item_screen.dart';
 import 'package:bazar/features/bazar/presentation/screens/new_bazar_screen.dart';
-import 'package:bazar/features/money/presentation/screens/direct_expense_screen.dart';
 import 'package:bazar/features/wallet/domain/entities/wallet.dart';
 import 'package:bazar/features/wallet/presentation/providers/wallet_providers.dart';
 import 'package:bazar/shared/models/app_enums.dart';
@@ -106,24 +105,6 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('পরিমাণ'), findsNothing);
-
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pump(const Duration(milliseconds: 1));
-    await tester.pump(const Duration(milliseconds: 1));
-  });
-
-  testWidgets('DirectExpenseScreen renders direct expense form', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      _testApp(database, const DirectExpenseScreen(), wallets, currentUser),
-    );
-    await tester.pump(const Duration(milliseconds: 1));
-
-    expect(find.text('সরাসরি খরচ'), findsOneWidget);
-    expect(find.text('এটি Bazar তালিকা ছাড়া সরাসরি খরচ।'), findsOneWidget);
-    expect(find.text('টাকার পরিমাণ'), findsOneWidget);
-    expect(find.text('সংরক্ষণ করুন'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(milliseconds: 1));

@@ -50,7 +50,6 @@ Owns:
 ### Agent E — Money + Reports
 Owns:
 - money entry
-- direct expense
 - reports
 - monthly close
 

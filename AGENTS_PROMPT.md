@@ -96,7 +96,7 @@ lib/
 │   ├── wallet/         ← Fund account balance, Fund Account Detail, Assistant Ledger
 │   ├── bazar/          ← Bazar List, Detail, New Bazar, Add Item, Summary
 │   ├── item/           ← Item edit sheet, Price History
-│   ├── money/          ← Money Entry, Direct Expense
+│   ├── money/          ← Money Entry
 │   ├── reports/        ← Reports screen, Monthly Close
 │   ├── notifications/  ← Notifications screen
 │   ├── search/         ← Search screen
@@ -368,7 +368,6 @@ class BalanceCalculator {
     // Uses last snapshot closing_balance as base (if exists)
     // + SUM(fund money given) since snapshot
     // - SUM(item prices where status=done) since snapshot
-    // - SUM(direct_expenses) since snapshot
     // - SUM(manager-confirmed returns) since snapshot
     // +/- SUM(adjustments) since snapshot
 
@@ -406,7 +405,7 @@ A2. Add all packages from Section 3, run flutter pub get
 A3. Implement app_colors.dart — ALL tokens from prototype.jsx
 A4. Implement app_text_styles.dart + app_theme.dart (Material 3, light mode only for MVP)
 A5. Implement app_database.dart — ALL Drift tables (wallets, bazars, bazar_items,
-    money_entries, direct_expenses, wallet_snapshots, sync_queue, users, activity_logs,
+    money_entries, wallet_snapshots, sync_queue, users, activity_logs,
     comments, attachments, wallet_members, wallet_assistant_restrictions)
 A6. Run drift codegen: flutter pub run build_runner build
 A7. Implement app_router.dart — GoRouter with all 24 routes + auth guard
@@ -480,20 +479,18 @@ D9. Tests: BazarRepository, item status transitions, balance impact
 
 ---
 
-### Agent E — New Bazar + Add Item + Direct Expense
+### Agent E — New Bazar + Add Item
 
 **Owns:**
 - `lib/features/bazar/presentation/screens/new_bazar_screen.dart`
 - `lib/features/bazar/presentation/screens/add_item_screen.dart`
-- `lib/features/money/presentation/screens/direct_expense_screen.dart`
 
 **Tasks:**
 ```
 E1. NewBazarScreen — dual mode
 E2. AddItemScreen
-E3. DirectExpenseScreen
-E4. FrequentItemsProvider
-E5. AutoParseService
+E3. FrequentItemsProvider
+E4. AutoParseService
 ```
 
 ---
@@ -505,7 +502,7 @@ E5. AutoParseService
 **Tasks:**
 ```
 F1. MoneyEntry entity + MoneyEntryRepository abstract + Mock
-F2. Drift DAO: MoneyEntryDao + DirectExpenseDao
+F2. Drift DAO: MoneyEntryDao
 F3. MoneyEntryRepositoryImpl
 F4. MoneyEntryScreen
 F5. ReportsScreen

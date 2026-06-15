@@ -12,8 +12,7 @@ Company
     Fund-Assistant Accounts
       Ledger Entries
       Bazars
-      Money Entries
-      Direct Expenses
+      Fund Disbursements
       Return Requests
 ```
 
@@ -68,7 +67,6 @@ Assistant can:
 - See assigned/self-available bazars.
 - Update item prices/status.
 - Close assigned bazar.
-- Record direct expense.
 - Create a return-money request.
 
 Assistant cannot directly mutate returned-money ledger balance without manager confirmation.
@@ -214,10 +212,10 @@ ledger_entries (
   company_id uuid not null references companies(id),
   fund_id uuid not null references funds(id),
   account_id uuid not null references fund_assistant_accounts(id),
-  type text not null check (type in ('fund_gave_money', 'assistant_return_confirmed', 'bazar_spend', 'direct_expense', 'adjustment')),
+  type text not null check (type in ('fund_gave_money', 'assistant_return_confirmed', 'bazar_spend', 'adjustment')),
   amount numeric(12,2) not null check (amount >= 0),
   signed_amount numeric(12,2) not null,
-  source_type text not null check (source_type in ('money_entry', 'return_request', 'bazar', 'direct_expense', 'adjustment')),
+  source_type text not null check (source_type in ('money_entry', 'return_request', 'bazar', 'adjustment')),
   source_id uuid,
   created_by uuid not null references users(id),
   paid_by uuid references users(id),
@@ -240,10 +238,11 @@ Signed amount rules:
 | `fund_gave_money` | `+amount` |
 | `assistant_return_confirmed` | `-amount` |
 | `bazar_spend` | `-amount` |
-| `direct_expense` | `-amount` |
 | `adjustment` | signed correction |
 
 ### money_entries
+
+`money_entries` are only fund-manager transfers to assistants, plus explicit corrections if allowed. Assistant spending is captured through bazar item prices. Returned money is intentionally not a direct `money_entries` row; it goes through return request confirmation.
 
 ```sql
 money_entries (
@@ -262,8 +261,6 @@ money_entries (
   deleted_at timestamptz
 )
 ```
-
-Returned money is intentionally not direct `money_entries`. It goes through return request confirmation.
 
 ### money_return_requests
 
@@ -303,27 +300,6 @@ Flow:
 
 Confirmation must be idempotent. Repeating confirm for same request must return the existing confirmed result, not create another ledger entry.
 
-### direct_expenses
-
-```sql
-direct_expenses (
-  id uuid primary key,
-  company_id uuid not null references companies(id),
-  fund_id uuid not null references funds(id),
-  account_id uuid not null references fund_assistant_accounts(id),
-  assistant_id uuid not null references users(id),
-  title text not null,
-  amount numeric(12,2) not null,
-  note text,
-  expense_date date not null,
-  created_by uuid not null references users(id),
-  created_at timestamptz not null,
-  updated_at timestamptz not null,
-  deleted_at timestamptz
-)
-```
-
-On create, backend inserts ledger entry `direct_expense` with `signed_amount = -amount`.
 
 ## API endpoints
 
@@ -480,14 +456,6 @@ Confirm response:
 }
 ```
 
-### Direct expenses
-
-```http
-GET  /direct-expenses
-POST /direct-expenses
-GET  /direct-expenses/:id
-DELETE /direct-expenses/:id
-```
 
 ### Reports
 
@@ -560,7 +528,7 @@ Idempotency-Key: <client_operation_id>
 X-Client-Id: <device_id>
 ```
 
-Backend must store applied operations to avoid duplicate money entries, bazar close entries, direct expenses, and return confirmations.
+Backend must store applied operations to avoid duplicate money entries, bazar close entries, and return confirmations.
 
 Recommended MVP:
 

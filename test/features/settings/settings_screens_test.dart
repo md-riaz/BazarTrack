@@ -193,7 +193,7 @@ void main() {
       expect(find.text('২টি আইটেম পাঠানো বাকি আছে'), findsOneWidget);
       expect(find.text('১ ব্যর্থ'), findsOneWidget);
       expect(find.text('দুধ ২ প্যাকেট'), findsOneWidget);
-      expect(find.text('সরাসরি খরচ — ৳ ৫০'), findsOneWidget);
+      expect(find.text('ফেরত অনুরোধ — ৳ ৫০'), findsOneWidget);
       expect(find.text('Retry all'), findsOneWidget);
       expect(find.text('Queue মুছুন'), findsNothing);
 
@@ -253,10 +253,10 @@ Future<void> _insertQueueRows(AppDatabase database) async {
       .into(database.syncQueueItems)
       .insert(
         SyncQueueItemsCompanion.insert(
-          entityType: 'direct_expense',
-          entityId: 'd1',
+          entityType: 'money_return_request',
+          entityId: 'r1',
           operation: 'create',
-          payload: '{"entity":"সরাসরি খরচ — ৳ ৫০"}',
+          payload: '{"entity":"ফেরত অনুরোধ — ৳ ৫০"}',
           createdAt: DateTime(2026, 5, 24, 9, 5),
           retryCount: const Value(1),
         ),

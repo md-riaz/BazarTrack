@@ -78,7 +78,7 @@ String _entityLabel(SyncQueueItem item) {
     'bazar' => 'বাজার',
     'bazar_item' => 'বাজার আইটেম',
     'money_entry' => 'টাকা এন্ট্রি',
-    'direct_expense' => 'সরাসরি খরচ',
+    'money_return_request' => 'ফেরত অনুরোধ',
     'wallet_snapshot' => 'মাসিক হিসাব',
     'comment' => 'কমেন্ট',
     _ => 'সিঙ্ক আইটেম',

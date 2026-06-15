@@ -18,7 +18,6 @@ import '../../features/bazar/presentation/screens/bazar_summary_screen.dart';
 import '../../features/bazar/presentation/screens/new_bazar_screen.dart';
 import '../../features/comments/presentation/screens/bazar_comments_screen.dart';
 import '../../features/comments/presentation/screens/price_history_screen.dart';
-import '../../features/money/presentation/screens/direct_expense_screen.dart';
 import '../../features/money/presentation/screens/money_entry_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/reports/domain/entities/report_summary.dart';
@@ -92,7 +91,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               onNewBazarTap: () => context.push(AppRoutes.newBazar),
               onBalanceTap: () => context.go(AppRoutes.balance),
               onMoneyEntryTap: () => context.push(AppRoutes.moneyEntry),
-              onDirectExpenseTap: () => context.push(AppRoutes.directExpense),
               onReportsTap: () => context.go(AppRoutes.reports),
             ),
           ),
@@ -168,14 +166,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             onDone: () => _popOrGo(context, AppRoutes.bazarDetail(bazarId)),
           );
         },
-      ),
-      GoRoute(
-        path: AppRoutes.directExpense,
-        name: 'direct-expense',
-        builder: (context, state) => DirectExpenseScreen(
-          onBack: () => _popOrGo(context, AppRoutes.home),
-          onSaved: () => _popOrGo(context, AppRoutes.home),
-        ),
       ),
       GoRoute(
         path: AppRoutes.bazarSummaryPath,
@@ -308,7 +298,6 @@ class AppRoutes {
   static const bazarDetailPath = '/bazars/:bazarId';
   static const newBazar = '/bazars/new';
   static const addItemPath = '/bazars/:bazarId/items/add';
-  static const directExpense = '/money/direct-expense';
   static const bazarSummaryPath = '/bazars/:bazarId/summary';
   static const balance = '/balance';
   static const moneyEntry = '/money/entry';
@@ -505,9 +494,6 @@ bool _canAccessRoute(String route, UserRole role) {
   if (route == AppRoutes.moneyEntry) {
     return RolePermissions.canRecordMoneyEntry(role);
   }
-  if (route == AppRoutes.directExpense) {
-    return RolePermissions.canAddDirectExpense(role);
-  }
   return true;
 }
 
@@ -582,7 +568,6 @@ class HomeDashboardScreen extends ConsumerWidget {
     required this.onNewBazarTap,
     required this.onBalanceTap,
     required this.onMoneyEntryTap,
-    required this.onDirectExpenseTap,
     required this.onReportsTap,
     super.key,
   });
@@ -591,7 +576,6 @@ class HomeDashboardScreen extends ConsumerWidget {
   final VoidCallback onNewBazarTap;
   final VoidCallback onBalanceTap;
   final VoidCallback onMoneyEntryTap;
-  final VoidCallback onDirectExpenseTap;
   final VoidCallback onReportsTap;
 
   @override
@@ -639,7 +623,6 @@ class HomeDashboardScreen extends ConsumerWidget {
               onNewBazarTap: onNewBazarTap,
               onBalanceTap: onBalanceTap,
               onMoneyEntryTap: onMoneyEntryTap,
-              onDirectExpenseTap: onDirectExpenseTap,
               onReportsTap: onReportsTap,
             ),
           ),
@@ -1016,7 +999,6 @@ List<_HomeAction> _homeActionsForRole({
   required VoidCallback onNewBazarTap,
   required VoidCallback onBalanceTap,
   required VoidCallback onMoneyEntryTap,
-  required VoidCallback onDirectExpenseTap,
   required VoidCallback onReportsTap,
 }) {
   return [
@@ -1025,8 +1007,6 @@ List<_HomeAction> _homeActionsForRole({
     _HomeAction('হিসাব', Icons.account_balance_wallet, onBalanceTap),
     if (role == null || RolePermissions.canRecordMoneyEntry(role))
       _HomeAction('টাকা এন্ট্রি', Icons.payments, onMoneyEntryTap),
-    if (role == null || RolePermissions.canAddDirectExpense(role))
-      _HomeAction('সরাসরি খরচ', Icons.receipt_long, onDirectExpenseTap),
     if (role == null || RolePermissions.canAccessReports(role))
       _HomeAction('রিপোর্ট', Icons.bar_chart, onReportsTap),
   ];
