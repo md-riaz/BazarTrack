@@ -499,6 +499,16 @@ Backend planning note:
 - Returned money must use two-step confirmation: assistant creates a return request; authorized fund manager confirms before ledger balance changes.
 - Full backend plan: `docs/backend-fund-account-api-plan.md`.
 
+PHP API scaffold:
+
+- Source folder: `api/`
+- Router style: `api/index.php?cmd=<controller>&action=<method>&other=params`
+- Development database: SQLite at `api/storage/dev.sqlite`
+- ORM: bundled php-activerecord at `api/vendor/php-activerecord/`
+- Production database target: MySQL via `api/config.php` or environment variables
+- Initial setup endpoint: `api/index.php?cmd=setup&action=seed` creates tables and first admin; `seedDemo` is separate
+- Local setup notes: `api/README.md`
+
 When backend is ready:
 
 1. Add real API datasource classes implementing the existing interfaces.

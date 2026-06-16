@@ -11,6 +11,8 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+.claude/
+.pi/
 
 # IntelliJ related
 *.iml
@@ -42,3 +44,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# PHP API local config/storage
+/api/config.php
+/api/storage/*.sqlite
+/api/storage/*.sqlite-*
