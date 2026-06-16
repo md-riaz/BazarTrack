@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../api/api_providers.dart';
+import '../config/api_config.dart';
 import '../../bootstrap.dart';
 import '../../shared/models/app_enums.dart';
 import 'connectivity_service.dart';
+import 'http_sync_api_client.dart';
 import 'sync_api_client.dart';
 import 'sync_engine.dart';
 import 'sync_enqueue_service.dart';
@@ -23,6 +26,13 @@ final syncEnqueueServiceProvider = Provider<SyncEnqueueService>((ref) {
 });
 
 final syncApiClientProvider = Provider<SyncApiClient>((ref) {
+  final config = ref.watch(apiConfigProvider);
+  if (config.enabled) {
+    return HttpSyncApiClient(
+      apiClient: ref.watch(bazarApiClientProvider),
+      config: config,
+    );
+  }
   return SinkSyncApiClient();
 });
 

@@ -51,6 +51,7 @@ dependencies:
   lottie: ^3.2.0
   gap: ^3.0.1
   percent_indicator: ^4.2.4
+  flutter_dotenv: ^6.0.1
 
 dev_dependencies:
   flutter_test:
@@ -69,6 +70,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/env/app.env
     - assets/spec.pdf
     - assets/prototype.jsx
     - assets/images/

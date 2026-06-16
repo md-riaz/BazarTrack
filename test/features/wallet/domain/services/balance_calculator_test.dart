@@ -43,7 +43,7 @@ void main() {
     expect(result.confirmedBalance, 650);
     expect(result.inProgressAmount, 0);
     expect(result.estimatedBalance, 650);
-    expect(result.label, 'হাতে আছে');
+    expect(result.label, 'সহকারীর কাছে আছে');
   });
 
   test('calculates negative balance when spending exceeds received money', () {
@@ -71,7 +71,7 @@ void main() {
 
     expect(result.confirmedBalance, -250);
     expect(result.estimatedBalance, -250);
-    expect(result.label, 'পাওনা আছে — দিতে হবে');
+    expect(result.label, 'সহকারী পাবে — দিতে হবে');
   });
 
   test('calculates zero balance as settled', () {

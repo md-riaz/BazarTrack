@@ -13,6 +13,7 @@
 migrate_working_dir/
 .claude/
 .pi/
+.env
 
 # IntelliJ related
 *.iml

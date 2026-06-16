@@ -1,6 +1,9 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/api/api_providers.dart';
+import '../../../../core/config/api_config.dart';
+import '../../../api/data/bazar_api_data_sources.dart';
 import '../../data/datasources/auth_local_datasource.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -12,6 +15,10 @@ final flutterSecureStorageProvider = Provider<FlutterSecureStorage>((ref) {
 });
 
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
+  final config = ref.watch(apiConfigProvider);
+  if (config.enabled) {
+    return ApiAuthRemoteDataSource(ref.watch(bazarApiClientProvider));
+  }
   return const MockAuthRemoteDataSource();
 });
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,7 @@ import 'core/mock/mock_seed.dart';
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await _safeLoadEnv();
   await _safeInitializeFirebase();
 
   final database = AppDatabase();
@@ -23,6 +25,14 @@ Future<void> bootstrap() async {
       child: const BazarApp(),
     ),
   );
+}
+
+Future<void> _safeLoadEnv() async {
+  try {
+    await dotenv.load(fileName: 'assets/env/app.env');
+  } catch (_) {
+    // Local .env is optional; compile-time --dart-define values still work.
+  }
 }
 
 Future<void> _safeInitializeFirebase() async {

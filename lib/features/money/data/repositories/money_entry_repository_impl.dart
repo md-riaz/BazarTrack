@@ -109,7 +109,7 @@ class MoneyEntryRepositoryImpl implements MoneyEntryRepository {
         'is_locked': entry.isLocked,
       },
     );
-    _remoteDataSource.publishMoneyEntry(entry).ignore();
+    await _remoteDataSource.publishMoneyEntry(entry);
     return entry;
   }
 

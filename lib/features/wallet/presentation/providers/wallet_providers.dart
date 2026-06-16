@@ -2,6 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/api/api_providers.dart';
+import '../../../../core/config/api_config.dart';
+import '../../../api/data/bazar_api_data_sources.dart';
+import '../../../api/data/bazar_api_repositories.dart';
 import '../../../../bootstrap.dart';
 import '../../../../shared/models/app_enums.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -18,6 +22,10 @@ import '../../domain/repositories/wallet_repository.dart';
 import '../../domain/services/balance_calculator.dart';
 
 final walletRemoteDataSourceProvider = Provider<WalletRemoteDataSource>((ref) {
+  final config = ref.watch(apiConfigProvider);
+  if (config.enabled) {
+    return ApiWalletRemoteDataSource(ref.watch(bazarApiClientProvider));
+  }
   return const MockWalletRemoteDataSource();
 });
 
@@ -42,6 +50,13 @@ final balanceCalculatorProvider = Provider<BalanceCalculator>((ref) {
 });
 
 final walletRepositoryProvider = Provider<WalletRepository>((ref) {
+  final config = ref.watch(apiConfigProvider);
+  if (config.enabled) {
+    return ApiWalletRepository(
+      client: ref.watch(bazarApiClientProvider),
+      config: config,
+    );
+  }
   return WalletRepositoryImpl(
     walletDao: ref.watch(walletDaoProvider),
     walletMemberDao: ref.watch(walletMemberDaoProvider),
@@ -59,6 +74,10 @@ final walletListProvider = StreamProvider<List<Wallet>>((ref) {
   }
 
   final walletStream = ref.watch(walletRepositoryProvider).watchWallets();
+  final config = ref.watch(apiConfigProvider);
+  if (config.enabled) {
+    return walletStream;
+  }
   if (currentUser.role == UserRole.admin) {
     return walletStream;
   }
@@ -89,6 +108,10 @@ final walletSummariesProvider = StreamProvider<List<WalletSummary>>((ref) {
             ? currentUser.id
             : null,
       );
+  final config = ref.watch(apiConfigProvider);
+  if (config.enabled) {
+    return summariesStream;
+  }
   if (currentUser.role == UserRole.admin) {
     return summariesStream;
   }

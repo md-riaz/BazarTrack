@@ -1,5 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/api/api_providers.dart';
+import '../../../../core/config/api_config.dart';
+import '../../../api/data/bazar_api_data_sources.dart';
+import '../../../api/data/bazar_api_repositories.dart';
 import '../../../../bootstrap.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../wallet/presentation/providers/wallet_providers.dart';
@@ -20,10 +24,24 @@ final bazarLocalDataSourceProvider = Provider<BazarLocalDataSource>((ref) {
 final bazarRemoteDataSourceProvider = Provider<MockBazarRemoteDataSource>((
   ref,
 ) {
+  final config = ref.watch(apiConfigProvider);
+  if (config.enabled) {
+    return ApiBazarRemoteDataSource(
+      client: ref.watch(bazarApiClientProvider),
+      config: config,
+    );
+  }
   return MockBazarRemoteDataSource();
 });
 
 final bazarRepositoryProvider = Provider<BazarRepository>((ref) {
+  final config = ref.watch(apiConfigProvider);
+  if (config.enabled) {
+    return ApiBazarRepository(
+      client: ref.watch(bazarApiClientProvider),
+      config: config,
+    );
+  }
   return BazarRepositoryImpl(
     localDataSource: ref.watch(bazarLocalDataSourceProvider),
     remoteDataSource: ref.watch(bazarRemoteDataSourceProvider),

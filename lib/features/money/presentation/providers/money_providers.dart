@@ -1,6 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../bootstrap.dart';
+import '../../../../core/api/api_providers.dart';
+import '../../../../core/config/api_config.dart';
+import '../../../api/data/bazar_api_data_sources.dart';
+import '../../../api/data/bazar_api_repositories.dart';
 import '../../../../core/sync/sync_providers.dart';
 import '../../../../shared/models/app_enums.dart';
 import '../../data/datasources/mock_money_remote_datasource.dart';
@@ -11,6 +15,13 @@ import '../../domain/entities/money_entry.dart';
 import '../../domain/repositories/money_entry_repository.dart';
 
 final moneyRemoteDataSourceProvider = Provider<MoneyRemoteDataSource>((ref) {
+  final config = ref.watch(apiConfigProvider);
+  if (config.enabled) {
+    return ApiMoneyRemoteDataSource(
+      client: ref.watch(bazarApiClientProvider),
+      config: config,
+    );
+  }
   return const MockMoneyRemoteDataSource();
 });
 
@@ -27,6 +38,13 @@ final monthlyCloseDaoProvider = Provider<MonthlyCloseDao>((ref) {
 });
 
 final moneyEntryRepositoryProvider = Provider<MoneyEntryRepository>((ref) {
+  final config = ref.watch(apiConfigProvider);
+  if (config.enabled) {
+    return ApiMoneyEntryRepository(
+      client: ref.watch(bazarApiClientProvider),
+      config: config,
+    );
+  }
   return MoneyEntryRepositoryImpl(
     moneyEntryDao: ref.watch(moneyEntryDaoProvider),
     directExpenseDao: ref.watch(directExpenseDaoProvider),
