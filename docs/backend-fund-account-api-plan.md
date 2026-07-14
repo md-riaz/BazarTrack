@@ -40,6 +40,8 @@ Balance meaning:
 - Create/deactivate fund accounts.
 - Add/remove fund managers.
 - Link assistants to fund accounts.
+- Create bazar.
+- Assign assistant.
 - See all accounts, bazars, ledgers, reports.
 - Perform admin-only monthly close if that feature remains.
 
@@ -59,17 +61,25 @@ A fund manager can act only on assigned fund accounts and explicit permissions:
 
 ### Assistant
 
-Assistant can only see fund-assistant accounts where `assistant_id == current_user.id`.
+Assistant can see linked fund accounts and bazars assigned to self or left unassigned.
+
+Current Flutter implementation also allows an assistant with access to **New Bazar** to create a bazar list on behalf of the selected fund account/owner. Assistant-created bazars keep `assignedTo` empty because assistant assignment is controlled separately and hidden for assistant users.
 
 Assistant can:
 
 - See own fund account balances.
 - See assigned/self-available bazars.
+- Create an unassigned bazar on behalf of the selected fund account/owner from the New Bazar screen.
 - Update item prices/status.
-- Close assigned bazar.
+- Mark item availability.
+- Add item notes and additional items.
+- Close assigned or self-available bazar.
 - Create a return-money request.
 
-Assistant cannot directly mutate returned-money ledger balance without manager confirmation.
+Assistant cannot:
+
+- Assign another assistant.
+- Directly mutate returned-money ledger balance without manager confirmation.
 
 ## Required backend tables
 
@@ -555,3 +565,5 @@ Current app still has `wallet` names in code and database for demo compatibility
 | Owner role | Fund Manager role |
 
 Do not deeply refactor Flutter storage until API contract is approved. First add labels/docs, then migrate data model/API adapters in a dedicated phase.
+
+For assistant-created bazars in the current Flutter app, `createdBy` represents the selected fund account owner/on-behalf-of user, while `actorId` represents the real acting assistant for initial item and activity attribution. `assignedTo` stays empty because assistants cannot assign another assistant.

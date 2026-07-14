@@ -83,6 +83,40 @@ void main() {
   });
 
   test(
+    'assistant-created bazar keeps owner creator and actor attribution',
+    () async {
+      final container = containerFor(_user('u1', UserRole.assistant));
+      await container.read(currentUserProvider.future);
+
+      final created = await container
+          .read(bazarActionControllerProvider.notifier)
+          .createBazar(
+            CreateBazarInput(
+              walletId: 'w2',
+              createdBy: 'u3',
+              actorId: 'u1',
+              title: 'Assistant bazar',
+              status: BazarStatus.open,
+              bazarDate: DateTime(2026, 5, 25),
+              items: const [CreateBazarItemInput(name: 'চাল')],
+            ),
+          );
+
+      expect(created, isNotNull);
+      expect(created!.createdBy, 'u3');
+      expect(created.assignedTo, isNull);
+
+      final items = await container.read(bazarItemsProvider(created.id).future);
+      expect(items.single.addedBy, 'u1');
+
+      final activity = await container.read(
+        bazarActivityProvider(created.id).future,
+      );
+      expect(activity.single.userId, 'u1');
+    },
+  );
+
+  test(
     'owner-created assigned bazar is visible to selected assistant',
     () async {
       final ownerContainer = containerFor(_user('u3', UserRole.owner));

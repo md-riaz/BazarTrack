@@ -286,6 +286,7 @@ class CreateBazarInput extends Equatable {
     required this.status,
     required this.bazarDate,
     required this.items,
+    this.actorId,
     this.assignedTo,
     this.title,
     this.note,
@@ -293,6 +294,7 @@ class CreateBazarInput extends Equatable {
 
   final String walletId;
   final String createdBy;
+  final String? actorId;
   final String? assignedTo;
   final String? title;
   final String? note;
@@ -304,6 +306,7 @@ class CreateBazarInput extends Equatable {
   List<Object?> get props => [
     walletId,
     createdBy,
+    actorId,
     assignedTo,
     title,
     note,

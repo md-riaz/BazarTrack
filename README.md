@@ -79,19 +79,88 @@ flutter build apk --debug --dart-define=BAZAR_ENABLE_DEMO_ROLE_LOGIN=false
 
 ## Role-Based App Flows
 
-### Assistant Flow
+### Admin
+
+Use **Login as Admin**.
+
+Admin is for full-access verification and setup work.
+
+Capabilities:
+
+- Create users
+- Create fund accounts
+- Create Bazar
+- Assign assistants
+- View all reports
+- Manage closing flows
+
+Suggested verification path:
+
+1. Tap **Login as Admin**.
+2. Confirm Home shows `Admin User — অ্যাডমিন`.
+3. Verify Reports tab is visible.
+4. Verify **টাকা এন্ট্রি** is visible.
+5. Go to **More** and verify **অ্যাডমিন প্যানেল** is visible.
+6. Open Admin panel and verify add user/add fund account entry points.
+7. Go to Balance and verify all fund accounts are visible.
+8. Go to Bazar list and verify all bazars are visible.
+9. Create a bazar, optionally assign an assistant, and add items.
+
+### Fund Manager
+
+Use **Login as Fund Manager**.
+
+Fund Manager is for account-dept/fund-owner money and reporting verification. The underlying demo role key is still `owner` for compatibility.
+
+Capabilities:
+
+- View managed fund accounts
+- Create Bazar
+- Assign Assistant
+- Enter fund money
+- Review reports
+- Review assistant balances
+
+Expected hidden/restricted actions:
+
+- Admin panel hidden
+
+Suggested verification path:
+
+1. Tap **Login as Fund Manager**.
+2. Confirm Home shows `Mr. CEO — হিসাব ম্যানেজার`.
+3. Confirm Reports tab is visible.
+4. Tap **টাকা এন্ট্রি** to verify fund-manager/admin money entry access.
+5. Go to **Reports** and verify monthly summary/report UI.
+6. Go to **More** and verify:
+   - Reports visible
+   - Close হিসাব not visible
+   - Admin panel not visible
+7. Go to **Balance** and verify manager-scoped fund accounts only.
+8. Create a bazar from **নতুন বাজার** and assign an assistant if needed.
+
+### Assistant
 
 Use **Login as Assistant**.
 
 Assistant is the best role for verifying day-to-day shopping work.
 
-Expected visible actions:
+Capabilities:
 
-- Home dashboard
-- Bazar list
-- New bazar
-- Balance
-- More/settings/offline queue
+- View assigned/unassigned bazars
+- Execute shopping
+- Update purchased status
+- Enter actual prices
+- Mark unavailable items
+- Add notes
+- Add additional items
+
+Assistant can currently create a Bazar list from **নতুন বাজার** on behalf of the selected fund account/owner if they have access to that screen.
+
+However:
+
+- Assistant cannot assign another assistant.
+- Assistant-created bazars keep `assignedTo` empty and are not assigned to another user.
 
 Expected hidden/restricted actions:
 
@@ -116,7 +185,7 @@ Expected hidden/restricted actions:
        ```
    - Optional: edit title/note.
 4. Tap **বাজার তৈরি করুন →**.
-5. The app opens the bazar detail page.
+5. The app opens the bazar detail page. The created bazar is linked to the selected fund account/owner and remains unassigned.
 6. Tap **আইটেম যোগ**.
 7. On **আইটেম যোগ করুন**:
    - Tap a frequent item, or
@@ -134,81 +203,18 @@ Relevant screens:
 - `lib/features/bazar/presentation/screens/bazar_detail_screen.dart`
 - `lib/features/bazar/presentation/screens/add_item_screen.dart`
 
-### Fund Manager Flow
-
-Use **Login as Fund Manager**.
-
-Fund Manager is for account-dept/fund-owner money and reporting verification. The underlying demo role key is still `owner` for compatibility.
-
-Expected visible actions:
-
-- Home dashboard
-- Bazar list
-- New bazar
-- Balance
-- Reports tab
-- Money entry
-
-Expected hidden/restricted actions:
-
-- Admin panel hidden
-
-Suggested verification path:
-
-1. Tap **Login as Fund Manager**.
-2. Confirm Home shows `Mr. CEO — হিসাব ম্যানেজার`.
-3. Confirm Reports tab is visible.
-4. Tap **টাকা এন্ট্রি** to verify fund-manager/admin money entry access.
-5. Go to **Reports** and verify monthly summary/report UI.
-6. Go to **More** and verify:
-   - Reports visible
-   - Close হিসাব not visible
-   - Admin panel not visible
-7. Go to **Balance** and verify manager-scoped fund accounts only.
-8. Create a bazar from **নতুন বাজার** if you need to verify manager-created bazar flow for a managed fund account.
-
-### Admin Flow
-
-Use **Login as Admin**.
-
-Admin is for full-access verification.
-
-Expected visible actions:
-
-- All dashboard actions
-- Bazar list/new bazar
-- Balance
-- Reports
-- Money entry
-- Admin panel
-- Add user
-- Add fund account
-- More/settings/offline queue
-
-Suggested verification path:
-
-1. Tap **Login as Admin**.
-2. Confirm Home shows `Admin User — অ্যাডমিন`.
-3. Verify Reports tab is visible.
-4. Verify **টাকা এন্ট্রি** is visible.
-5. Go to **More** and verify **অ্যাডমিন প্যানেল** is visible.
-6. Open Admin panel and verify add user/add fund account entry points.
-7. Go to Balance and verify all fund accounts are visible.
-8. Go to Bazar list and verify all bazars are visible.
-9. Create a bazar and add items using the same flow as Assistant.
-
 ## Practical Role Playbooks
 
 These are end-to-end ways to use the app with the current demo roles. They are written as real QA/user stories, not just permission checks.
 
-### Fund Manager Places a Bazar List for an Assistant
+### Admin or Fund Manager Places a Bazar List for an Assistant
 
-Use this when a fund manager/account-dept user wants to prepare a shopping list and let an assistant complete the market work.
+Use this when an admin or fund manager/account-dept user wants to prepare a shopping list and let an assistant complete the market work.
 
 Current supported app behavior:
 
-- Fund Manager can create a bazar under a managed fund account.
-- Fund Manager/Admin can pick a specific assistant in **Assign assistant**.
+- Admin can create a bazar and assign an assistant.
+- Fund Manager can create a bazar under a managed fund account and assign an assistant.
 - Assistant can see bazars where `assignedTo == null` or `assignedTo == assistant.id`.
 - If no assistant is selected, the bazar stays unassigned/team-visible for assistants.
 
@@ -262,9 +268,31 @@ Expected restrictions:
 
 - Assistant should not see **টাকা এন্ট্রি**.
 
-### Assistant Completes Shopping from a Fund Manager List
+### Assistant Completes Shopping Details
 
-Use this after a fund manager has created a bazar list.
+Use this after a bazar list is available to an assistant, whether it was assigned by Admin/Fund Manager, left unassigned, or created by the assistant on behalf of a selected fund account/owner.
+
+Assistant manages execution details:
+
+- Purchased/not purchased status
+- Actual market price
+- Item availability
+- Notes
+- Additional required items
+
+Example:
+
+```text
+Requested:
+Rice 5kg
+
+Assistant updates:
+Status: Purchased
+Price: 450 BDT
+Note: Brand unavailable, bought alternative
+```
+
+Steps:
 
 1. Login with **Login as Assistant**.
 2. Open **বাজার** tab.
@@ -272,8 +300,8 @@ Use this after a fund manager has created a bazar list.
 4. Review the item list.
 5. Tap any item to update:
    - purchased/done status
-   - price
-   - not found status
+   - actual market price
+   - not found/unavailable status
    - notes
 6. Tap **আইটেম যোগ** if an extra item needs to be added.
 7. Use **+ আরেকটি** for multiple items or **✓ শেষ করুন** to return.
@@ -286,6 +314,7 @@ Expected restrictions:
 - Money entry hidden.
 - Monthly close hidden.
 - Admin panel hidden.
+- Assign assistant hidden.
 
 ### Fund Manager Reviews Work Continuously
 
@@ -335,13 +364,14 @@ Use this to confirm role scoping during QA.
 
 ## Direct Assistant Assignment
 
-The **নতুন বাজার** screen includes an **Assign assistant** section for Fund Manager/Admin. It lists active assistants and also supports an unassigned option.
+The **নতুন বাজার** screen includes an **Assign assistant** section for Admin/Fund Manager. It lists active assistants and also supports an unassigned option.
 
 Supported handoff flows:
 
 ```text
-Fund Manager/Admin assigns bazar to Rahim → Rahim sees it → Rahim completes shopping
-Fund Manager/Admin leaves bazar unassigned → assistants can see it → any assistant can take/action it
+Admin/Fund Manager assigns bazar to Rahim → Rahim sees it → Rahim completes shopping
+Admin/Fund Manager leaves bazar unassigned → assistants can see it → any assistant can take/action it
+Assistant creates bazar for selected fund account/owner → bazar remains unassigned → assistant can complete shopping
 ```
 
 Assistant filtering respects:
@@ -349,6 +379,8 @@ Assistant filtering respects:
 ```text
 assignedTo == null || assignedTo == currentAssistant.id
 ```
+
+Assistant cannot assign another assistant from the current UI.
 
 ## Bazar Creation and Item Entry Details
 
@@ -373,6 +405,65 @@ Important behavior:
 - Text mode parses one item per line.
 - If the role has exactly one visible fund account, the account is auto-selected and the selector is hidden.
 - If the role has multiple visible fund accounts, the fund account selector is shown.
+- Admin/Fund Manager-created bazars can be assigned to an assistant.
+- Assistant-created bazars are created on behalf of the selected fund account/owner and remain unassigned because the assistant assignment UI is hidden.
+- Create button: **বাজার তৈরি করুন →**
+- Draft button: **Draft সংরক্ষণ করুন**
+
+### Bazar Creation Workflows
+
+#### Workflow A: Fund Manager Creates Bazar
+
+```mermaid
+flowchart TD
+    FM[Fund Manager] --> B[Create Bazar]
+    B --> W[Select Fund Account]
+    W --> I[Add Items]
+    I --> A[Assign Assistant]
+    A --> S[Assistant Shops]
+    S --> E[Enter Prices and Status]
+    E --> R[Review Expense]
+```
+
+Admin follows the same creation and assistant-assignment pattern, with all fund accounts visible.
+
+#### Workflow B: Assistant Creates Bazar
+
+```mermaid
+flowchart TD
+    AS[Assistant] --> B[Create Bazar]
+    B --> W[Select Fund Account]
+    W --> I[Add Items]
+    I --> C[Bazar Created]
+    C --> S[Assistant Completes Shopping]
+    S --> E[Enter Prices and Status]
+```
+
+This workflow exists in the current implementation. The bazar is created on behalf of the selected fund account/owner, while the acting assistant remains the item/activity actor. Future business rules may restrict it or convert it into a request/approval workflow.
+
+### Developer Notes
+
+The UI permission currently controls assistant assignment, not Bazar creation.
+
+Implementation behavior:
+
+```dart
+canAssignAssistant = owner || admin
+```
+
+Bazar creation itself is available through the same **নতুন বাজার** screen.
+
+When creating:
+
+```dart
+assignedTo: canAssignAssistant ? selectedAssistant : null
+```
+
+Therefore:
+
+- Admin/Fund Manager-created bazar can be assigned.
+- Assistant-created bazar remains unassigned.
+- For assistant-created bazars, `createdBy` stores the selected fund account owner/on-behalf-of user, while `actorId` stores the real acting assistant for initial item and activity attribution.
 
 Tracking handoff notes:
 
@@ -381,8 +472,6 @@ Tracking handoff notes:
 - Analytics should store `actor_product_role = fund_manager` separately from compatibility `actor_role_key = owner`.
 - Returned-money analytics should use return-request lifecycle events, not normal money-entry create events, and balance/report totals should update only after `return_request_confirmed` / `assistant_return_confirmed`.
 - Return-request tracking should include confirmation status, permission result, sync state, idempotency/client operation id, and `ledger_entry_id` only after confirmation.
-- Create button: **বাজার তৈরি করুন →**
-- Draft button: **Draft সংরক্ষণ করুন**
 
 ### Add Items After Bazar Creation
 
@@ -410,19 +499,25 @@ Use this to verify:
 
 ## Role Permissions Summary
 
-| Capability | Assistant | Fund Manager | Admin |
+| Action | Admin | Fund Manager | Assistant |
 | --- | --- | --- | --- |
-| Login via demo button | Yes | Yes | Yes |
-| Home dashboard | Yes | Yes | Yes |
-| Create bazar | Yes | Yes | Yes |
-| Add bazar item | Yes | Yes, where accessible | Yes |
-| Money entry | No | Yes | Yes |
-| Returned-money confirmation | Request only | Confirm for managed fund | Yes |
-| Reports tab | No | Yes | Yes |
-| Monthly close | No | No | Yes |
-| Admin panel | No | No | Yes |
-| Fund account visibility | Linked fund accounts | Managed fund accounts | All fund accounts |
-| Bazar visibility | Unassigned or assigned to self | Bazars in managed fund accounts | All bazars |
+| Create Bazar | Yes | Yes | Yes |
+| Assign Assistant | Yes | Yes | No |
+| Add Items | Yes | Yes | Yes |
+| Update Price | Yes | Yes | Yes |
+| Update Availability | Yes | Yes | Yes |
+| View Reports | Yes | Yes | No |
+| Money Entry | Yes | Yes | No |
+| Admin Panel | Yes | No | No |
+
+Additional visibility notes:
+
+| Area | Admin | Fund Manager | Assistant |
+| --- | --- | --- | --- |
+| Fund account visibility | All fund accounts | Managed fund accounts | Linked fund accounts |
+| Bazar visibility | All bazars | Bazars in managed fund accounts | Unassigned or assigned to self |
+| Returned-money confirmation | Yes | Confirm for managed fund | Request only |
+| Monthly close | Yes | No | No |
 
 ## Architecture
 

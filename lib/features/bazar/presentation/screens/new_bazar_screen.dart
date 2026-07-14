@@ -315,12 +315,19 @@ class _NewBazarScreenState extends ConsumerState<NewBazarScreen> {
         currentUser?.role == UserRole.admin;
     final wallets =
         ref.read(walletListProvider).valueOrNull ?? const <Wallet>[];
-    final walletId =
-        _selectedWalletId ?? (wallets.isEmpty ? null : wallets.first.id);
-    if (walletId == null) {
+    if (wallets.isEmpty) {
       _showSnack('Fund account নির্বাচন করুন');
       return;
     }
+    final selectedWallet = wallets.firstWhere(
+      (wallet) => wallet.id == _selectedWalletId,
+      orElse: () => wallets.first,
+    );
+    final walletId = selectedWallet.id;
+    final actorId = userId ?? 'u1';
+    final createdBy = currentUser?.role == UserRole.assistant
+        ? selectedWallet.createdBy ?? actorId
+        : actorId;
 
     final items = _collectItems();
     if (items.isEmpty) {
@@ -333,7 +340,8 @@ class _NewBazarScreenState extends ConsumerState<NewBazarScreen> {
         .createBazar(
           CreateBazarInput(
             walletId: walletId,
-            createdBy: userId ?? 'u1',
+            createdBy: createdBy,
+            actorId: actorId,
             status: status,
             bazarDate: DateTime.now(),
             assignedTo: canAssignAssistant ? _selectedAssistantId : null,

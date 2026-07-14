@@ -80,6 +80,7 @@ class BazarRepositoryImpl implements BazarRepository {
 
   @override
   Future<domain.Bazar> createBazar(domain.CreateBazarInput input) async {
+    final actorId = input.actorId ?? input.createdBy;
     final bazarId = _uuid.v4();
     final created = await _localDataSource.createBazar(
       id: bazarId,
@@ -102,7 +103,7 @@ class BazarRepositoryImpl implements BazarRepository {
         unit: item.unit,
         attributes: item.attributes,
         note: item.note,
-        addedBy: input.createdBy,
+        addedBy: actorId,
       );
     }
 
@@ -110,7 +111,7 @@ class BazarRepositoryImpl implements BazarRepository {
       action: 'bazar.created',
       entityType: 'bazar',
       entityId: bazarId,
-      userId: input.createdBy,
+      userId: actorId,
       newValue: '{"items":${input.items.length}}',
     );
 
