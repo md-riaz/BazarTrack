@@ -109,6 +109,7 @@ class BazarItem extends Equatable {
     this.attributes,
     this.note,
     this.price,
+    this.receiptUrl,
     this.addedBy,
   });
 
@@ -122,6 +123,7 @@ class BazarItem extends Equatable {
   final String? note;
   final ItemStatus status;
   final double? price;
+  final String? receiptUrl;
   final String? addedBy;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -148,6 +150,7 @@ class BazarItem extends Equatable {
     String? note,
     ItemStatus? status,
     double? price,
+    String? receiptUrl,
     String? addedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -163,6 +166,7 @@ class BazarItem extends Equatable {
       note: note ?? this.note,
       status: status ?? this.status,
       price: price ?? this.price,
+      receiptUrl: receiptUrl ?? this.receiptUrl,
       addedBy: addedBy ?? this.addedBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -181,6 +185,7 @@ class BazarItem extends Equatable {
     note,
     status,
     price,
+    receiptUrl,
     addedBy,
     createdAt,
     updatedAt,

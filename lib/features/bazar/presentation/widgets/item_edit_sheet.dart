@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -8,6 +10,7 @@ import '../../../../shared/models/app_enums.dart';
 import '../../../../shared/widgets/bottom_sheet_handle.dart';
 import '../../../../shared/widgets/ghost_button.dart';
 import '../../../../shared/widgets/primary_button.dart';
+import '../../../../shared/widgets/receipt_image.dart';
 import '../../domain/entities/bazar_entities.dart';
 import '../providers/bazar_providers.dart';
 
@@ -42,6 +45,9 @@ class _ItemEditSheetState extends ConsumerState<ItemEditSheet> {
   late final TextEditingController _unitController;
   late final TextEditingController _priceController;
   late final TextEditingController _noteController;
+  final _imagePicker = ImagePicker();
+  Uint8List? _receiptBytes;
+  String? _receiptUrl;
 
   @override
   void initState() {
@@ -54,6 +60,7 @@ class _ItemEditSheetState extends ConsumerState<ItemEditSheet> {
       text: widget.item.price?.toString() ?? '',
     );
     _noteController = TextEditingController(text: widget.item.note ?? '');
+    _receiptUrl = widget.item.receiptUrl;
   }
 
   @override
@@ -132,6 +139,20 @@ class _ItemEditSheetState extends ConsumerState<ItemEditSheet> {
               controller: _noteController,
               decoration: const InputDecoration(hintText: 'নোট'),
             ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                ReceiptImage(receiptUrl: _receiptUrl, size: 58),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: isLoading ? null : _pickReceipt,
+                    icon: const Icon(Icons.add_a_photo_outlined),
+                    label: Text(_receiptUrl == null ? 'রসিদ/ছবি যোগ করুন' : 'রসিদ পরিবর্তন করুন'),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 18),
             PrimaryButton(
               label: isLoading ? 'সেভ হচ্ছে...' : '✓ কেনা হয়েছে',
@@ -151,9 +172,39 @@ class _ItemEditSheetState extends ConsumerState<ItemEditSheet> {
     );
   }
 
+  Future<void> _pickReceipt() async {
+    final image = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 82,
+      maxWidth: 1800,
+    );
+    if (image == null) return;
+    final bytes = await image.readAsBytes();
+    if (bytes.lengthInBytes > 5 * 1024 * 1024) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('রসিদের ছবি ৫ MB-এর মধ্যে রাখুন')),
+        );
+      }
+      return;
+    }
+    setState(() {
+      _receiptBytes = bytes;
+      _receiptUrl = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+    });
+  }
+
   Future<void> _save(ItemStatus status) async {
     final quantity = double.tryParse(_quantityController.text.trim());
     final price = double.tryParse(_priceController.text.trim());
+    final receiptBytes = _receiptBytes;
+    if (receiptBytes != null) {
+      final uploaded = await ref
+          .read(bazarActionControllerProvider.notifier)
+          .uploadReceipt(itemId: widget.item.id, imageBytes: receiptBytes);
+      if (uploaded == null) return;
+      _receiptUrl = uploaded;
+    }
     await ref
         .read(bazarActionControllerProvider.notifier)
         .updateItem(

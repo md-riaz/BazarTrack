@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/config/api_config.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/sync/sync_providers.dart';
 import '../../domain/entities/offline_queue_entry.dart';
@@ -13,6 +14,9 @@ final settingsBanglaProvider = StateProvider<bool>((ref) => true);
 final offlineQueueEntriesProvider = StreamProvider<List<OfflineQueueEntry>>((
   ref,
 ) {
+  if (ref.watch(apiConfigProvider).enabled) {
+    return Stream.value(const <OfflineQueueEntry>[]);
+  }
   return ref
       .watch(syncQueueDaoProvider)
       .watchPending()

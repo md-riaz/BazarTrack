@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/datasources/mock_notification_datasource.dart';
 import '../../data/repositories/notification_repository_impl.dart';
-import '../../data/services/push_notification_handler.dart';
 import '../../domain/entities/app_notification.dart';
 import '../../domain/repositories/notification_repository.dart';
 
@@ -12,12 +11,6 @@ final notificationDataSourceProvider = Provider<NotificationDataSource>((ref) {
 
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
   return NotificationRepositoryImpl(ref.watch(notificationDataSourceProvider));
-});
-
-final pushNotificationHandlerProvider = Provider<PushNotificationHandler>((
-  ref,
-) {
-  return PushNotificationHandler();
 });
 
 class NotificationsController

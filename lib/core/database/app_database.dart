@@ -88,6 +88,7 @@ class BazarItems extends Table {
   TextColumn get note => text().nullable()();
   TextColumn get status => text()();
   RealColumn get price => real().nullable()();
+  TextColumn get receiptUrl => text().nullable()();
   TextColumn get addedBy => text().references(Users, #id).nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
@@ -264,7 +265,16 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        await migrator.addColumn(bazarItems, bazarItems.receiptUrl);
+      }
+    },
+  );
 }
 
 LazyDatabase _openConnection() {

@@ -324,7 +324,11 @@ class _NewBazarScreenState extends ConsumerState<NewBazarScreen> {
       orElse: () => wallets.first,
     );
     final walletId = selectedWallet.id;
-    final actorId = userId ?? 'u1';
+    final actorId = userId ?? currentUser?.id;
+    if (actorId == null) {
+      _showSnack('Session পাওয়া যায়নি। আবার লগইন করুন');
+      return;
+    }
     final createdBy = currentUser?.role == UserRole.assistant
         ? selectedWallet.createdBy ?? actorId
         : actorId;

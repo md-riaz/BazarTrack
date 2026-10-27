@@ -1,3 +1,8 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/sync/sync_enqueue_service.dart';
@@ -183,6 +188,7 @@ class BazarRepositoryImpl implements BazarRepository {
     String? unit,
     double? price,
     String? note,
+    String? receiptUrl,
     ItemStatus? status,
     String? userId,
   }) async {
@@ -191,13 +197,18 @@ class BazarRepositoryImpl implements BazarRepository {
       throw StateError('Bazar item not found: $itemId');
     }
 
-    final nextStatus = _resolveStatus(price: price, status: status);
+    final nextStatus = _resolveStatus(
+      price: price,
+      status: status,
+      fallback: itemStatusFromDb(previous.status),
+    );
     final updated = await _localDataSource.updateItem(
       itemId: itemId,
       quantity: quantity,
       unit: unit,
       price: price,
       note: note,
+      receiptUrl: receiptUrl,
       status: nextStatus,
     );
 
@@ -225,6 +236,34 @@ class BazarRepositoryImpl implements BazarRepository {
     );
     unawaitedPublishItem(domainItem);
     return domainItem;
+  }
+
+  @override
+  Future<String> uploadReceipt({
+    required String itemId,
+    required Uint8List imageBytes,
+  }) async {
+    if (imageBytes.isEmpty || imageBytes.lengthInBytes > 5 * 1024 * 1024) {
+      throw ArgumentError.value(imageBytes, 'imageBytes', 'Receipt must be up to 5 MB');
+    }
+    final item = await _localDataSource.getItem(itemId);
+    if (item == null) throw StateError('Bazar item not found: $itemId');
+    final directory = await getApplicationDocumentsDirectory();
+    final receipts = Directory(path.join(directory.path, 'receipts'));
+    await receipts.create(recursive: true);
+    final file = File(
+      path.join(receipts.path, '$itemId-${DateTime.now().microsecondsSinceEpoch}.jpg'),
+    );
+    await file.writeAsBytes(imageBytes, flush: true);
+    final localUrl = file.uri.toString();
+    await _localDataSource.updateItem(
+      itemId: itemId,
+      receiptUrl: localUrl,
+      status: itemStatusFromDb(item.status),
+    );
+    // Local receipt paths intentionally remain device-local; they are not
+    // enqueued as sync payloads because another device cannot resolve them.
+    return localUrl;
   }
 
   @override
@@ -289,11 +328,13 @@ class BazarRepositoryImpl implements BazarRepository {
     );
   }
 
-  ItemStatus _resolveStatus({double? price, ItemStatus? status}) {
-    if (price != null && price > 0) {
-      return ItemStatus.done;
-    }
-    return status ?? ItemStatus.pending;
+  ItemStatus _resolveStatus({
+    double? price,
+    ItemStatus? status,
+    required ItemStatus fallback,
+  }) {
+    if (price != null && price > 0) return ItemStatus.done;
+    return status ?? fallback;
   }
 
   Future<void> _enqueue({
@@ -340,6 +381,7 @@ class BazarRepositoryImpl implements BazarRepository {
       'note': item.note,
       'status': itemStatusToDb(item.status),
       'price': item.price,
+      'receipt_url': item.receiptUrl,
       'added_by': item.addedBy,
       'created_at': item.createdAt.toIso8601String(),
       'updated_at': item.updatedAt.toIso8601String(),

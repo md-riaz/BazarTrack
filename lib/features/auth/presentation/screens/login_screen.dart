@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,12 +9,12 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/primary_button.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../domain/entities/user.dart';
+import '../auth_error_message.dart';
 import '../providers/auth_provider.dart';
 
-const kEnableDemoRoleLogin = bool.fromEnvironment(
-  'BAZAR_ENABLE_DEMO_ROLE_LOGIN',
-  defaultValue: true,
-);
+const kEnableDemoRoleLogin =
+    !kReleaseMode &&
+    bool.fromEnvironment('BAZAR_ENABLE_DEMO_ROLE_LOGIN', defaultValue: true);
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -63,9 +64,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           if (!mounted) {
             return;
           }
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(error.toString())));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(authErrorMessage(error))),
+          );
         },
       );
     });

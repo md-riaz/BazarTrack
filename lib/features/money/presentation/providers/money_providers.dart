@@ -5,6 +5,7 @@ import '../../../../core/api/api_providers.dart';
 import '../../../../core/config/api_config.dart';
 import '../../../api/data/bazar_api_data_sources.dart';
 import '../../../api/data/bazar_api_repositories.dart';
+import '../../../wallet/presentation/providers/wallet_providers.dart';
 import '../../../../core/sync/sync_providers.dart';
 import '../../../../shared/models/app_enums.dart';
 import '../../data/datasources/mock_money_remote_datasource.dart';
@@ -12,6 +13,7 @@ import '../../data/datasources/money_local_data_source.dart';
 import '../../data/repositories/money_entry_repository_impl.dart';
 import '../../domain/entities/direct_expense.dart';
 import '../../domain/entities/money_entry.dart';
+import '../../domain/entities/money_return_request.dart';
 import '../../domain/repositories/money_entry_repository.dart';
 
 final moneyRemoteDataSourceProvider = Provider<MoneyRemoteDataSource>((ref) {
@@ -121,9 +123,26 @@ class CreateMoneyEntryRequest {
   final String? createdBy;
 }
 
+final pendingReturnRequestsProvider = FutureProvider<List<MoneyReturnRequest>>((
+  ref,
+) {
+  return ref.watch(moneyEntryRepositoryProvider).getPendingReturnRequests();
+});
+
+final confirmReturnRequestProvider = FutureProvider.autoDispose
+    .family<MoneyReturnRequest, String>((ref, requestId) async {
+      final request = await ref
+          .watch(moneyEntryRepositoryProvider)
+          .confirmReturnRequest(requestId);
+      ref.invalidate(pendingReturnRequestsProvider);
+      ref.invalidate(moneyEntriesProvider);
+      ref.invalidate(walletSummariesProvider);
+      return request;
+    });
+
 final createMoneyEntryProvider = FutureProvider.autoDispose
-    .family<MoneyEntry, CreateMoneyEntryRequest>((ref, request) {
-      return ref
+    .family<MoneyEntry, CreateMoneyEntryRequest>((ref, request) async {
+      final entry = await ref
           .watch(moneyEntryRepositoryProvider)
           .createMoneyEntry(
             walletId: request.walletId,
@@ -135,4 +154,6 @@ final createMoneyEntryProvider = FutureProvider.autoDispose
             note: request.note,
             createdBy: request.createdBy,
           );
+      ref.invalidate(moneyEntriesProvider);
+      return entry;
     });

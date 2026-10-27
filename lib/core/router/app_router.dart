@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../config/api_config.dart';
 import '../../features/admin/presentation/screens/add_user_screen.dart';
 import '../../features/admin/presentation/screens/add_wallet_screen.dart';
 import '../../features/admin/presentation/screens/admin_screen.dart';
@@ -22,7 +23,6 @@ import '../../features/money/presentation/screens/money_entry_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/reports/domain/entities/report_summary.dart';
 import '../../features/reports/presentation/providers/report_providers.dart';
-import '../../features/reports/presentation/screens/monthly_close_screen.dart';
 import '../../features/reports/presentation/screens/reports_screen.dart';
 import '../../features/search/domain/entities/search_entities.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
@@ -48,6 +48,7 @@ import '../theme/app_text_styles.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final currentUser = ref.watch(currentUserProvider);
+  final apiEnabled = ref.watch(apiConfigProvider).enabled;
 
   return GoRouter(
     initialLocation: AppRoutes.home,
@@ -66,6 +67,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       if (user != null && !_canAccessRoute(state.matchedLocation, user.role)) {
         return AppRoutes.home;
+      }
+
+      if (apiEnabled && _isWalletEditLocation(state.matchedLocation)) {
+        return AppRoutes.admin;
       }
 
       return null;
@@ -189,11 +194,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) =>
             WalletDetailScreen(walletId: state.pathParameters['walletId']!),
       ),
-      GoRoute(
-        path: AppRoutes.monthlyClose,
-        name: 'monthly-close',
-        builder: (context, state) => const MonthlyCloseScreen(),
-      ),
+
       GoRoute(
         path: AppRoutes.admin,
         name: 'admin',
@@ -478,11 +479,34 @@ List<_ShellDestination> _destinationsForRole(UserRole? role) {
   ];
 }
 
+bool isWalletEditLocation(String route) => _isWalletEditLocation(route);
+
+bool _isWalletEditLocation(String route) {
+  final segments = Uri.parse(route).pathSegments;
+  return segments.length == 4 &&
+      segments[0] == 'admin' &&
+      segments[1] == 'wallets' &&
+      segments[3] == 'edit';
+}
+
+bool canAccessRoute(String route, UserRole role) =>
+    _canAccessRoute(route, role);
+
+String? apiAdminRouteRedirect({
+  required bool apiEnabled,
+  required String location,
+  required UserRole role,
+}) {
+  if (!_canAccessRoute(location, role)) return AppRoutes.home;
+  if (apiEnabled && _isWalletEditLocation(location)) return AppRoutes.admin;
+  return null;
+}
+
 bool _canAccessRoute(String route, UserRole role) {
   if (route == AppRoutes.admin ||
       route == AppRoutes.addUser ||
       route == AppRoutes.addWallet ||
-      route == AppRoutes.editWalletPath) {
+      _isWalletEditLocation(route)) {
     return RolePermissions.canAccessAdmin(role);
   }
   if (route == AppRoutes.reports) {
@@ -492,7 +516,8 @@ bool _canAccessRoute(String route, UserRole role) {
     return RolePermissions.canCloseMonthlyPeriod(role);
   }
   if (route == AppRoutes.moneyEntry) {
-    return RolePermissions.canRecordMoneyEntry(role);
+    return RolePermissions.canRecordMoneyEntry(role) ||
+        RolePermissions.canRequestMoneyReturn(role);
   }
   return true;
 }
@@ -1005,8 +1030,14 @@ List<_HomeAction> _homeActionsForRole({
     _HomeAction('বাজার তালিকা', Icons.shopping_basket, onBazarTap),
     _HomeAction('নতুন বাজার', Icons.add_shopping_cart, onNewBazarTap),
     _HomeAction('হিসাব', Icons.account_balance_wallet, onBalanceTap),
-    if (role == null || RolePermissions.canRecordMoneyEntry(role))
-      _HomeAction('টাকা এন্ট্রি', Icons.payments, onMoneyEntryTap),
+    if (role == null ||
+        RolePermissions.canRecordMoneyEntry(role) ||
+        RolePermissions.canRequestMoneyReturn(role))
+      _HomeAction(
+        role == UserRole.assistant ? 'টাকা ফেরত' : 'টাকা এন্ট্রি',
+        Icons.payments,
+        onMoneyEntryTap,
+      ),
     if (role == null || RolePermissions.canAccessReports(role))
       _HomeAction('রিপোর্ট', Icons.bar_chart, onReportsTap),
   ];

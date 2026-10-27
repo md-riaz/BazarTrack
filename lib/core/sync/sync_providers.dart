@@ -49,6 +49,7 @@ final syncStatusProvider =
       final notifier = SyncStatusNotifier(
         queueDao: ref.watch(syncQueueDaoProvider),
         syncEngine: ref.watch(syncEngineProvider),
+        enabled: !ref.watch(apiConfigProvider).enabled,
       );
       notifier.start();
       return notifier;
@@ -58,15 +59,22 @@ class SyncStatusNotifier extends StateNotifier<SyncStatus> {
   SyncStatusNotifier({
     required SyncQueueDao queueDao,
     required SyncEngine syncEngine,
+    required bool enabled,
   }) : _queueDao = queueDao,
        _syncEngine = syncEngine,
+       _enabled = enabled,
        super(SyncStatus.online);
 
   final SyncQueueDao _queueDao;
   final SyncEngine _syncEngine;
+  final bool _enabled;
   StreamSubscription<bool>? _onlineSubscription;
 
   Future<void> start() async {
+    if (!_enabled) {
+      state = SyncStatus.online;
+      return;
+    }
     _onlineSubscription = _syncEngine.onlineChanges.listen((isOnline) {
       if (!mounted) return;
       if (!isOnline) {
@@ -79,7 +87,10 @@ class SyncStatusNotifier extends StateNotifier<SyncStatus> {
   }
 
   Future<void> syncNow() async {
-    if (!mounted) return;
+    if (!mounted || !_enabled) {
+      state = SyncStatus.online;
+      return;
+    }
     state = SyncStatus.syncing;
     final result = await _syncEngine.syncPending();
     if (!mounted) return;

@@ -50,3 +50,7 @@ app.*.map.json
 /api/config.php
 /api/storage/*.sqlite
 /api/storage/*.sqlite-*
+
+# Local QA artifacts and private receipt test uploads
+/.tmp/
+/bazartrack-private-receipts/

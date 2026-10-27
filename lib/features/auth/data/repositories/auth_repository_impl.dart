@@ -10,12 +10,18 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({
     required AuthRemoteDataSource remoteDataSource,
     required AuthLocalDataSource localDataSource,
+    Stream<void>? unauthorizedEvents,
   }) : _remoteDataSource = remoteDataSource,
-       _localDataSource = localDataSource;
+       _localDataSource = localDataSource {
+    _unauthorizedSubscription = unauthorizedEvents?.listen((_) {
+      unawaited(_clearLocalSession());
+    });
+  }
 
   final AuthRemoteDataSource _remoteDataSource;
   final AuthLocalDataSource _localDataSource;
   final _currentUserController = StreamController<User?>.broadcast();
+  StreamSubscription<void>? _unauthorizedSubscription;
 
   User? _cachedUser;
   bool _isDisposed = false;
@@ -40,11 +46,24 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
+    Object? remoteError;
     try {
-      await _localDataSource.clearSession();
-      _setCurrentUser(null);
+      if (await _localDataSource.readToken() case final token?
+          when token.isNotEmpty) {
+        try {
+          await _remoteDataSource.logout();
+        } catch (error) {
+          remoteError = error;
+        }
+      }
+      await _clearLocalSession();
     } catch (_) {
       throw const AuthFailure('লগআউট করা যায়নি। আবার চেষ্টা করুন।');
+    }
+    if (remoteError != null) {
+      throw const AuthFailure(
+        'এই ডিভাইস থেকে লগআউট হয়েছে, তবে সার্ভারে token revoke নিশ্চিত করা যায়নি।',
+      );
     }
   }
 
@@ -89,7 +108,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
   void dispose() {
     _isDisposed = true;
+    unawaited(_unauthorizedSubscription?.cancel());
     _currentUserController.close();
+  }
+
+  Future<void> _clearLocalSession() async {
+    await _localDataSource.clearSession();
+    _setCurrentUser(null);
   }
 
   void _setCurrentUser(User? user) {

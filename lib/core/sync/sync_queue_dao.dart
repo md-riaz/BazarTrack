@@ -50,6 +50,12 @@ class SyncQueueDao {
         .watch();
   }
 
+  Future<void> clearPending() {
+    return (_database.delete(
+      _database.syncQueueItems,
+    )..where((row) => row.isSynced.equals(false))).go();
+  }
+
   Future<int> pendingCount() async {
     final count = _database.syncQueueItems.id.count();
     final query = _database.selectOnly(_database.syncQueueItems)

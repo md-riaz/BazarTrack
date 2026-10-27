@@ -28,7 +28,11 @@ final class AccountsController extends BaseController
         if ($account === null) {
             Response::error('Account not found', 404);
         }
-        return $account;
+        $ledgerBalance = $this->one(
+            'select coalesce(sum(signed_amount), 0) as balance from ledger_entries where account_id = :account_id and voided_at is null',
+            ['account_id' => $account['id']]
+        );
+        return $account + ['ledger_balance' => (float)($ledgerBalance['balance'] ?? 0)];
     }
 
     public function create(array $input): array

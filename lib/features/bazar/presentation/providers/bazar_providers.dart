@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_providers.dart';
@@ -121,14 +123,17 @@ final autoParseServiceProvider = Provider<AutoParseService>((ref) {
 });
 
 class BazarActionController extends StateNotifier<AsyncValue<void>> {
-  BazarActionController(this._repository) : super(const AsyncData(null));
+  BazarActionController(this._repository, this._onChanged)
+    : super(const AsyncData(null));
 
   final BazarRepository _repository;
+  final void Function(String bazarId) _onChanged;
 
   Future<Bazar?> createBazar(CreateBazarInput input) async {
     state = const AsyncLoading();
     try {
       final bazar = await _repository.createBazar(input);
+      _onChanged(bazar.id);
       state = const AsyncData(null);
       return bazar;
     } catch (error, stackTrace) {
@@ -149,6 +154,7 @@ class BazarActionController extends StateNotifier<AsyncValue<void>> {
         item: item,
         userId: userId,
       );
+      _onChanged(bazarId);
       state = const AsyncData(null);
       return created;
     } catch (error, stackTrace) {
@@ -163,23 +169,44 @@ class BazarActionController extends StateNotifier<AsyncValue<void>> {
     String? unit,
     double? price,
     String? note,
+    String? receiptUrl,
     ItemStatus? status,
     String? userId,
   }) async {
     state = const AsyncLoading();
     try {
-      await _repository.updateItem(
+      final item = await _repository.updateItem(
         itemId: itemId,
         quantity: quantity,
         unit: unit,
         price: price,
         note: note,
+        receiptUrl: receiptUrl,
         status: status,
         userId: userId,
       );
+      _onChanged(item.bazarId);
       state = const AsyncData(null);
     } catch (error, stackTrace) {
       state = AsyncError(error, stackTrace);
+    }
+  }
+
+  Future<String?> uploadReceipt({
+    required String itemId,
+    required Uint8List imageBytes,
+  }) async {
+    state = const AsyncLoading();
+    try {
+      final receiptUrl = await _repository.uploadReceipt(
+        itemId: itemId,
+        imageBytes: imageBytes,
+      );
+      state = const AsyncData(null);
+      return receiptUrl;
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
+      return null;
     }
   }
 
@@ -187,6 +214,7 @@ class BazarActionController extends StateNotifier<AsyncValue<void>> {
     state = const AsyncLoading();
     try {
       await _repository.closeBazar(bazarId: bazarId, userId: userId);
+      _onChanged(bazarId);
       state = const AsyncData(null);
     } catch (error, stackTrace) {
       state = AsyncError(error, stackTrace);
@@ -196,5 +224,14 @@ class BazarActionController extends StateNotifier<AsyncValue<void>> {
 
 final bazarActionControllerProvider =
     StateNotifierProvider<BazarActionController, AsyncValue<void>>((ref) {
-      return BazarActionController(ref.watch(bazarRepositoryProvider));
+      return BazarActionController(ref.watch(bazarRepositoryProvider), (
+        bazarId,
+      ) {
+        ref.invalidate(bazarsProvider);
+        ref.invalidate(bazarProvider(bazarId));
+        ref.invalidate(bazarItemsProvider(bazarId));
+        ref.invalidate(bazarActivityProvider(bazarId));
+        ref.invalidate(bazarSummaryProvider(bazarId));
+        ref.invalidate(walletSummariesProvider);
+      });
     });

@@ -15,6 +15,8 @@ abstract class AuthRemoteDataSource {
   });
 
   Future<UserModel> getUserByToken(String token);
+
+  Future<void> logout();
 }
 
 class MockAuthRemoteDataSource implements AuthRemoteDataSource {
@@ -92,5 +94,10 @@ class MockAuthRemoteDataSource implements AuthRemoteDataSource {
   Future<UserModel> getUserByToken(String token) async {
     await Future<void>.delayed(delay);
     return _usersByToken[token] ?? seededUser;
+  }
+
+  @override
+  Future<void> logout() async {
+    await Future<void>.delayed(delay);
   }
 }

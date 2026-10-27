@@ -8,20 +8,16 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../../../shared/models/app_enums.dart';
 import '../../../../shared/widgets/app_bar.dart';
 import '../../../../shared/widgets/primary_button.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../reports/presentation/providers/report_providers.dart';
+import '../../../wallet/domain/entities/wallet_summary.dart';
+import '../../../wallet/presentation/providers/wallet_providers.dart';
 import '../../domain/entities/money_entry.dart';
 import '../providers/money_providers.dart';
+import '../widgets/pending_return_requests.dart';
 
 class MoneyEntryScreen extends ConsumerStatefulWidget {
-  const MoneyEntryScreen({
-    super.key,
-    this.walletId = 'w2',
-    this.assistantId = 'u1',
-    this.createdBy = 'u3',
-  });
-
-  final String walletId;
-  final String assistantId;
-  final String createdBy;
+  const MoneyEntryScreen({super.key});
 
   @override
   ConsumerState<MoneyEntryScreen> createState() => _MoneyEntryScreenState();
@@ -32,6 +28,7 @@ class _MoneyEntryScreenState extends ConsumerState<MoneyEntryScreen> {
   final _noteController = TextEditingController();
   EntryType _type = EntryType.moneyReceived;
   bool _isSaving = false;
+  String? _selectedAccountId;
 
   @override
   void dispose() {
@@ -42,9 +39,27 @@ class _MoneyEntryScreenState extends ConsumerState<MoneyEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final entries = ref.watch(
-      moneyEntriesProvider(MoneyEntryFilter(walletId: widget.walletId)),
+    final currentUser = ref.watch(currentUserProvider).valueOrNull;
+    final effectiveType = currentUser?.role == UserRole.assistant
+        ? EntryType.moneyReturned
+        : EntryType.moneyReceived;
+    if (_type != effectiveType) _type = effectiveType;
+    final summaries = ref.watch(walletSummariesProvider);
+    final availableAccounts =
+        summaries.valueOrNull
+            ?.where((summary) => summary.accountId != null)
+            .toList(growable: false) ??
+        const <WalletSummary>[];
+    final selected = availableAccounts.cast<WalletSummary?>().firstWhere(
+      (summary) => summary?.accountId == _selectedAccountId,
+      orElse: () => availableAccounts.isEmpty ? null : availableAccounts.first,
     );
+    final accountId = selected?.accountId;
+    final entries = accountId == null
+        ? const AsyncValue<List<MoneyEntry>>.data([])
+        : ref.watch(
+            moneyEntriesProvider(MoneyEntryFilter(walletId: accountId)),
+          );
 
     return Scaffold(
       backgroundColor: AppColors.surface2,
@@ -60,16 +75,37 @@ class _MoneyEntryScreenState extends ConsumerState<MoneyEntryScreen> {
       body: ListView(
         padding: const EdgeInsets.only(bottom: 24),
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: DropdownButtonFormField<String>(
+              initialValue: selected?.accountId,
+              decoration: const InputDecoration(labelText: 'Fund account'),
+              items: [
+                for (final summary in availableAccounts)
+                  DropdownMenuItem(
+                    value: summary.accountId,
+                    child: Text(summary.wallet.name),
+                  ),
+              ],
+              onChanged: (value) => setState(() => _selectedAccountId = value),
+            ),
+          ),
           _EntryFormCard(
             selectedType: _type,
             amountController: _amountController,
             noteController: _noteController,
+            availableTypes: currentUser?.role == UserRole.assistant
+                ? const [EntryType.moneyReturned]
+                : const [EntryType.moneyReceived],
             onTypeChanged: (type) => setState(() => _type = type),
           ),
           PrimaryButton(
             label: _isSaving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন',
-            onPressed: _isSaving ? null : _save,
+            onPressed: _isSaving || accountId == null
+                ? null
+                : () => _save(selected!),
           ),
+          const PendingReturnRequests(),
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -88,7 +124,7 @@ class _MoneyEntryScreenState extends ConsumerState<MoneyEntryScreen> {
     );
   }
 
-  Future<void> _save() async {
+  Future<void> _save(WalletSummary selection) async {
     final amount = double.tryParse(_amountController.text.trim());
     final note = _noteController.text.trim();
     if (amount == null || amount == 0) {
@@ -100,22 +136,37 @@ class _MoneyEntryScreenState extends ConsumerState<MoneyEntryScreen> {
       return;
     }
 
+    final accountId = selection.accountId;
+    final assistantId = selection.assistantId;
+    final actorId = ref.read(currentUserProvider).valueOrNull?.id;
+    if (accountId == null || assistantId == null || actorId == null) {
+      _showMessage('সঠিক account বা session পাওয়া যায়নি');
+      return;
+    }
+
     setState(() => _isSaving = true);
     try {
       await ref
           .read(moneyEntryRepositoryProvider)
           .createMoneyEntry(
-            walletId: widget.walletId,
-            assistantId: widget.assistantId,
+            walletId: accountId,
+            assistantId: assistantId,
             type: _type,
             amount: amount,
             entryDate: DateTime.now(),
             note: note.isEmpty ? null : note,
-            createdBy: widget.createdBy,
+            createdBy: actorId,
           );
+      ref.invalidate(moneyEntriesProvider);
+      ref.invalidate(walletSummariesProvider);
+      ref.invalidate(monthlyReportProvider(currentPeriodMonth()));
       _amountController.clear();
       _noteController.clear();
-      _showMessage('টাকা এন্ট্রি সংরক্ষণ হয়েছে');
+      _showMessage(
+        _type == EntryType.moneyReturned
+            ? 'ফেরত অনুরোধ পাঠানো হয়েছে; ম্যানেজার নিশ্চিত করলে ব্যালেন্স বদলাবে'
+            : 'টাকা এন্ট্রি সংরক্ষণ হয়েছে',
+      );
     } catch (_) {
       _showMessage('টাকা এন্ট্রি সংরক্ষণ করা যায়নি');
     } finally {
@@ -137,12 +188,14 @@ class _EntryFormCard extends StatelessWidget {
     required this.selectedType,
     required this.amountController,
     required this.noteController,
+    required this.availableTypes,
     required this.onTypeChanged,
   });
 
   final EntryType selectedType;
   final TextEditingController amountController;
   final TextEditingController noteController;
+  final List<EntryType> availableTypes;
   final ValueChanged<EntryType> onTypeChanged;
 
   @override
@@ -163,7 +216,7 @@ class _EntryFormCard extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: EntryType.values
+            children: availableTypes
                 .map(
                   (type) => ChoiceChip(
                     label: Text(_labelFor(type)),

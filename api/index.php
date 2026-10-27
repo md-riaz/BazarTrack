@@ -2,19 +2,21 @@
 
 declare(strict_types=1);
 
-use Core\Router;
+ini_set('display_errors', '0');
+ini_set('display_startup_errors', '0');
+
+use Core\Config;
+use Core\Cors;
 use Core\Response;
+use Core\Router;
 
 require __DIR__ . '/core/Autoload.php';
 
 Core\Autoload::register(__DIR__);
 Core\ActiveRecordBootstrap::boot();
+Cors::apply();
 
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: Content-Type, Idempotency-Key, X-Client-Id');
-header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
@@ -22,5 +24,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 try {
     Router::dispatch();
 } catch (Throwable $e) {
-    Response::error($e->getMessage(), $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500);
+    $status = $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
+    error_log(json_encode([
+        'requestId' => Response::requestId(),
+        'status' => $status,
+        'exception' => get_class($e),
+        'message' => $e->getMessage(),
+    ], JSON_UNESCAPED_SLASHES));
+    $debug = (bool)Config::get('app.debug', false);
+    Response::error($debug ? $e->getMessage() : 'Internal server error', $status);
 }

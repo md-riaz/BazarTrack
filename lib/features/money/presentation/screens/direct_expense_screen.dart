@@ -178,7 +178,11 @@ class _DirectExpenseScreenState extends ConsumerState<DirectExpenseScreen> {
       _showSnack('সঠিক টাকার পরিমাণ লিখুন');
       return;
     }
-    final actorId = userId ?? 'u1';
+    final actorId = userId;
+    if (actorId == null) {
+      _showSnack('Session পাওয়া যায়নি। আবার লগইন করুন');
+      return;
+    }
     final expense = await ref
         .read(directExpenseControllerProvider.notifier)
         .createDirectExpense(

@@ -28,8 +28,14 @@ final class Router
             Response::error('Action not allowed', 403);
         }
 
-        $result = $controller->$action(Request::input());
-        Response::json($result);
+        $input = Request::input();
+        RoutePolicy::authorize(lcfirst($cmd), $action, $input);
+        $principal = in_array(lcfirst($cmd) . '.' . $action, ['health.index', 'auth.login'], true)
+            || strtolower($cmd) === 'setup'
+            ? null
+            : Auth::principal();
+        $result = $controller->$action($input);
+        Response::json(Authorizer::filterResult(lcfirst($cmd), $action, $result, $principal));
     }
 
     private static function studly(string $value): string

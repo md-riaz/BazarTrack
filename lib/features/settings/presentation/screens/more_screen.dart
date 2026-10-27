@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/config/api_config.dart';
 import '../../../../core/sync/sync_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -31,6 +32,7 @@ class MoreScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sync = ref.watch(syncStatusProvider);
+    final apiEnabled = ref.watch(apiConfigProvider).enabled;
     final queueCount = ref
         .watch(offlineQueueEntriesProvider)
         .maybeWhen(data: (entries) => entries.length, orElse: () => 0);
@@ -55,8 +57,9 @@ class MoreScreen extends ConsumerWidget {
                 'Fund account details',
                 Icons.account_balance_wallet,
               ),
-              if (user == null ||
-                  RolePermissions.canCloseMonthlyPeriod(user!.role))
+              if (!apiEnabled &&
+                  (user == null ||
+                      RolePermissions.canCloseMonthlyPeriod(user!.role)))
                 _menuRow('monthlyClose', 'Close হিসাব', Icons.calendar_month),
               _menuRow('search', 'খুঁজুন', Icons.search),
               if (user != null && RolePermissions.canSeeAdminMenu(user!.role))

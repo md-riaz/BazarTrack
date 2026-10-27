@@ -12,10 +12,10 @@ import '../providers/report_providers.dart';
 
 class MonthlyCloseScreen extends ConsumerStatefulWidget {
   const MonthlyCloseScreen({
+    required this.walletId,
+    required this.closedBy,
     super.key,
-    this.walletId = 'w2',
-    this.assistantId = 'u1',
-    this.closedBy = 'u3',
+    this.assistantId,
   });
 
   final String walletId;

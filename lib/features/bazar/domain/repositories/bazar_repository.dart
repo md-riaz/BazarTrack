@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../../../../shared/models/app_enums.dart';
 import '../entities/bazar_entities.dart';
 
@@ -26,8 +28,14 @@ abstract class BazarRepository {
     String? unit,
     double? price,
     String? note,
+    String? receiptUrl,
     ItemStatus? status,
     String? userId,
+  });
+
+  Future<String> uploadReceipt({
+    required String itemId,
+    required Uint8List imageBytes,
   });
 
   Future<Bazar> closeBazar({required String bazarId, String? userId});

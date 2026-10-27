@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/config/api_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -202,6 +203,7 @@ class _WalletsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wallets = ref.watch(adminWalletsProvider);
+    final apiEnabled = ref.watch(apiConfigProvider).enabled;
     return wallets.when(
       data: (items) => Column(
         children: [
@@ -217,11 +219,12 @@ class _WalletsSection extends ConsumerWidget {
                 _WalletTile(
                   wallet: items[index],
                   showDivider: index < items.length - 1,
-                  onEdit: onEditWalletTap == null
+                  onEdit: apiEnabled || onEditWalletTap == null
                       ? null
                       : () => onEditWalletTap!(items[index].id),
-                  onToggleActive: () =>
-                      _toggleWalletActive(context, ref, items[index]),
+                  onToggleActive: apiEnabled
+                      ? null
+                      : () => _toggleWalletActive(context, ref, items[index]),
                 ),
             ],
           ),

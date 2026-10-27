@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,10 +12,9 @@ Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await _safeLoadEnv();
-  await _safeInitializeFirebase();
 
   final database = AppDatabase();
-  await database.customStatement('PRAGMA foreign_keys = OFF');
+  await _enableAndVerifyForeignKeys(database);
   await MockSeed.seed(database);
 
   runApp(
@@ -35,11 +33,11 @@ Future<void> _safeLoadEnv() async {
   }
 }
 
-Future<void> _safeInitializeFirebase() async {
-  try {
-    await Firebase.initializeApp();
-  } catch (_) {
-    // Firebase config not wired yet for foundation phase.
+Future<void> _enableAndVerifyForeignKeys(AppDatabase database) async {
+  await database.customStatement('PRAGMA foreign_keys = ON');
+  final row = await database.customSelect('PRAGMA foreign_keys').getSingle();
+  if (row.read<int>('foreign_keys') != 1) {
+    throw StateError('SQLite foreign key enforcement could not be enabled.');
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:bazar/bootstrap.dart';
+import 'package:bazar/core/config/api_config.dart';
 import 'package:bazar/core/database/app_database.dart';
 import 'package:bazar/features/settings/domain/entities/offline_queue_entry.dart';
 import 'package:bazar/features/settings/presentation/providers/settings_providers.dart';
@@ -31,6 +32,31 @@ void main() {
         entries.where((entry) => entry.status == OfflineQueueStatus.failed),
         hasLength(1),
       );
+    });
+
+    test('hides legacy local queue entries in API mode', () async {
+      final database = AppDatabase.forTesting();
+      addTearDown(database.close);
+      await _insertQueueRows(database);
+      final container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(database),
+          apiConfigProvider.overrideWithValue(
+            ApiConfig(
+              environment: AppEnvironment.test,
+              enabled: true,
+              baseUrl: 'http://127.0.0.1:8080/index.php',
+              defaultFundId: 'fund1',
+              defaultAccountId: 'acc1',
+              defaultManagerId: 'manager1',
+              defaultAssistantId: 'assistant1',
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      expect(await container.read(offlineQueueEntriesProvider.future), isEmpty);
     });
 
     test('keeps notification and language state mutable', () {

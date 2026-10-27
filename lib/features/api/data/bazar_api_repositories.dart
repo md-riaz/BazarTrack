@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import '../../../core/api/bazar_api_client.dart';
 import '../../../core/config/api_config.dart';
 import '../../../shared/models/app_enums.dart';
@@ -5,6 +8,7 @@ import '../../bazar/domain/entities/bazar_entities.dart';
 import '../../bazar/domain/repositories/bazar_repository.dart';
 import '../../money/domain/entities/direct_expense.dart';
 import '../../money/domain/entities/money_entry.dart';
+import '../../money/domain/entities/money_return_request.dart';
 import '../../money/domain/repositories/money_entry_repository.dart';
 import '../../reports/domain/entities/report_summary.dart';
 import '../../reports/domain/repositories/report_repository.dart';
@@ -20,11 +24,9 @@ class ApiWalletRepository implements WalletRepository {
   const ApiWalletRepository({
     required BazarApiClient client,
     required ApiConfig config,
-  }) : _client = client,
-       _config = config;
+  }) : _client = client;
 
   final BazarApiClient _client;
-  final ApiConfig _config;
 
   @override
   Future<List<Wallet>> getWallets() async {
@@ -43,15 +45,7 @@ class ApiWalletRepository implements WalletRepository {
 
   @override
   Stream<List<WalletMember>> watchMembers(String walletId) {
-    return Stream.value([
-      WalletMember(
-        id: 'api-member-$walletId-${_config.defaultManagerId}',
-        walletId: walletId,
-        userId: _config.defaultManagerId,
-        role: 'owner',
-        createdAt: DateTime.now(),
-      ),
-    ]);
+    return Stream.value(const <WalletMember>[]);
   }
 
   @override
@@ -94,9 +88,13 @@ class ApiWalletRepository implements WalletRepository {
             balance: BalanceResult(
               walletId: wallet.id,
               assistantId: assistantId,
-              confirmedBalance: _double(account?['current_balance']),
+              confirmedBalance: account == null
+                  ? 0
+                  : _requiredDouble(account, 'current_balance'),
               inProgressAmount: 0,
             ),
+            accountId: account == null ? null : _requiredString(account, 'id'),
+            assistantId: account?['assistant_id']?.toString(),
           );
         })
         .toList(growable: false);
@@ -114,7 +112,7 @@ class ApiWalletRepository implements WalletRepository {
     final data = await _client.get(
       'ledger',
       'list',
-      query: {'accountId': account['id'] ?? _config.defaultAccountId},
+      query: {'accountId': _requiredString(account, 'id')},
     );
     yield _list(data).map(_ledgerFromJson).toList(growable: false);
   }
@@ -124,22 +122,23 @@ class ApiWalletRepository implements WalletRepository {
     String? assistantId,
   }) async {
     final accounts = await _accounts(assistantId: assistantId);
-    return accounts.cast<Map<String, dynamic>?>().firstWhere(
-          (row) => row?['fund_id']?.toString() == walletId,
-          orElse: () => null,
-        ) ??
-        {
-          'id': _config.defaultAccountId,
-          'fund_id': walletId,
-          'assistant_id': _apiActor(assistantId, _config),
-          'current_balance': 0,
-        };
+    final account = accounts.cast<Map<String, dynamic>?>().firstWhere(
+      (row) => row?['fund_id']?.toString() == walletId,
+      orElse: () => null,
+    );
+    if (account == null) {
+      throw BazarApiDataException(
+        'No fund account found for fund $walletId and assistant ${assistantId ?? 'current user'}',
+      );
+    }
+    return account;
   }
 
   Future<List<Map<String, dynamic>>> _accounts({String? assistantId}) async {
     final query = <String, dynamic>{};
-    final apiAssistantId = _apiActor(assistantId, _config);
-    if (apiAssistantId.isNotEmpty) query['assistantId'] = apiAssistantId;
+    if (assistantId != null && assistantId.isNotEmpty) {
+      query['assistantId'] = assistantId;
+    }
     final data = await _client.get('accounts', 'list', query: query);
     return _list(data);
   }
@@ -148,10 +147,7 @@ class ApiWalletRepository implements WalletRepository {
     return WalletLedgerEntry(
       id: json['id']?.toString() ?? '',
       walletId: json['fund_id']?.toString() ?? '',
-      assistantId:
-          json['paid_to']?.toString() ??
-          json['returned_by']?.toString() ??
-          _config.defaultAssistantId,
+      assistantId: _requiredAnyString(json, ['paid_to', 'returned_by']),
       type: _ledgerType(json['type']?.toString()),
       amount: _double(json['amount']),
       note: json['note']?.toString(),
@@ -165,11 +161,9 @@ class ApiBazarRepository implements BazarRepository {
   const ApiBazarRepository({
     required BazarApiClient client,
     required ApiConfig config,
-  }) : _client = client,
-       _config = config;
+  }) : _client = client;
 
   final BazarApiClient _client;
-  final ApiConfig _config;
 
   @override
   Stream<List<Bazar>> watchBazars({BazarStatus? status}) async* {
@@ -199,7 +193,7 @@ class ApiBazarRepository implements BazarRepository {
     final data = await _client.get('bazars', 'show', query: {'id': bazarId});
     yield _list({
       'items': data['items'],
-    }).map(_bazarItemFromJson).toList(growable: false);
+    }).map((item) => _bazarItemFromJson(item, receiptResolver: (id, ref) => _client.endpointUrl('bazars', 'receipt', query: {'id': id}))).toList(growable: false);
   }
 
   @override
@@ -215,15 +209,34 @@ class ApiBazarRepository implements BazarRepository {
 
   @override
   Future<Bazar> createBazar(CreateBazarInput input) async {
+    final accountsData = await _client.get(
+      'accounts',
+      'list',
+      query: {
+        'fundId': input.walletId,
+        if (input.assignedTo != null) 'assistantId': input.assignedTo,
+      },
+    );
+    final accounts = _list(accountsData);
+    if (accounts.isEmpty) {
+      throw BazarApiDataException(
+        'No assistant account is available for fund ${input.walletId}',
+      );
+    }
+    if (input.assignedTo == null && accounts.length != 1) {
+      throw const BazarApiDataException(
+        'Select an assistant/account before creating this bazar',
+      );
+    }
     final data = await _client.post(
       'bazars',
       'create',
       body: {
-        'fundId': _fundId(input.walletId),
-        'accountId': _accountId(input.walletId),
+        'fundId': input.walletId,
+        'accountId': _requiredString(accounts.first, 'id'),
         'title': input.title ?? 'আজকের বাজার',
-        'createdBy': _apiActor(input.createdBy, _config),
-        'assignedTo': _apiActor(input.assignedTo, _config),
+        'createdBy': input.actorId ?? input.createdBy,
+        'assignedTo': input.assignedTo,
         'status': _bazarStatusToApi(input.status),
         'bazarDate': _dateOnly(input.bazarDate),
         'items': input.items.map(_createItemToJson).toList(growable: false),
@@ -245,7 +258,7 @@ class ApiBazarRepository implements BazarRepository {
       'addItem',
       body: {'bazarId': bazarId, ..._createItemToJson(item)},
     );
-    return _bazarItemFromJson(data);
+    return _bazarItemFromJson(data, receiptResolver: (id, ref) => _client.endpointUrl('bazars', 'receipt', query: {'id': id}));
   }
 
   @override
@@ -255,6 +268,7 @@ class ApiBazarRepository implements BazarRepository {
     String? unit,
     double? price,
     String? note,
+    String? receiptUrl,
     ItemStatus? status,
     String? userId,
   }) async {
@@ -269,7 +283,28 @@ class ApiBazarRepository implements BazarRepository {
         'status': status == null ? null : _itemStatusToApi(status),
       }..removeWhere((_, value) => value == null),
     );
-    return _bazarItemFromJson(data);
+    return _bazarItemFromJson(data, receiptResolver: (id, ref) => _client.endpointUrl('bazars', 'receipt', query: {'id': id}));
+  }
+
+  @override
+  Future<String> uploadReceipt({
+    required String itemId,
+    required Uint8List imageBytes,
+  }) async {
+    if (imageBytes.isEmpty || imageBytes.lengthInBytes > 5 * 1024 * 1024) {
+      throw ArgumentError.value(imageBytes, 'imageBytes', 'Receipt must be up to 5 MB');
+    }
+    final data = await _client.post(
+      'bazars',
+      'uploadReceipt',
+      body: {
+        'id': itemId,
+        'imageBase64': base64Encode(imageBytes),
+      },
+      idempotencyKey: 'receipt-$itemId-${DateTime.now().microsecondsSinceEpoch}',
+    );
+    _requiredString(data, 'receiptUrl');
+    return _client.endpointUrl('bazars', 'receipt', query: {'id': itemId});
   }
 
   @override
@@ -277,7 +312,8 @@ class ApiBazarRepository implements BazarRepository {
     final data = await _client.post(
       'bazars',
       'close',
-      body: {'id': bazarId, 'closedBy': _apiActor(userId, _config)},
+      body: {'id': bazarId},
+      idempotencyKey: 'bazar-close-$bazarId',
     );
     return _bazarFromJson(_asMap(data['bazar']));
   }
@@ -287,7 +323,7 @@ class ApiBazarRepository implements BazarRepository {
     final data = await _client.get('bazars', 'show', query: {'id': bazarId});
     final items = _list({
       'items': data['items'],
-    }).map(_bazarItemFromJson).toList(growable: false);
+    }).map((item) => _bazarItemFromJson(item, receiptResolver: (id, ref) => _client.endpointUrl('bazars', 'receipt', query: {'id': id}))).toList(growable: false);
     final spent = items.fold<double>(0, (sum, item) => sum + (item.price ?? 0));
     return BazarSummary(
       bazarId: bazarId,
@@ -306,26 +342,15 @@ class ApiBazarRepository implements BazarRepository {
       items: items,
     );
   }
-
-  String _fundId(String walletId) =>
-      walletId == _config.defaultAccountId || walletId.startsWith('w')
-      ? _config.defaultFundId
-      : walletId;
-  String _accountId(String walletId) =>
-      walletId == _config.defaultFundId || walletId.startsWith('w')
-      ? _config.defaultAccountId
-      : walletId;
 }
 
 class ApiMoneyEntryRepository implements MoneyEntryRepository {
   const ApiMoneyEntryRepository({
     required BazarApiClient client,
     required ApiConfig config,
-  }) : _client = client,
-       _config = config;
+  }) : _client = client;
 
   final BazarApiClient _client;
-  final ApiConfig _config;
 
   @override
   Stream<List<MoneyEntry>> watchMoneyEntries({
@@ -338,14 +363,9 @@ class ApiMoneyEntryRepository implements MoneyEntryRepository {
     final entries = _list(data)
         .map(_moneyEntryFromJson)
         .where((entry) {
-          final walletMatches =
-              walletId == null ||
-              entry.walletId == walletId ||
-              entry.walletId == _config.defaultAccountId;
+          final walletMatches = walletId == null || entry.walletId == walletId;
           final assistantMatches =
-              assistantId == null ||
-              entry.assistantId == assistantId ||
-              entry.assistantId == _config.defaultAssistantId;
+              assistantId == null || entry.assistantId == assistantId;
           final fromMatches = from == null || !entry.entryDate.isBefore(from);
           final toMatches = to == null || entry.entryDate.isBefore(to);
           return walletMatches && assistantMatches && fromMatches && toMatches;
@@ -374,12 +394,9 @@ class ApiMoneyEntryRepository implements MoneyEntryRepository {
     String? createdBy,
   }) async {
     if (type == EntryType.adjustment) {
-      throw UnsupportedError('Adjustment API is not available yet');
+      throw StateError('Adjustment is not available in API mode');
     }
-    final accountId =
-        walletId == _config.defaultFundId || walletId.startsWith('w')
-        ? _config.defaultAccountId
-        : walletId;
+    final accountId = walletId;
     if (type == EntryType.moneyReceived) {
       final data = await _client.post(
         'money',
@@ -387,49 +404,58 @@ class ApiMoneyEntryRepository implements MoneyEntryRepository {
         body: {
           'accountId': accountId,
           'amount': amount.abs(),
-          'createdBy': _apiActor(createdBy, _config),
-          'paidBy': _apiActor(createdBy, _config),
           'note': note,
           'entryDate': _dateOnly(entryDate),
         }..removeWhere((_, value) => value == null),
+        idempotencyKey:
+            'money-give-$accountId-${entryDate.microsecondsSinceEpoch}',
       );
       return _moneyEntryFromJson(_asMap(data['entry']));
     }
 
-    final request = await _client.post(
+    final data = await _client.post(
       'returns',
       'create',
-      body: {
-        'accountId': accountId,
-        'amount': amount.abs(),
-        'requestedBy': _apiActor(assistantId, _config),
-        'expectedReceiverId': _apiActor(createdBy, _config),
-        'note': note,
-      }..removeWhere((_, value) => value == null),
+      body: {'accountId': accountId, 'amount': amount.abs(), 'note': note}
+        ..removeWhere((_, value) => value == null),
+      idempotencyKey:
+          'return-request-$accountId-${entryDate.microsecondsSinceEpoch}',
     );
-    final requestId = _asMap(request['request'])['id']?.toString() ?? '';
-    await _client.post(
+    final request = _requiredMap(data, 'request');
+    final requestedAt = _requiredDateTime(request, 'requested_at');
+    return MoneyEntry(
+      id: _requiredString(request, 'id'),
+      walletId: _requiredString(request, 'account_id'),
+      assistantId: _requiredString(request, 'assistant_id'),
+      type: EntryType.moneyReturned,
+      amount: _requiredDouble(request, 'amount'),
+      note: request['note']?.toString(),
+      entryDate: requestedAt,
+      createdBy: request['requested_by']?.toString(),
+      createdAt: requestedAt,
+      updatedAt: requestedAt,
+    );
+  }
+
+  @override
+  Future<List<MoneyReturnRequest>> getPendingReturnRequests() async {
+    final data = await _client.get(
+      'returns',
+      'list',
+      query: {'status': 'pending'},
+    );
+    return _list(data).map(_returnRequestFromJson).toList(growable: false);
+  }
+
+  @override
+  Future<MoneyReturnRequest> confirmReturnRequest(String requestId) async {
+    final data = await _client.post(
       'returns',
       'confirm',
-      body: {
-        'id': requestId,
-        'confirmedBy': _apiActor(createdBy, _config),
-        'receivedBy': _apiActor(createdBy, _config),
-        'entryDate': _dateOnly(entryDate),
-      },
+      body: {'id': requestId},
+      idempotencyKey: 'return-confirm-$requestId',
     );
-    return MoneyEntry(
-      id: requestId,
-      walletId: accountId,
-      assistantId: _apiActor(assistantId, _config),
-      type: EntryType.moneyReturned,
-      amount: amount.abs(),
-      note: note,
-      entryDate: entryDate,
-      createdBy: _apiActor(createdBy, _config),
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
+    return _returnRequestFromJson(_requiredMap(data, 'request'));
   }
 
   @override
@@ -442,9 +468,7 @@ class ApiMoneyEntryRepository implements MoneyEntryRepository {
     String? receiptUrl,
     String? createdBy,
   }) {
-    throw UnsupportedError(
-      'Direct expense is not supported by fund account API',
-    );
+    throw StateError('Direct expense is not available in API mode');
   }
 
   @override
@@ -455,7 +479,7 @@ class ApiMoneyEntryRepository implements MoneyEntryRepository {
     String? closedBy,
     String? notes,
   }) {
-    throw UnsupportedError('Monthly close is not exposed for fund account API');
+    throw StateError('Monthly close is not available in API mode');
   }
 }
 
@@ -517,7 +541,10 @@ Bazar _bazarFromJson(Map<String, dynamic> json) {
   );
 }
 
-BazarItem _bazarItemFromJson(Map<String, dynamic> json) {
+BazarItem _bazarItemFromJson(
+  Map<String, dynamic> json, {
+  String Function(String itemId, String receiptRef)? receiptResolver,
+}) {
   return BazarItem(
     id: json['id']?.toString() ?? '',
     bazarId: json['bazar_id']?.toString() ?? '',
@@ -526,8 +553,25 @@ BazarItem _bazarItemFromJson(Map<String, dynamic> json) {
     note: json['note']?.toString(),
     status: _itemStatus(json['status']?.toString()),
     price: _nullableDouble(json['price']),
+    receiptUrl: _receiptUrl(
+      json['receipt_url'],
+      itemId: json['id']?.toString(),
+      receiptResolver: receiptResolver,
+    ),
     createdAt: _dateTime(json['created_at']),
     updatedAt: _dateTime(json['updated_at']),
+  );
+}
+
+MoneyReturnRequest _returnRequestFromJson(Map<String, dynamic> json) {
+  return MoneyReturnRequest(
+    id: _requiredString(json, 'id'),
+    accountId: _requiredString(json, 'account_id'),
+    assistantId: _requiredString(json, 'assistant_id'),
+    amount: _requiredDouble(json, 'amount'),
+    status: _requiredString(json, 'status'),
+    requestedAt: _requiredDateTime(json, 'requested_at'),
+    note: json['note']?.toString(),
   );
 }
 
@@ -569,16 +613,6 @@ Map<String, dynamic> _asMap(Object? value) {
     return value.map((key, value) => MapEntry(key.toString(), value));
   }
   return const <String, dynamic>{};
-}
-
-String _apiActor(String? localId, ApiConfig config) {
-  return switch (localId) {
-    null || '' => config.defaultManagerId,
-    'u0' => 'admin1',
-    'u1' => config.defaultAssistantId,
-    'u3' => config.defaultManagerId,
-    _ => localId,
-  };
 }
 
 BazarStatus _bazarStatus(String? value) {
@@ -633,20 +667,104 @@ String _walletType(String? value) {
 }
 
 DateTime _dateTime(Object? value) {
-  final text = value?.toString();
-  if (text == null || text.isEmpty) return DateTime.now();
-  return DateTime.tryParse(text) ?? DateTime.now();
+  final text = _activeRecordDateText(value);
+  final parsed = text == null ? null : DateTime.tryParse(text);
+  if (parsed == null) {
+    throw const BazarApiDataException('API returned an invalid date');
+  }
+  return parsed;
+}
+
+String? _activeRecordDateText(Object? value) {
+  if (value == null) return null;
+  if (value is Map) {
+    final mapped = _asMap(value);
+    return (mapped['date'] ?? mapped['value'])?.toString();
+  }
+  return value.toString();
+}
+
+String? _receiptUrl(
+  Object? value, {
+  required String? itemId,
+  required String Function(String itemId, String receiptRef)? receiptResolver,
+}) {
+  final receiptRef = value?.toString().trim();
+  if (receiptRef == null || receiptRef.isEmpty || itemId == null || itemId.isEmpty) {
+    return null;
+  }
+  return receiptResolver?.call(itemId, receiptRef) ?? receiptRef;
 }
 
 String _dateOnly(DateTime date) => date.toIso8601String().split('T').first;
 
 double _double(Object? value) {
   if (value is num) return value.toDouble();
-  return double.tryParse(value?.toString() ?? '') ?? 0;
+  final parsed = double.tryParse(value?.toString() ?? '');
+  if (parsed == null) {
+    throw const BazarApiDataException('API returned an invalid number');
+  }
+  return parsed;
 }
 
 double? _nullableDouble(Object? value) {
   if (value == null) return null;
   if (value is num) return value.toDouble();
-  return double.tryParse(value.toString());
+  final parsed = double.tryParse(value.toString());
+  if (parsed == null) {
+    throw const BazarApiDataException('API returned an invalid number');
+  }
+  return parsed;
+}
+
+Map<String, dynamic> _requiredMap(Map<String, dynamic> json, String key) {
+  final value = json[key];
+  if (value is Map) return _asMap(value);
+  throw BazarApiDataException('API response is missing object "$key"');
+}
+
+String _requiredString(Map<String, dynamic> json, String key) {
+  final value = json[key];
+  if (value is String && value.trim().isNotEmpty) return value;
+  throw BazarApiDataException('API response is missing string "$key"');
+}
+
+String _requiredAnyString(Map<String, dynamic> json, List<String> keys) {
+  for (final key in keys) {
+    final value = json[key];
+    if (value is String && value.trim().isNotEmpty) return value;
+  }
+  throw BazarApiDataException(
+    'API response is missing one of: ${keys.join(', ')}',
+  );
+}
+
+DateTime _requiredDateTime(Map<String, dynamic> json, String key) {
+  final parsed = DateTime.tryParse(_activeRecordDateText(json[key]) ?? '');
+  if (parsed != null) return parsed;
+  throw BazarApiDataException('API response has invalid date "$key"');
+}
+
+double _requiredDouble(Map<String, dynamic> json, String key) {
+  final value = json[key];
+  if (value is num) return value.toDouble();
+  final parsed = double.tryParse(value?.toString() ?? '');
+  if (parsed != null) return parsed;
+  throw BazarApiDataException('API response has invalid number "$key"');
+}
+
+class BazarApiDataException implements FormatException {
+  const BazarApiDataException(this.message);
+
+  @override
+  final String message;
+
+  @override
+  dynamic get source => null;
+
+  @override
+  int? get offset => null;
+
+  @override
+  String toString() => 'BazarApiDataException: $message';
 }

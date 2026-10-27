@@ -2,6 +2,7 @@ import '../../../../features/wallet/domain/entities/wallet_snapshot.dart';
 import '../../../../shared/models/app_enums.dart';
 import '../entities/direct_expense.dart';
 import '../entities/money_entry.dart';
+import '../entities/money_return_request.dart';
 
 abstract class MoneyEntryRepository {
   Stream<List<MoneyEntry>> watchMoneyEntries({
@@ -28,6 +29,10 @@ abstract class MoneyEntryRepository {
     String? note,
     String? createdBy,
   });
+
+  Future<List<MoneyReturnRequest>> getPendingReturnRequests();
+
+  Future<MoneyReturnRequest> confirmReturnRequest(String requestId);
 
   Future<DirectExpense> createDirectExpense({
     required String walletId,

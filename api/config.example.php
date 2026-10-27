@@ -15,7 +15,12 @@ return [
         ],
     ],
     'app' => [
+        'environment' => getenv('APP_ENV') ?: 'development',
+        'demo_mode' => filter_var(getenv('DEMO_MODE') ?: 'true', FILTER_VALIDATE_BOOLEAN),
         'default_company_id' => getenv('DEFAULT_COMPANY_ID') ?: 'company1',
+        'allowed_origins' => array_values(array_filter(array_map('trim', explode(',', getenv('ALLOWED_ORIGINS') ?: 'http://127.0.0.1,http://localhost')))),
+        'max_request_bytes' => (int)(getenv('MAX_REQUEST_BYTES') ?: 8388608),
+        'debug' => filter_var(getenv('APP_DEBUG') ?: 'false', FILTER_VALIDATE_BOOLEAN),
     ],
     'seed' => [
         'company_name' => getenv('INITIAL_COMPANY_NAME') ?: 'BazarTrack Office',

@@ -199,6 +199,7 @@ class BazarLocalDataSource {
     String? unit,
     double? price,
     String? note,
+    String? receiptUrl,
     required ItemStatus status,
   }) async {
     final now = DateTime.now();
@@ -207,6 +208,9 @@ class BazarLocalDataSource {
       unit: unit == null ? const Value.absent() : Value(unit),
       price: price == null ? const Value.absent() : Value(price),
       note: note == null ? const Value.absent() : Value(note),
+      receiptUrl: receiptUrl == null
+          ? const Value.absent()
+          : Value(receiptUrl),
       status: Value(itemStatusToDb(status)),
       updatedAt: Value(now),
     );

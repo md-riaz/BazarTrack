@@ -13,6 +13,12 @@ class RolePermissions {
   static bool canRecordMoneyEntry(UserRole role) =>
       role == UserRole.owner || role == UserRole.admin;
 
+  static bool canRequestMoneyReturn(UserRole role) =>
+      role == UserRole.assistant;
+
+  static bool canConfirmMoneyReturn(UserRole role) =>
+      role == UserRole.owner || role == UserRole.admin;
+
   static bool canSeeReportsTab(UserRole role) => canAccessReports(role);
 
   static bool canSeeAdminMenu(UserRole role) => canAccessAdmin(role);

@@ -42,6 +42,7 @@ extension DbBazarItemMapper on db.BazarItem {
       note: note,
       status: itemStatusFromDb(status),
       price: price,
+      receiptUrl: receiptUrl,
       addedBy: addedBy,
       createdAt: createdAt,
       updatedAt: updatedAt,

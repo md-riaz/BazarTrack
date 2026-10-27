@@ -9,6 +9,7 @@ import '../../../../features/wallet/domain/entities/wallet_snapshot.dart';
 import '../../../../shared/models/app_enums.dart';
 import '../../domain/entities/direct_expense.dart';
 import '../../domain/entities/money_entry.dart';
+import '../../domain/entities/money_return_request.dart';
 import '../../domain/repositories/money_entry_repository.dart';
 import '../datasources/mock_money_remote_datasource.dart';
 import '../datasources/money_local_data_source.dart';
@@ -111,6 +112,18 @@ class MoneyEntryRepositoryImpl implements MoneyEntryRepository {
     );
     await _remoteDataSource.publishMoneyEntry(entry);
     return entry;
+  }
+
+  @override
+  Future<List<MoneyReturnRequest>> getPendingReturnRequests() async {
+    return const <MoneyReturnRequest>[];
+  }
+
+  @override
+  Future<MoneyReturnRequest> confirmReturnRequest(String requestId) {
+    return Future<MoneyReturnRequest>.error(
+      StateError('No pending local return request exists: $requestId'),
+    );
   }
 
   @override

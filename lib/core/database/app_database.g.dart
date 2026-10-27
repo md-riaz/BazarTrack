@@ -2499,6 +2499,17 @@ class $BazarItemsTable extends BazarItems
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _receiptUrlMeta = const VerificationMeta(
+    'receiptUrl',
+  );
+  @override
+  late final GeneratedColumn<String> receiptUrl = GeneratedColumn<String>(
+    'receipt_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _addedByMeta = const VerificationMeta(
     'addedBy',
   );
@@ -2547,6 +2558,7 @@ class $BazarItemsTable extends BazarItems
     note,
     status,
     price,
+    receiptUrl,
     addedBy,
     createdAt,
     updatedAt,
@@ -2628,6 +2640,12 @@ class $BazarItemsTable extends BazarItems
         price.isAcceptableOrUnknown(data['price']!, _priceMeta),
       );
     }
+    if (data.containsKey('receipt_url')) {
+      context.handle(
+        _receiptUrlMeta,
+        receiptUrl.isAcceptableOrUnknown(data['receipt_url']!, _receiptUrlMeta),
+      );
+    }
     if (data.containsKey('added_by')) {
       context.handle(
         _addedByMeta,
@@ -2699,6 +2717,10 @@ class $BazarItemsTable extends BazarItems
         DriftSqlType.double,
         data['${effectivePrefix}price'],
       ),
+      receiptUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}receipt_url'],
+      ),
       addedBy: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}added_by'],
@@ -2731,6 +2753,7 @@ class BazarItem extends DataClass implements Insertable<BazarItem> {
   final String? note;
   final String status;
   final double? price;
+  final String? receiptUrl;
   final String? addedBy;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -2745,6 +2768,7 @@ class BazarItem extends DataClass implements Insertable<BazarItem> {
     this.note,
     required this.status,
     this.price,
+    this.receiptUrl,
     this.addedBy,
     required this.createdAt,
     required this.updatedAt,
@@ -2774,6 +2798,9 @@ class BazarItem extends DataClass implements Insertable<BazarItem> {
     if (!nullToAbsent || price != null) {
       map['price'] = Variable<double>(price);
     }
+    if (!nullToAbsent || receiptUrl != null) {
+      map['receipt_url'] = Variable<String>(receiptUrl);
+    }
     if (!nullToAbsent || addedBy != null) {
       map['added_by'] = Variable<String>(addedBy);
     }
@@ -2802,6 +2829,9 @@ class BazarItem extends DataClass implements Insertable<BazarItem> {
       price: price == null && nullToAbsent
           ? const Value.absent()
           : Value(price),
+      receiptUrl: receiptUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(receiptUrl),
       addedBy: addedBy == null && nullToAbsent
           ? const Value.absent()
           : Value(addedBy),
@@ -2826,6 +2856,7 @@ class BazarItem extends DataClass implements Insertable<BazarItem> {
       note: serializer.fromJson<String?>(json['note']),
       status: serializer.fromJson<String>(json['status']),
       price: serializer.fromJson<double?>(json['price']),
+      receiptUrl: serializer.fromJson<String?>(json['receiptUrl']),
       addedBy: serializer.fromJson<String?>(json['addedBy']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -2845,6 +2876,7 @@ class BazarItem extends DataClass implements Insertable<BazarItem> {
       'note': serializer.toJson<String?>(note),
       'status': serializer.toJson<String>(status),
       'price': serializer.toJson<double?>(price),
+      'receiptUrl': serializer.toJson<String?>(receiptUrl),
       'addedBy': serializer.toJson<String?>(addedBy),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -2862,6 +2894,7 @@ class BazarItem extends DataClass implements Insertable<BazarItem> {
     Value<String?> note = const Value.absent(),
     String? status,
     Value<double?> price = const Value.absent(),
+    Value<String?> receiptUrl = const Value.absent(),
     Value<String?> addedBy = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -2876,6 +2909,7 @@ class BazarItem extends DataClass implements Insertable<BazarItem> {
     note: note.present ? note.value : this.note,
     status: status ?? this.status,
     price: price.present ? price.value : this.price,
+    receiptUrl: receiptUrl.present ? receiptUrl.value : this.receiptUrl,
     addedBy: addedBy.present ? addedBy.value : this.addedBy,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -2894,6 +2928,9 @@ class BazarItem extends DataClass implements Insertable<BazarItem> {
       note: data.note.present ? data.note.value : this.note,
       status: data.status.present ? data.status.value : this.status,
       price: data.price.present ? data.price.value : this.price,
+      receiptUrl: data.receiptUrl.present
+          ? data.receiptUrl.value
+          : this.receiptUrl,
       addedBy: data.addedBy.present ? data.addedBy.value : this.addedBy,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -2913,6 +2950,7 @@ class BazarItem extends DataClass implements Insertable<BazarItem> {
           ..write('note: $note, ')
           ..write('status: $status, ')
           ..write('price: $price, ')
+          ..write('receiptUrl: $receiptUrl, ')
           ..write('addedBy: $addedBy, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -2932,6 +2970,7 @@ class BazarItem extends DataClass implements Insertable<BazarItem> {
     note,
     status,
     price,
+    receiptUrl,
     addedBy,
     createdAt,
     updatedAt,
@@ -2950,6 +2989,7 @@ class BazarItem extends DataClass implements Insertable<BazarItem> {
           other.note == this.note &&
           other.status == this.status &&
           other.price == this.price &&
+          other.receiptUrl == this.receiptUrl &&
           other.addedBy == this.addedBy &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -2966,6 +3006,7 @@ class BazarItemsCompanion extends UpdateCompanion<BazarItem> {
   final Value<String?> note;
   final Value<String> status;
   final Value<double?> price;
+  final Value<String?> receiptUrl;
   final Value<String?> addedBy;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -2981,6 +3022,7 @@ class BazarItemsCompanion extends UpdateCompanion<BazarItem> {
     this.note = const Value.absent(),
     this.status = const Value.absent(),
     this.price = const Value.absent(),
+    this.receiptUrl = const Value.absent(),
     this.addedBy = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -2997,6 +3039,7 @@ class BazarItemsCompanion extends UpdateCompanion<BazarItem> {
     this.note = const Value.absent(),
     required String status,
     this.price = const Value.absent(),
+    this.receiptUrl = const Value.absent(),
     this.addedBy = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -3018,6 +3061,7 @@ class BazarItemsCompanion extends UpdateCompanion<BazarItem> {
     Expression<String>? note,
     Expression<String>? status,
     Expression<double>? price,
+    Expression<String>? receiptUrl,
     Expression<String>? addedBy,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -3034,6 +3078,7 @@ class BazarItemsCompanion extends UpdateCompanion<BazarItem> {
       if (note != null) 'note': note,
       if (status != null) 'status': status,
       if (price != null) 'price': price,
+      if (receiptUrl != null) 'receipt_url': receiptUrl,
       if (addedBy != null) 'added_by': addedBy,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -3052,6 +3097,7 @@ class BazarItemsCompanion extends UpdateCompanion<BazarItem> {
     Value<String?>? note,
     Value<String>? status,
     Value<double?>? price,
+    Value<String?>? receiptUrl,
     Value<String?>? addedBy,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -3068,6 +3114,7 @@ class BazarItemsCompanion extends UpdateCompanion<BazarItem> {
       note: note ?? this.note,
       status: status ?? this.status,
       price: price ?? this.price,
+      receiptUrl: receiptUrl ?? this.receiptUrl,
       addedBy: addedBy ?? this.addedBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -3108,6 +3155,9 @@ class BazarItemsCompanion extends UpdateCompanion<BazarItem> {
     if (price.present) {
       map['price'] = Variable<double>(price.value);
     }
+    if (receiptUrl.present) {
+      map['receipt_url'] = Variable<String>(receiptUrl.value);
+    }
     if (addedBy.present) {
       map['added_by'] = Variable<String>(addedBy.value);
     }
@@ -3136,6 +3186,7 @@ class BazarItemsCompanion extends UpdateCompanion<BazarItem> {
           ..write('note: $note, ')
           ..write('status: $status, ')
           ..write('price: $price, ')
+          ..write('receiptUrl: $receiptUrl, ')
           ..write('addedBy: $addedBy, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -11954,6 +12005,7 @@ typedef $$BazarItemsTableCreateCompanionBuilder =
       Value<String?> note,
       required String status,
       Value<double?> price,
+      Value<String?> receiptUrl,
       Value<String?> addedBy,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -11971,6 +12023,7 @@ typedef $$BazarItemsTableUpdateCompanionBuilder =
       Value<String?> note,
       Value<String> status,
       Value<double?> price,
+      Value<String?> receiptUrl,
       Value<String?> addedBy,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -12090,6 +12143,11 @@ class $$BazarItemsTableFilterComposer
 
   ColumnFilters<double> get price => $composableBuilder(
     column: $table.price,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get receiptUrl => $composableBuilder(
+    column: $table.receiptUrl,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12229,6 +12287,11 @@ class $$BazarItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get receiptUrl => $composableBuilder(
+    column: $table.receiptUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -12323,6 +12386,11 @@ class $$BazarItemsTableAnnotationComposer
 
   GeneratedColumn<double> get price =>
       $composableBuilder(column: $table.price, builder: (column) => column);
+
+  GeneratedColumn<String> get receiptUrl => $composableBuilder(
+    column: $table.receiptUrl,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -12444,6 +12512,7 @@ class $$BazarItemsTableTableManager
                 Value<String?> note = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<double?> price = const Value.absent(),
+                Value<String?> receiptUrl = const Value.absent(),
                 Value<String?> addedBy = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -12459,6 +12528,7 @@ class $$BazarItemsTableTableManager
                 note: note,
                 status: status,
                 price: price,
+                receiptUrl: receiptUrl,
                 addedBy: addedBy,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -12476,6 +12546,7 @@ class $$BazarItemsTableTableManager
                 Value<String?> note = const Value.absent(),
                 required String status,
                 Value<double?> price = const Value.absent(),
+                Value<String?> receiptUrl = const Value.absent(),
                 Value<String?> addedBy = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -12491,6 +12562,7 @@ class $$BazarItemsTableTableManager
                 note: note,
                 status: status,
                 price: price,
+                receiptUrl: receiptUrl,
                 addedBy: addedBy,
                 createdAt: createdAt,
                 updatedAt: updatedAt,

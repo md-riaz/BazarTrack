@@ -3,6 +3,8 @@ import 'package:bazar/features/auth/data/datasources/auth_remote_datasource.dart
 import 'package:bazar/features/auth/data/models/user_model.dart';
 import 'package:bazar/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:bazar/shared/models/app_enums.dart';
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -107,6 +109,24 @@ void main() {
     expect(await localDataSource.readToken(), isNull);
     expect(await localDataSource.readUserId(), isNull);
     expect(await repository.getCurrentUser(), isNull);
+  });
+
+  test('unauthorized event clears session and current user', () async {
+    final unauthorized = StreamController<void>();
+    repository.dispose();
+    repository = AuthRepositoryImpl(
+      remoteDataSource: const MockAuthRemoteDataSource(delay: Duration.zero),
+      localDataSource: localDataSource,
+      unauthorizedEvents: unauthorized.stream,
+    );
+    await repository.login(phone: 'assistant', password: 'demo-pass');
+
+    unauthorized.add(null);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(await localDataSource.readToken(), isNull);
+    expect(await repository.getCurrentUser(), isNull);
+    await unauthorized.close();
   });
 
   test('watchCurrentUser emits login and logout changes', () async {

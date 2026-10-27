@@ -1,4 +1,3 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_providers.dart';
@@ -10,10 +9,6 @@ import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 
-final flutterSecureStorageProvider = Provider<FlutterSecureStorage>((ref) {
-  return const FlutterSecureStorage();
-});
-
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
   final config = ref.watch(apiConfigProvider);
   if (config.enabled) {
@@ -23,15 +18,14 @@ final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
 });
 
 final authLocalDataSourceProvider = Provider<AuthLocalDataSource>((ref) {
-  return SecureStorageAuthLocalDataSource(
-    ref.watch(flutterSecureStorageProvider),
-  );
+  return SecureStorageAuthLocalDataSource(ref.watch(apiSecureStorageProvider));
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final repository = AuthRepositoryImpl(
     remoteDataSource: ref.watch(authRemoteDataSourceProvider),
     localDataSource: ref.watch(authLocalDataSourceProvider),
+    unauthorizedEvents: ref.watch(apiSessionEventsProvider).unauthorized,
   );
   ref.onDispose(repository.dispose);
   return repository;

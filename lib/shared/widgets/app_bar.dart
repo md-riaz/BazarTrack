@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -29,9 +30,22 @@ class BazarAppBar extends StatelessWidget implements PreferredSizeWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (subtitle != null)
-            Text(subtitle!, style: AppTextStyles.appBarSubtitle),
-          Text(title, style: AppTextStyles.appBarTitle),
+          Row(
+            children: [
+              SvgPicture.asset('assets/images/bazar_mark.svg', width: 28, height: 28),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (subtitle != null)
+                      Text(subtitle!, style: AppTextStyles.appBarSubtitle),
+                    Text(title, style: AppTextStyles.appBarTitle),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
       actions: actions,

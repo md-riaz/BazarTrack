@@ -1,6 +1,6 @@
 # সহজ বাজার খাতা — BazarTrack
 
-BazarTrack is an offline-first Flutter app for collaborative office market management: bazar lists, fund-account balances, assistant advances, bazar item expenses, reports, and admin monthly closing. The UI is Bangla-first with common English/Banglish product terms where they are more natural for daily users.
+BazarTrack is an API-first Flutter app for collaborative office market management: bazar lists, fund-account balances, assistant advances, bazar item expenses, and reports. The PHP API is the production source of truth. Drift-backed local storage and the sync queue remain compatibility/demo infrastructure while the API migration is completed; they are not a production offline guarantee. The UI is Bangla-first with common English/Banglish product terms where they are more natural for daily users.
 
 ## Key Features
 
@@ -10,9 +10,9 @@ BazarTrack is an offline-first Flutter app for collaborative office market manag
 - Add bazar items from frequent items, manual entry, or parsed text.
 - Fund-account balance and assistant ledger tracking.
 - Fund money given entries, two-step returned-money confirmation plan, and bazar item expenses.
-- Reports and admin monthly close flows.
+- Reports, with monthly-close UI retained for local/demo verification; API mode does not expose monthly close yet.
 - Admin panel for user/fund-account management.
-- Offline-first Drift SQLite storage with sync queue UI.
+- API-backed production data flow, with Drift/SQLite compatibility storage and sync diagnostics retained during migration.
 - GoRouter navigation with bottom tabs, inner page back navigation, and root exit confirmation.
 
 ## Tech Stack
@@ -21,10 +21,10 @@ BazarTrack is an offline-first Flutter app for collaborative office market manag
 - **Framework**: Flutter
 - **State management**: Riverpod
 - **Routing**: GoRouter
-- **Local database**: Drift + SQLite
-- **Networking seams**: Dio/Retrofit + mock remote datasources
-- **Offline/sync**: Drift-backed sync queue, connectivity abstraction, sync engine seam
-- **Notifications**: Firebase Messaging + Flutter Local Notifications dependencies wired for future production use
+- **Production data source**: PHP JSON API via Dio
+- **Compatibility local database**: Drift + SQLite for demo data and the existing migration-era sync queue
+- **Connectivity**: connectivity status and queue diagnostics; full production offline synchronization is not currently promised
+- **Notifications**: in-app mock notification center; push notifications are not configured and are outside the current production scope
 - **Testing**: Flutter tests, provider tests, widget tests
 
 ## Prerequisites
@@ -34,11 +34,31 @@ BazarTrack is an offline-first Flutter app for collaborative office market manag
 
 ## Getting Started
 
+Start and seed the local development API:
+
+```bash
+php -S 127.0.0.1:8080 -t api
+```
+
+The supported setup and acceptance path is the local harness. It starts an isolated PHP server, sends the required setup requests with `POST`, seeds deterministic demo data, runs API/Flutter contract checks, and stops the server:
+
+```powershell
+pwsh -File scripts/test-local-api.ps1
+```
+
+Setup routes reject `GET` and are available only when the server runs with `APP_ENV=development` and `DEMO_MODE=true`.
+
+Then run Flutter:
+
 ```bash
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 flutter run
 ```
+
+The checked-in `assets/env/app.env` is development-only. Android emulators cannot reach the host through `127.0.0.1`; override the base URL with `--dart-define=BAZAR_API_BASE_URL=http://10.0.2.2:8080/index.php`. Physical devices require the host LAN address.
+
+Production builds must set `BAZAR_APP_ENV=production`, enable the API, use a non-local HTTPS URL, and replace every demo default ID. `ApiConfig` fails fast when those rules are violated.
 
 Build a debug APK:
 
@@ -54,11 +74,11 @@ build/app/outputs/flutter-apk/app-debug.apk
 
 ## Demo Role Login
 
-The login screen currently exposes temporary demo buttons so QA can verify role-specific behavior before production auth is connected.
+Development builds expose temporary demo buttons so QA can verify role-specific behavior against deterministic demo data. Release builds must disable them, and the production API denies setup/demo seed routes.
 
 | Button | Mock user | Role | Main purpose |
 | --- | --- | --- | --- |
-| `Login as Admin` | Admin User | Admin | Verify admin panel, all fund accounts/bazars, reports, monthly close, money entry |
+| `Login as Admin` | Admin User | Admin | Verify admin panel, all fund accounts/bazars, reports, local/demo monthly-close UI, money entry |
 | `Login as Fund Manager` | Mr. CEO | Fund Manager (`owner` role key) | Verify managed fund accounts, reports, money entry |
 | `Login as Assistant` | Rahim Uddin | Assistant | Verify shopping/bazar flow and restricted reports/admin/money-entry access |
 
@@ -71,11 +91,20 @@ const kEnableDemoRoleLogin = bool.fromEnvironment(
 );
 ```
 
-To hide them in a future production-like build:
+Disable them for any production-like build:
 
 ```bash
-flutter build apk --debug --dart-define=BAZAR_ENABLE_DEMO_ROLE_LOGIN=false
+flutter build apk --release \
+  --dart-define=BAZAR_APP_ENV=production \
+  --dart-define=BAZAR_ENABLE_DEMO_ROLE_LOGIN=false \
+  --dart-define=BAZAR_API_BASE_URL=https://api.example.com/index.php \
+  --dart-define=BAZAR_DEFAULT_FUND_ID=<production-id> \
+  --dart-define=BAZAR_DEFAULT_ACCOUNT_ID=<production-id> \
+  --dart-define=BAZAR_DEFAULT_MANAGER_ID=<production-id> \
+  --dart-define=BAZAR_DEFAULT_ASSISTANT_ID=<production-id>
 ```
+
+The release configuration intentionally fails before startup if it resolves to localhost, HTTP, a disabled API, or demo IDs.
 
 ## Role-Based App Flows
 
@@ -517,7 +546,7 @@ Additional visibility notes:
 | Fund account visibility | All fund accounts | Managed fund accounts | Linked fund accounts |
 | Bazar visibility | All bazars | Bazars in managed fund accounts | Unassigned or assigned to self |
 | Returned-money confirmation | Yes | Confirm for managed fund | Request only |
-| Monthly close | Yes | No | No |
+| Monthly close | Local/demo only; API unsupported | No | No |
 
 ## Architecture
 
@@ -557,60 +586,24 @@ presentation -> domain <- data
 
 Presentation should use providers/repositories rather than directly reaching across into data implementation details.
 
-## Offline-First Rules
+## API-First Runtime
 
-- Drift is the primary local store.
-- UI reads local state first.
-- Writes persist locally before sync.
-- Sync work is tracked in `sync_queue_items`.
-- `SyncEngine` publishes pending rows through `SyncApiClient`.
-- Current API implementation is mock/sink-based and swappable.
+- The PHP API is the production source of truth for identity, authorization, bazars, accounts, ledger entries, and reports.
+- Flutter API repositories call the backend through Dio and refresh affected Riverpod state after mutations.
+- Drift, seeded mock datasources, and `sync_queue_items` remain compatibility/demo infrastructure during the migration. API mode does not currently provide complete offline operation.
+- Connectivity and queue screens are diagnostic surfaces, not a promise that every API action can be completed offline.
+- `owner` remains the compatibility role key, while the product label is **Fund Manager** / **হিসাব ম্যানেজার**.
+- Returned money uses two operations: an assistant creates a request, then an authorized manager confirms it before ledger or balance changes.
 
-Balance is computed from:
-
-- fund money given to assistant
-- manager-confirmed returned money
-- adjustments
-- done bazar item prices
-- latest fund-account snapshot base
-- in-progress bazar spending
-
-Balance is not stored as a fund-account field in the current app; future backend may cache `current_balance` transactionally while keeping ledger entries as source of truth.
-
-## Mock-to-API Handoff
-
-The app is backend-ready through abstract seams:
-
-- Auth: `lib/features/auth/data/datasources/auth_remote_datasource.dart`
-- Fund account / current wallet seam: `lib/features/wallet/data/datasources/mock_wallet_remote_datasource.dart`
-- Bazar: `lib/features/bazar/data/datasources/mock_bazar_remote_data_source.dart`
-- Money: `lib/features/money/data/datasources/mock_money_remote_datasource.dart`
-- Sync API seam: `lib/core/sync/sync_api_client.dart`
-
-Backend planning note:
-
-- The approved backend direction is fund-account based, not fixed wallet/moneybag based.
-- `owner` remains the compatibility role key, but product label is **Fund Manager** / **হিসাব ম্যানেজার**.
-- Returned money must use two-step confirmation: assistant creates a return request; authorized fund manager confirms before ledger balance changes.
-- Full backend plan: `docs/backend-fund-account-api-plan.md`.
-
-PHP API scaffold:
+PHP API:
 
 - Source folder: `api/`
 - Router style: `api/index.php?cmd=<controller>&action=<method>&other=params`
 - Development database: SQLite at `api/storage/dev.sqlite`
 - ORM: bundled php-activerecord at `api/vendor/php-activerecord/`
 - Production database target: MySQL via `api/config.php` or environment variables
-- Initial setup endpoint: `api/index.php?cmd=setup&action=seed` creates tables and first admin; `seedDemo` is separate
+- `setup/seed` and `setup/seedDemo` are development-only operations controlled by server environment policy.
 - Local setup notes: `api/README.md`
-
-When backend is ready:
-
-1. Add real API datasource classes implementing the existing interfaces.
-2. Swap provider registration only.
-3. Keep domain repositories and UI unchanged.
-4. Run repository, sync, widget, and integration tests.
-5. Disable demo role buttons for production builds.
 
 ## Important Routes
 
@@ -671,11 +664,7 @@ Build debug APK:
 flutter build apk --debug
 ```
 
-Recently verified baseline:
-
-- `flutter analyze` — passed
-- `flutter test` — passed, 84 tests
-- `flutter build apk --debug` — passed
+Validation commands must be rerun after each production-readiness workstream; do not treat historical results as current evidence.
 
 ## Known Non-Production Gaps
 
@@ -683,11 +672,11 @@ The app is suitable for local APK/demo verification, but not production-final ye
 
 Known gaps:
 
-- Auth is still mock/demo.
-- Sync API is currently a mock/sink seam, not a production server.
-- Demo role buttons are enabled by default until production auth is ready.
-- Some business actions may still be placeholders or require final backend contracts.
-- Full manual APK QA should be repeated for each role before release.
+- Development retains deterministic demo credentials and local compatibility storage.
+- API-mode feature coverage and provider refresh behavior must pass the integration acceptance suite before release.
+- Push notifications are not configured; the current notification center uses in-app mock data.
+- Some business actions still require final API contracts or must be hidden before release.
+- Full manual APK QA must be repeated for each role before release.
 
 ## Recommended Manual QA Checklist
 

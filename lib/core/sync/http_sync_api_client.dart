@@ -1,17 +1,12 @@
 import '../api/bazar_api_client.dart';
 import 'sync_api_client.dart';
-import '../config/api_config.dart';
 import 'sync_types.dart';
 
 class HttpSyncApiClient implements SyncApiClient {
-  const HttpSyncApiClient({
-    required BazarApiClient apiClient,
-    required ApiConfig config,
-  }) : _apiClient = apiClient,
-       _config = config;
+  const HttpSyncApiClient({required BazarApiClient apiClient, Object? config})
+    : _apiClient = apiClient;
 
   final BazarApiClient _apiClient;
-  final ApiConfig _config;
 
   @override
   Future<void> send(SyncRequest request) async {
@@ -39,10 +34,7 @@ class HttpSyncApiClient implements SyncApiClient {
       await _apiClient.post(
         'bazars',
         'close',
-        body: {
-          'id': request.entityId,
-          'closedBy': _actorId(payload['assigned_to'] ?? payload['created_by']),
-        },
+        body: {'id': request.entityId},
         idempotencyKey: 'sync-bazar-close-${request.entityId}',
       );
       return;
@@ -53,11 +45,10 @@ class HttpSyncApiClient implements SyncApiClient {
       'create',
       body: {
         'id': request.entityId,
-        'fundId': _fundId(payload['wallet_id']),
-        'accountId': _accountId(payload['wallet_id']),
+        'fundId': payload['fund_id'] ?? payload['wallet_id'],
+        'accountId': payload['account_id'],
         'title': payload['title'] ?? 'আজকের বাজার',
-        'createdBy': _actorId(payload['created_by']),
-        'assignedTo': _actorId(payload['assigned_to']),
+        'assignedTo': payload['assigned_to'],
         'status': payload['status'] ?? 'open',
         'bazarDate': _dateOnly(payload['bazar_date']),
       }..removeWhere((_, value) => value == null),
@@ -105,24 +96,11 @@ class HttpSyncApiClient implements SyncApiClient {
         'create',
         body: {
           'id': returnId,
-          'accountId': _accountId(payload['wallet_id']),
+          'accountId': payload['account_id'] ?? payload['wallet_id'],
           'amount': payload['amount'],
-          'requestedBy': _actorId(payload['assistant_id']),
-          'expectedReceiverId': _actorId(payload['created_by']),
           'note': payload['note'],
         }..removeWhere((_, value) => value == null),
         idempotencyKey: 'sync-return-create-${request.entityId}',
-      );
-      await _apiClient.post(
-        'returns',
-        'confirm',
-        body: {
-          'id': returnId,
-          'confirmedBy': _actorId(payload['created_by']),
-          'receivedBy': _actorId(payload['created_by']),
-          'entryDate': _dateOnly(payload['entry_date']),
-        },
-        idempotencyKey: 'sync-return-confirm-${request.entityId}',
       );
       return;
     }
@@ -132,10 +110,8 @@ class HttpSyncApiClient implements SyncApiClient {
       'give',
       body: {
         'id': request.entityId,
-        'accountId': _accountId(payload['wallet_id']),
+        'accountId': payload['account_id'] ?? payload['wallet_id'],
         'amount': payload['amount'],
-        'createdBy': _actorId(payload['created_by']),
-        'paidBy': _actorId(payload['created_by']),
         'note': payload['note'],
         'entryDate': _dateOnly(payload['entry_date']),
       }..removeWhere((_, value) => value == null),
@@ -150,47 +126,12 @@ class HttpSyncApiClient implements SyncApiClient {
       'create',
       body: {
         'id': request.entityId,
-        'accountId': _accountId(payload['wallet_id'] ?? payload['account_id']),
+        'accountId': payload['account_id'] ?? payload['wallet_id'],
         'amount': payload['amount'],
-        'requestedBy': _actorId(
-          payload['requested_by'] ?? payload['assistant_id'],
-        ),
-        'expectedReceiverId': _actorId(payload['expected_receiver_id']),
         'note': payload['note'],
       }..removeWhere((_, value) => value == null),
       idempotencyKey: 'sync-return-request-${request.entityId}',
     );
-  }
-
-  String _fundId(Object? localWalletId) {
-    final walletId = localWalletId?.toString();
-    if (walletId == null ||
-        walletId.isEmpty ||
-        walletId == _config.defaultAccountId) {
-      return _config.defaultFundId;
-    }
-    return walletId;
-  }
-
-  String _accountId(Object? localWalletId) {
-    final walletId = localWalletId?.toString();
-    if (walletId == null ||
-        walletId.isEmpty ||
-        walletId == _config.defaultFundId ||
-        walletId.startsWith('w')) {
-      return _config.defaultAccountId;
-    }
-    return walletId;
-  }
-
-  String _actorId(Object? localId) {
-    return switch (localId?.toString()) {
-      null || '' => _config.defaultManagerId,
-      'u0' => 'admin1',
-      'u1' => _config.defaultAssistantId,
-      'u3' => _config.defaultManagerId,
-      final value => value,
-    };
   }
 
   String? _dateOnly(Object? value) {

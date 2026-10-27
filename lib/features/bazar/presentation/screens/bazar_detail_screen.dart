@@ -9,6 +9,8 @@ import '../../../../shared/widgets/app_bar.dart';
 import '../../../../shared/widgets/ghost_button.dart';
 import '../../../../shared/widgets/primary_button.dart';
 import '../../../../shared/widgets/section_header.dart';
+import '../../../../shared/widgets/receipt_image.dart';
+import '../../../../shared/widgets/content_skeleton.dart';
 import '../../domain/entities/bazar_entities.dart';
 import '../providers/bazar_providers.dart';
 import '../widgets/activity_timeline_widget.dart';
@@ -87,7 +89,7 @@ class BazarDetailScreen extends ConsumerWidget {
               ],
             ),
             error: (error, _) => Center(child: Text(error.toString())),
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const ContentSkeleton(rows: 5),
           ),
           bottomNavigationBar: SafeArea(
             top: false,
@@ -120,8 +122,7 @@ class BazarDetailScreen extends ConsumerWidget {
       },
       error: (error, _) =>
           Scaffold(body: Center(child: Text(error.toString()))),
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () => const Scaffold(body: ContentSkeleton(rows: 5)),
     );
   }
 }
@@ -299,18 +300,27 @@ class _ItemTile extends StatelessWidget {
           ].where((value) => value != null && value.isNotEmpty).join(' · '),
           style: AppTextStyles.bodySmall,
         ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            itemStatusChip(item.status),
-            if (item.price != null && item.price! > 0) ...[
-              const SizedBox(height: 4),
-              Text(
-                CurrencyFormatter.format(item.price!),
-                style: AppTextStyles.bodySmall,
-              ),
+            if (item.receiptUrl != null) ...[
+              ReceiptImage(receiptUrl: item.receiptUrl, size: 40),
+              const SizedBox(width: 8),
             ],
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                itemStatusChip(item.status),
+                if (item.price != null && item.price! > 0) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    CurrencyFormatter.format(item.price!),
+                    style: AppTextStyles.bodySmall,
+                  ),
+                ],
+              ],
+            ),
           ],
         ),
       ),

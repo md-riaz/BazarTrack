@@ -1,3 +1,4 @@
+import 'api_dtos.dart';
 import '../../../core/api/bazar_api_client.dart';
 import '../../../core/config/api_config.dart';
 import '../../../shared/models/app_enums.dart';
@@ -28,16 +29,22 @@ class ApiAuthRemoteDataSource implements AuthRemoteDataSource {
       'login',
       body: {'phone': phone, 'password': password},
     );
+    final dto = ApiLoginDto.fromJson(data);
     return AuthRemoteResponse(
-      token: data['token'] as String,
-      user: _userFromJson(_asMap(data['user'])),
+      token: dto.token,
+      user: _userFromDto(dto.user),
     );
   }
 
   @override
   Future<UserModel> getUserByToken(String token) async {
-    final data = await _client.post('auth', 'user', body: {'token': token});
-    return _userFromJson(data);
+    final data = await _client.get('auth', 'me');
+    return _userFromDto(ApiUserDto.fromJson(_asMap(data['user'] ?? data)));
+  }
+
+  @override
+  Future<void> logout() async {
+    await _client.post('auth', 'logout');
   }
 }
 
@@ -78,11 +85,7 @@ class ApiAdminRemoteDataSource implements AdminRemoteDataSource {
     final data = await _client.post(
       'funds',
       'create',
-      body: {
-        'name': request.name,
-        'type': _fundTypeFor(request.type),
-        'createdBy': 'admin1',
-      },
+      body: {'name': request.name, 'type': _fundTypeFor(request.type)},
     );
     for (final ownerId in request.ownerIds) {
       await _client.post(
@@ -96,7 +99,7 @@ class ApiAdminRemoteDataSource implements AdminRemoteDataSource {
 
   @override
   Future<AdminWallet> updateWallet(UpdateAdminWalletRequest request) {
-    throw UnsupportedError('Fund account update API is not available yet');
+    throw StateError('Fund account update is not available in API mode');
   }
 
   @override
@@ -104,7 +107,7 @@ class ApiAdminRemoteDataSource implements AdminRemoteDataSource {
     required String walletId,
     required bool isActive,
   }) {
-    throw UnsupportedError('Fund account activation API is not available yet');
+    throw StateError('Fund account activation is not available in API mode');
   }
 }
 
@@ -124,11 +127,9 @@ class ApiBazarRemoteDataSource extends MockBazarRemoteDataSource {
   ApiBazarRemoteDataSource({
     required BazarApiClient client,
     required ApiConfig config,
-  }) : _client = client,
-       _config = config;
+  }) : _client = client;
 
   final BazarApiClient _client;
-  final ApiConfig _config;
 
   @override
   Future<List<Bazar>> fetchBazars() async {
@@ -146,8 +147,7 @@ class ApiBazarRemoteDataSource extends MockBazarRemoteDataSource {
         'fundId': _fundIdFor(bazar.walletId),
         'accountId': _accountIdFor(bazar.walletId),
         'title': bazar.title ?? 'আজকের বাজার',
-        'createdBy': _actorId(bazar.createdBy),
-        'assignedTo': _actorId(bazar.assignedTo),
+        'assignedTo': bazar.assignedTo,
         'status': _bazarStatusToApi(bazar.status),
         'bazarDate': _dateOnly(bazar.bazarDate),
       },
@@ -188,42 +188,22 @@ class ApiBazarRemoteDataSource extends MockBazarRemoteDataSource {
     await _client.post(
       'bazars',
       'close',
-      body: {
-        'id': bazar.id,
-        'closedBy': _actorId(bazar.assignedTo ?? bazar.createdBy),
-      },
+      body: {'id': bazar.id},
       idempotencyKey: 'bazar-close-${bazar.id}',
     );
   }
 
-  String _fundIdFor(String walletId) =>
-      walletId == _config.defaultAccountId || walletId.startsWith('w')
-      ? _config.defaultFundId
-      : walletId;
-  String _accountIdFor(String walletId) =>
-      walletId == _config.defaultFundId || walletId.startsWith('w')
-      ? _config.defaultAccountId
-      : walletId;
-  String _actorId(String? localId) {
-    return switch (localId) {
-      null || '' => _config.defaultManagerId,
-      'u0' => 'admin1',
-      'u1' => _config.defaultAssistantId,
-      'u3' => _config.defaultManagerId,
-      _ => localId,
-    };
-  }
+  String _fundIdFor(String walletId) => walletId;
+  String _accountIdFor(String walletId) => walletId;
 }
 
 class ApiMoneyRemoteDataSource implements MoneyRemoteDataSource {
   const ApiMoneyRemoteDataSource({
     required BazarApiClient client,
     required ApiConfig config,
-  }) : _client = client,
-       _config = config;
+  }) : _client = client;
 
   final BazarApiClient _client;
-  final ApiConfig _config;
 
   @override
   Future<void> publishMoneyEntry(MoneyEntry entry) async {
@@ -236,8 +216,6 @@ class ApiMoneyRemoteDataSource implements MoneyRemoteDataSource {
           'id': entry.id,
           'accountId': _accountIdFor(entry.walletId),
           'amount': entry.amount.abs(),
-          'createdBy': _actorId(entry.createdBy ?? _config.defaultManagerId),
-          'paidBy': _actorId(entry.createdBy ?? _config.defaultManagerId),
           'note': entry.note,
           'entryDate': _dateOnly(entry.entryDate),
         }..removeWhere((_, value) => value == null),
@@ -246,40 +224,22 @@ class ApiMoneyRemoteDataSource implements MoneyRemoteDataSource {
       return;
     }
 
-    final returnId = 'return-${entry.id}';
     await _client.post(
       'returns',
       'create',
       body: {
-        'id': returnId,
+        'id': 'return-${entry.id}',
         'accountId': _accountIdFor(entry.walletId),
         'amount': entry.amount.abs(),
-        'requestedBy': _actorId(entry.assistantId),
-        'expectedReceiverId': _actorId(
-          entry.createdBy ?? _config.defaultManagerId,
-        ),
         'note': entry.note,
       }..removeWhere((_, value) => value == null),
       idempotencyKey: 'return-create-${entry.id}',
-    );
-    await _client.post(
-      'returns',
-      'confirm',
-      body: {
-        'id': returnId,
-        'confirmedBy': _actorId(entry.createdBy ?? _config.defaultManagerId),
-        'receivedBy': _actorId(entry.createdBy ?? _config.defaultManagerId),
-        'entryDate': _dateOnly(entry.entryDate),
-      },
-      idempotencyKey: 'return-confirm-${entry.id}',
     );
   }
 
   @override
   Future<void> publishDirectExpense(DirectExpense expense) async {
-    throw UnsupportedError(
-      'Direct expense is not supported by fund account API',
-    );
+    throw StateError('Direct expense is not available in API mode');
   }
 
   @override
@@ -295,18 +255,7 @@ class ApiMoneyRemoteDataSource implements MoneyRemoteDataSource {
     return _list(data).map(_moneyEntryFromJson).toList(growable: false);
   }
 
-  String _accountIdFor(String walletId) =>
-      walletId == _config.defaultFundId || walletId.startsWith('w')
-      ? _config.defaultAccountId
-      : walletId;
-  String _actorId(String localId) {
-    return switch (localId) {
-      'u0' => 'admin1',
-      'u1' => _config.defaultAssistantId,
-      'u3' => _config.defaultManagerId,
-      _ => localId,
-    };
-  }
+  String _accountIdFor(String walletId) => walletId;
 }
 
 MoneyEntry _moneyEntryFromJson(Map<String, dynamic> json) {
@@ -325,16 +274,17 @@ MoneyEntry _moneyEntryFromJson(Map<String, dynamic> json) {
   );
 }
 
-UserModel _userFromJson(Map<String, dynamic> json) {
+UserModel _userFromDto(ApiUserDto dto) {
   return UserModel(
-    id: json['id']?.toString() ?? '',
-    name: json['name']?.toString() ?? '',
-    role: _userRoleFromApi(json['role']?.toString()),
-    isActive: _boolFromApi(json['is_active'] ?? json['isActive']),
-    phone: json['phone']?.toString(),
-    email: json['email']?.toString(),
+    id: dto.id,
+    name: dto.name,
+    role: _userRoleFromApi(dto.role),
+    isActive: dto.isActive,
+    phone: dto.phone,
+    email: dto.email,
   );
 }
+
 
 AdminUser _adminUserFromJson(Map<String, dynamic> json) {
   return AdminUser(
@@ -460,7 +410,11 @@ EntryType _entryTypeFromApi(String? value) {
 
 double _doubleFromApi(Object? value) {
   if (value is num) return value.toDouble();
-  return double.tryParse(value?.toString() ?? '') ?? 0;
+  final parsed = double.tryParse(value?.toString() ?? '');
+  if (parsed == null) {
+    throw const FormatException('API returned invalid number');
+  }
+  return parsed;
 }
 
 bool _boolFromApi(Object? value) {
@@ -470,9 +424,21 @@ bool _boolFromApi(Object? value) {
 }
 
 DateTime _dateTime(Object? value) {
-  final text = value?.toString();
-  if (text == null || text.isEmpty) return DateTime.now();
-  return DateTime.tryParse(text) ?? DateTime.now();
+  final normalized = _activeRecordDateText(value);
+  final parsed = normalized == null ? null : DateTime.tryParse(normalized);
+  if (parsed == null) {
+    throw const FormatException('API returned an invalid date');
+  }
+  return parsed;
+}
+
+String? _activeRecordDateText(Object? value) {
+  if (value == null) return null;
+  if (value is Map) {
+    final mapped = _asMap(value);
+    return (mapped['date'] ?? mapped['value'])?.toString();
+  }
+  return value.toString();
 }
 
 String _dateOnly(DateTime date) => date.toIso8601String().split('T').first;

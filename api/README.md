@@ -141,5 +141,19 @@ Idempotency-Key: <client_operation_id>
 X-Client-Id: <device_id>
 ```
 
-Current scaffold stores `Idempotency-Key` on money entries and return requests.
+The API scopes idempotency by company, authenticated actor, client ID, and operation key. Reusing a key with a different payload returns `409`.
+
+## Database upgrades and release gate
+
+The migration runner deliberately refuses an existing unversioned legacy database. The former `CREATE TABLE IF NOT EXISTS` schema cannot be safely marked current because it lacks the present foreign keys, checks, and idempotency columns. Upgrade procedure:
+
+1. Stop writes and take a verified backup.
+2. Export legacy business data.
+3. Create a fresh database and run the numbered migrations.
+4. Import through a reviewed transformation that satisfies current constraints.
+5. Run ledger reconciliation and the strict local acceptance harness before cutover.
+
+Never bypass this protection by manually populating `schema_migrations`.
+
+Local SQLite verification is necessary but not sufficient for release. Run `scripts/test-mysql-api.ps1` to verify MySQL 8 fresh migrations, reruns, interrupted-index recovery, the financial API journey, concurrent idempotency, and reconciliation in isolated Docker containers. The gate has executable local coverage, but independent review and target-environment backup restoration are still required before production approval.
 
