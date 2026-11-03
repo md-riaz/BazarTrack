@@ -65,18 +65,70 @@ final class AuthController extends BaseController
         return ['revoked' => true];
     }
 
+    public function changePassword(array $input): array
+    {
+        $principal = Auth::principal();
+        $this->beginWriteTransaction();
+        try {
+            $user = $this->findUserById($principal->userId, true);
+            if ($user === null || !$this->passwordMatches($user, $input['currentPassword'])) {
+                $this->rollbackWriteTransaction();
+                Response::error('Current password is incorrect', 422);
+            }
+            $token = $this->findTokenById($principal->tokenId, true);
+            if ($token === null || $token['revoked_at'] !== null || (string)$token['user_id'] !== $principal->userId) {
+                $this->rollbackWriteTransaction();
+                Response::error('Invalid authentication token', 401);
+            }
+            $updated = Ar::update('User', $principal->userId, [
+                'password_hash' => password_hash($input['newPassword'], PASSWORD_DEFAULT),
+                'must_change_password' => 0,
+                'updated_at' => $this->now(),
+            ]);
+            $statement = $this->pdo()->prepare('update api_tokens set revoked_at = :revoked_at where user_id = :user_id and id <> :current_token_id and revoked_at is null');
+            $statement->execute([
+                'revoked_at' => $this->now(),
+                'user_id' => $principal->userId,
+                'current_token_id' => $principal->tokenId,
+            ]);
+            $this->commitWriteTransaction();
+            return ['changed' => true, 'user' => $this->publicUser($updated)];
+        } catch (\Throwable $error) {
+            $this->rollbackWriteTransaction();
+            throw $error;
+        }
+    }
+
     private function findUserForLogin(string $login): ?array
     {
+        $companyId = (string)Config::get('app.default_company_id', 'company1');
         foreach (['phone', 'email', 'id'] as $field) {
-            $user = Ar::first('User', [
-                'company_id' => Config::get('app.default_company_id', 'company1'),
-                $field => $login,
-            ]);
-            if ($user !== null) {
+            $statement = $this->pdo()->prepare("select * from users where company_id = :company_id and {$field} = :login limit 1");
+            $statement->execute(['company_id' => $companyId, 'login' => $login]);
+            $user = $statement->fetch(\PDO::FETCH_ASSOC);
+            if ($user !== false) {
                 return $user;
             }
         }
         return null;
+    }
+
+    private function findUserById(string $id, bool $lock = false): ?array
+    {
+        $suffix = $lock && $this->pdo()->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' for update' : '';
+        $statement = $this->pdo()->prepare("select * from users where id = :id limit 1{$suffix}");
+        $statement->execute(['id' => $id]);
+        $user = $statement->fetch(\PDO::FETCH_ASSOC);
+        return $user === false ? null : $user;
+    }
+
+    private function findTokenById(string $id, bool $lock = false): ?array
+    {
+        $suffix = $lock && $this->pdo()->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' for update' : '';
+        $statement = $this->pdo()->prepare("select * from api_tokens where id = :id limit 1{$suffix}");
+        $statement->execute(['id' => $id]);
+        $token = $statement->fetch(\PDO::FETCH_ASSOC);
+        return $token === false ? null : $token;
     }
 
     private function passwordMatches(array $user, string $password): bool

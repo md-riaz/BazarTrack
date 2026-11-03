@@ -96,6 +96,7 @@ Disable them for any production-like build:
 ```bash
 flutter build apk --release \
   --dart-define=BAZAR_APP_ENV=production \
+  --dart-define=BAZAR_API_ENABLED=true \
   --dart-define=BAZAR_ENABLE_DEMO_ROLE_LOGIN=false \
   --dart-define=BAZAR_API_BASE_URL=https://api.example.com/index.php \
   --dart-define=BAZAR_DEFAULT_FUND_ID=<production-id> \
@@ -105,6 +106,19 @@ flutter build apk --release \
 ```
 
 The release configuration intentionally fails before startup if it resolves to localhost, HTTP, a disabled API, or demo IDs.
+
+### Android release signing
+
+The Android application ID is `com.bazartrack.app`. Before building any release artifact, provide an **untracked** `android/key.properties` file that references a protected upload keystore outside this repository:
+
+```properties
+storeFile=/absolute/path/to/bazartrack-upload.jks
+storePassword=<keystore-password>
+keyAlias=<upload-key-alias>
+keyPassword=<upload-key-password>
+```
+
+Release builds fail immediately when this file, a required property, or the referenced keystore is missing. They never fall back to the debug signing key. In CI, materialize this file and the keystore from protected secrets, then build an AAB with the production `--dart-define` values above.
 
 ## Role-Based App Flows
 

@@ -40,6 +40,7 @@ void main() {
       const CreateAdminUserRequest(
         name: 'New Owner',
         phone: '01700-000000',
+        password: 'Temp1234',
         role: AdminRole.owner,
         walletIds: ['w1', 'w2'],
       ),

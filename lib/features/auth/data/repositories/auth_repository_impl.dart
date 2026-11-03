@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../../../../core/api/bazar_api_client.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -42,6 +43,19 @@ class AuthRepositoryImpl implements AuthRepository {
     } catch (_) {
       throw const AuthFailure('লগইন করা যায়নি। আবার চেষ্টা করুন।');
     }
+  }
+
+  @override
+  Future<User> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = await _remoteDataSource.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+    _setCurrentUser(user);
+    return user;
   }
 
   @override
@@ -93,10 +107,14 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = await _remoteDataSource.getUserByToken(token);
       _setCurrentUser(user);
       return user;
+    } on BazarApiException catch (error) {
+      if (error.statusCode == 401) {
+        await _clearLocalSession();
+        return null;
+      }
+      rethrow;
     } catch (_) {
-      await _localDataSource.clearSession();
-      _setCurrentUser(null);
-      return null;
+      rethrow;
     }
   }
 

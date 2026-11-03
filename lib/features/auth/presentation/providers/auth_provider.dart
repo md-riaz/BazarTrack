@@ -58,6 +58,24 @@ class LoginController extends StateNotifier<AsyncValue<User?>> {
     }
   }
 
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    state = const AsyncLoading();
+    try {
+      final user = await _repository.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+      state = AsyncData(user);
+      return true;
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     state = const AsyncLoading();
     try {

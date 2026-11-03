@@ -43,6 +43,22 @@ class ApiAuthRemoteDataSource implements AuthRemoteDataSource {
   }
 
   @override
+  Future<UserModel> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final data = await _client.post(
+      'auth',
+      'changePassword',
+      body: {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      },
+    );
+    return _userFromDto(ApiUserDto.fromJson(_asMap(data['user'])));
+  }
+
+  @override
   Future<void> logout() async {
     await _client.post('auth', 'logout');
   }
@@ -75,9 +91,22 @@ class ApiAdminRemoteDataSource implements AdminRemoteDataSource {
         'role': request.role.value,
         'name': request.name,
         'phone': request.phone,
+        'password': request.password,
       },
     );
     return _adminUserFromJson(data);
+  }
+
+  @override
+  Future<void> setUserActive({
+    required String userId,
+    required bool isActive,
+  }) async {
+    await _client.post(
+      'users',
+      'setActive',
+      body: {'id': userId, 'isActive': isActive},
+    );
   }
 
   @override
@@ -282,6 +311,7 @@ UserModel _userFromDto(ApiUserDto dto) {
     isActive: dto.isActive,
     phone: dto.phone,
     email: dto.email,
+    mustChangePassword: dto.mustChangePassword,
   );
 }
 

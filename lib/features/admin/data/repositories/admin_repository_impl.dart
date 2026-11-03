@@ -19,10 +19,20 @@ class AdminRepositoryImpl implements AdminRepository {
 
   @override
   Future<AdminUser> createUser(CreateAdminUserRequest request) {
-    if (request.name.trim().isEmpty || request.phone.trim().isEmpty) {
-      throw ArgumentError('নাম ও ফোন নম্বর আবশ্যক');
+    if (request.name.trim().isEmpty ||
+        request.phone.trim().isEmpty ||
+        request.password.isEmpty) {
+      throw ArgumentError('নাম, ফোন নম্বর ও অস্থায়ী পাসওয়ার্ড আবশ্যক');
     }
     return _remoteDataSource.createUser(request);
+  }
+
+  @override
+  Future<void> setUserActive({
+    required String userId,
+    required bool isActive,
+  }) {
+    return _remoteDataSource.setUserActive(userId: userId, isActive: isActive);
   }
 
   @override

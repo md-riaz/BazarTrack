@@ -194,6 +194,8 @@ class _UsersSection extends ConsumerWidget {
                 _UserTile(
                   user: items[index],
                   showDivider: index < items.length - 1,
+                  onToggleActive: () =>
+                      _toggleUserActive(context, ref, items[index]),
                 ),
             ],
           ),
@@ -204,6 +206,46 @@ class _UsersSection extends ConsumerWidget {
         child: Text('ইউজার লোড করা যায়নি', style: AppTextStyles.body),
       ),
     );
+  }
+}
+
+Future<void> _toggleUserActive(
+  BuildContext context,
+  WidgetRef ref,
+  AdminUser user,
+) async {
+  if (user.isActive) {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('ইউজার নিষ্ক্রিয় করবেন?'),
+        content: Text('${user.name} আর লগইন করতে পারবেন না।'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('না'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('নিষ্ক্রিয় করুন'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+  }
+  try {
+    await ref.read(adminRepositoryProvider).setUserActive(
+      userId: user.id,
+      isActive: !user.isActive,
+    );
+    ref.invalidate(adminUsersProvider);
+  } catch (error) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$error')),
+      );
+    }
   }
 }
 
@@ -341,10 +383,15 @@ class _CardList extends StatelessWidget {
 }
 
 class _UserTile extends StatelessWidget {
-  const _UserTile({required this.user, required this.showDivider});
+  const _UserTile({
+    required this.user,
+    required this.showDivider,
+    required this.onToggleActive,
+  });
 
   final AdminUser user;
   final bool showDivider;
+  final VoidCallback onToggleActive;
 
   @override
   Widget build(BuildContext context) {
@@ -395,10 +442,16 @@ class _UserTile extends StatelessWidget {
                   background: colors.$1,
                   foreground: colors.$2,
                 ),
-                if (!user.isActive) ...[
-                  const SizedBox(height: 4),
-                  Text('নিষ্ক্রিয়', style: AppTextStyles.caption),
-                ],
+                const SizedBox(height: 4),
+                InkWell(
+                  onTap: onToggleActive,
+                  child: Text(
+                    user.isActive ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
               ],
             ),
           ],

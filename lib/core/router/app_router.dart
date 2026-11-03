@@ -10,6 +10,8 @@ import '../../features/admin/presentation/screens/admin_audit_screen.dart';
 import '../../features/admin/presentation/screens/admin_screen.dart';
 import '../../features/auth/domain/services/role_permissions.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/auth/presentation/screens/auth_restore_screen.dart';
+import '../../features/auth/presentation/screens/change_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/bazar/domain/entities/bazar_entities.dart';
 import '../../features/bazar/presentation/providers/bazar_providers.dart';
@@ -54,9 +56,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: AppRoutes.home,
     redirect: (context, state) {
+      final isRestoring = state.matchedLocation == AppRoutes.authRestore;
       final isLoggingIn = state.matchedLocation == AppRoutes.login;
+      final isChangingPassword =
+          state.matchedLocation == AppRoutes.changePassword;
       final user = currentUser.valueOrNull;
       final isAuthenticated = user != null;
+
+      if (currentUser.isLoading || currentUser.hasError) {
+        return isRestoring ? null : AppRoutes.authRestore;
+      }
+
+      if (isRestoring) {
+        return user == null
+            ? AppRoutes.login
+            : user.mustChangePassword
+            ? AppRoutes.changePassword
+            : AppRoutes.home;
+      }
+
+      if (user?.mustChangePassword == true && !isChangingPassword) {
+        return AppRoutes.changePassword;
+      }
+      if (user?.mustChangePassword != true && isChangingPassword) {
+        return user == null ? AppRoutes.login : AppRoutes.home;
+      }
 
       if (!isAuthenticated && !isLoggingIn) {
         return AppRoutes.login;
@@ -78,9 +102,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(
+        path: AppRoutes.authRestore,
+        name: 'auth-restore',
+        builder: (context, state) => const AuthRestoreScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.login,
         name: 'login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.changePassword,
+        name: 'change-password',
+        builder: (context, state) => const ChangePasswordScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) => MainShell(
@@ -300,7 +334,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 class AppRoutes {
   const AppRoutes._();
 
+  static const authRestore = '/auth-restore';
   static const login = '/login';
+  static const changePassword = '/change-password';
   static const home = '/';
   static const bazarList = '/bazars';
   static const bazarDetailPath = '/bazars/:bazarId';
@@ -511,7 +547,8 @@ String? apiAdminRouteRedirect({
 }
 
 bool _canAccessRoute(String route, UserRole role) {
-  if (route == AppRoutes.admin || route == AppRoutes.adminAudit ||
+  if (route == AppRoutes.admin ||
+      route == AppRoutes.adminAudit ||
       route == AppRoutes.addUser ||
       route == AppRoutes.addWallet ||
       _isWalletEditLocation(route)) {

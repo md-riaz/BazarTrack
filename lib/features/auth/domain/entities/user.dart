@@ -10,6 +10,7 @@ class User extends Equatable {
     required this.isActive,
     this.phone,
     this.email,
+    this.mustChangePassword = false,
   });
 
   final String id;
@@ -18,10 +19,19 @@ class User extends Equatable {
   final bool isActive;
   final String? phone;
   final String? email;
+  final bool mustChangePassword;
 
   bool get isOwner => role == UserRole.owner || role == UserRole.admin;
   bool get isAssistant => role == UserRole.assistant;
 
   @override
-  List<Object?> get props => [id, name, role, isActive, phone, email];
+  List<Object?> get props => [
+    id,
+    name,
+    role,
+    isActive,
+    phone,
+    email,
+    mustChangePassword,
+  ];
 }

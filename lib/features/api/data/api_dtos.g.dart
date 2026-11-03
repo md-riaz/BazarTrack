@@ -24,6 +24,9 @@ ApiUserDto _$ApiUserDtoFromJson(Map<String, dynamic> json) => ApiUserDto(
   isActive: _apiBool(json['is_active']),
   phone: json['phone'] as String?,
   email: json['email'] as String?,
+  mustChangePassword: json['must_change_password'] == null
+      ? false
+      : _apiBool(json['must_change_password']),
 );
 
 Map<String, dynamic> _$ApiUserDtoToJson(ApiUserDto instance) =>
@@ -35,6 +38,7 @@ Map<String, dynamic> _$ApiUserDtoToJson(ApiUserDto instance) =>
       'is_active': instance.isActive,
       'phone': instance.phone,
       'email': instance.email,
+      'must_change_password': instance.mustChangePassword,
     };
 
 ApiLoginDto _$ApiLoginDtoFromJson(Map<String, dynamic> json) => ApiLoginDto(

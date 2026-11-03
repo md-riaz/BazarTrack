@@ -16,6 +16,11 @@ abstract class AuthRemoteDataSource {
 
   Future<UserModel> getUserByToken(String token);
 
+  Future<UserModel> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+
   Future<void> logout();
 }
 
@@ -94,6 +99,15 @@ class MockAuthRemoteDataSource implements AuthRemoteDataSource {
   Future<UserModel> getUserByToken(String token) async {
     await Future<void>.delayed(delay);
     return _usersByToken[token] ?? seededUser;
+  }
+
+  @override
+  Future<UserModel> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await Future<void>.delayed(delay);
+    return seededUser;
   }
 
   @override

@@ -24,6 +24,20 @@ final class Validator
         if ($route === 'users.create') {
             $input['role'] = Request::enum($input, 'role', ['admin', 'owner', 'assistant']);
             $input['name'] = Request::string($input, 'name', 190);
+            self::password($input, 'password');
+        }
+        if ($route === 'users.resetPassword') {
+            self::password($input, 'password');
+        }
+        if ($route === 'users.setActive') {
+            Request::require($input, ['id', 'isActive']);
+            if (!is_bool($input['isActive'])) {
+                Response::error('Invalid field', 422, ['field' => 'isActive']);
+            }
+        }
+        if ($route === 'auth.changePassword') {
+            Request::string($input, 'currentPassword', 255);
+            self::password($input, 'newPassword');
         }
         if ($route === 'bazars.create') {
             $input['title'] = Request::string($input, 'title', 190);
@@ -75,6 +89,15 @@ final class Validator
                 Request::optionalEnum($input, 'status', $allowed);
             }
         }
+    }
+
+    private static function password(array &$data, string $field): void
+    {
+        $value = Request::string($data, $field, 255);
+        if (strlen($value) < 10) {
+            Response::error('Password must be at least 10 characters', 422, ['field' => $field]);
+        }
+        $data[$field] = $value;
     }
 
     private static function optionalString(array $data, string $field, string $path, int $maxLength): void

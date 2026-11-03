@@ -71,6 +71,7 @@ final class Schema
             'money_return_requests' => ['client_id', 'request_fingerprint'],
             'ledger_entries' => ['balance_before', 'balance_after', 'reverses_ledger_entry_id', 'ledger_sequence', 'idempotency_key', 'client_id', 'request_fingerprint'],
             'bazar_items' => ['receipt_url'],
+            'users' => ['must_change_password'],
         ] as $table => $requiredColumns) {
             $available = self::columnNames($db, $table);
             $missing = array_values(array_diff($requiredColumns, $available));
@@ -161,6 +162,12 @@ final class Schema
                     'alter table ledger_entries add column client_id varchar(120) null',
                     'alter table ledger_entries add column request_fingerprint varchar(64) null',
                     'create unique index if not exists uq_ledger_idempotency on ledger_entries (company_id, created_by, client_id, idempotency_key)',
+                ],
+            ],
+            7 => [
+                'name' => 'account_password_lifecycle',
+                'statements' => [
+                    'alter table users add column must_change_password integer not null default 0',
                 ],
             ],
         ];

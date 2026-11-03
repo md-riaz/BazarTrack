@@ -224,6 +224,45 @@ try {
     $revoked = Invoke-Api -Command auth -Action me -Token $logoutSession.token -ExpectedStatus @(401)
     Assert-Equal $revoked.Status 401 'Revoked token cannot access auth/me'
 
+    $shortTemporaryPassword = Invoke-Api -Command users -Action create -Method POST -Token $admin.token -Body @{id='lifecycle-short'; role='assistant'; name='Short Password'; phone='01001'; password='short'} -ExpectedStatus @(422)
+    Assert-Equal $shortTemporaryPassword.Status 422 'Admin-created temporary password requires at least 10 characters'
+    $createdLifecycleUser = Invoke-Api -Command users -Action create -Method POST -Token $admin.token -Body @{id='lifecycle1'; role='assistant'; name='Lifecycle User'; phone='01002'; password='temporary1'}
+    Assert-True ($createdLifecycleUser.Body.data.must_change_password -eq 1) 'Admin-created account is forced to change its temporary password'
+    $lifecycleLogin = Invoke-Api -Command auth -Action login -Method POST -Body @{phone='01002'; password='temporary1'}
+    $otherLifecycleLogin = Invoke-Api -Command auth -Action login -Method POST -Body @{phone='01002'; password='temporary1'}
+    Assert-True ($lifecycleLogin.Body.data.user.must_change_password -eq 1) 'Login exposes required password-change state'
+    $forcedRoute = Invoke-Api -Command funds -Action list -Token $lifecycleLogin.Body.data.token -ExpectedStatus @(403)
+    Assert-Equal $forcedRoute.Status 403 'Temporary-password account cannot use protected business routes'
+    $shortChange = Invoke-Api -Command auth -Action changePassword -Method POST -Token $lifecycleLogin.Body.data.token -Body @{currentPassword='temporary1'; newPassword='short'} -ExpectedStatus @(422)
+    Assert-Equal $shortChange.Status 422 'New password requires at least 10 characters'
+    $wrongCurrentPassword = Invoke-Api -Command auth -Action changePassword -Method POST -Token $lifecycleLogin.Body.data.token -Body @{currentPassword='incorrect-password'; newPassword='permanent12'} -ExpectedStatus @(422)
+    Assert-Equal $wrongCurrentPassword.Status 422 'Wrong current password is a validation error'
+    $tokenAfterWrongPassword = Invoke-Api -Command auth -Action me -Token $lifecycleLogin.Body.data.token
+    Assert-Equal $tokenAfterWrongPassword.Status 200 'Wrong current password does not revoke current token'
+    $changedPassword = Invoke-Api -Command auth -Action changePassword -Method POST -Token $lifecycleLogin.Body.data.token -Body @{currentPassword='temporary1'; newPassword='permanent12'}
+    Assert-True ($changedPassword.Body.data.changed -eq $true) 'User changes temporary password'
+    $changedTokenCurrent = Invoke-Api -Command auth -Action me -Token $lifecycleLogin.Body.data.token
+    Assert-True ($changedTokenCurrent.Body.data.must_change_password -eq 0) 'Password change preserves the current session'
+    $otherTokenRevoked = Invoke-Api -Command auth -Action me -Token $otherLifecycleLogin.Body.data.token -ExpectedStatus @(401)
+    Assert-Equal $otherTokenRevoked.Status 401 'Password change revokes other sessions'
+    $oldPasswordLogin = Invoke-Api -Command auth -Action login -Method POST -Body @{phone='01002'; password='temporary1'} -ExpectedStatus @(401)
+    Assert-Equal $oldPasswordLogin.Status 401 'Old password no longer authenticates'
+    $lifecycleLogin = Invoke-Api -Command auth -Action login -Method POST -Body @{phone='01002'; password='permanent12'}
+    Assert-True ($lifecycleLogin.Body.data.user.must_change_password -eq 0) 'Changed password clears required-change state'
+    $selfDeactivate = Invoke-Api -Command users -Action setActive -Method POST -Token $admin.token -Body @{id='admin1'; isActive=$false} -ExpectedStatus @(422)
+    Assert-Equal $selfDeactivate.Status 422 'Admin cannot deactivate own account'
+    $resetPassword = Invoke-Api -Command users -Action resetPassword -Method POST -Token $admin.token -Body @{id='lifecycle1'; password='replacement1'}
+    Assert-True ($resetPassword.Body.data.must_change_password -eq 1) 'Admin password reset restores required-change state'
+    $resetRevokesToken = Invoke-Api -Command auth -Action me -Token $lifecycleLogin.Body.data.token -ExpectedStatus @(401)
+    Assert-Equal $resetRevokesToken.Status 401 'Admin password reset revokes target tokens'
+    $resetLogin = Invoke-Api -Command auth -Action login -Method POST -Body @{phone='01002'; password='replacement1'}
+    $deactivated = Invoke-Api -Command users -Action setActive -Method POST -Token $admin.token -Body @{id='lifecycle1'; isActive=$false}
+    Assert-True ($deactivated.Body.data.is_active -eq 0) 'Admin deactivates another account'
+    $deactivateRevokesToken = Invoke-Api -Command auth -Action me -Token $resetLogin.Body.data.token -ExpectedStatus @(401)
+    Assert-Equal $deactivateRevokesToken.Status 401 'Deactivation revokes target tokens'
+    $inactiveLogin = Invoke-Api -Command auth -Action login -Method POST -Body @{phone='01002'; password='replacement1'} -ExpectedStatus @(401)
+    Assert-Equal $inactiveLogin.Status 401 'Deactivated account cannot authenticate'
+
     $funds = Invoke-Api -Command funds -Action list -Token $manager.token
     Assert-Equal @($funds.Body.data).Count 1 'Demo seed exposes one fund'
     $accounts = Invoke-Api -Command accounts -Action list -Token $manager.token
@@ -359,6 +398,8 @@ try {
     Assert-True ($reconcile.Body.data.consistent -eq $true) 'Reconciliation remains consistent after reversal'
 
     if (-not $SkipFlutterContract) {
+        # RateLimiter stores SHA-256 bucket keys, so reset the isolated test DB between suites.
+        Invoke-HarnessSql 'delete from api_rate_limits'
         $flutter = Get-Command flutter -ErrorAction SilentlyContinue
         if ($null -eq $flutter) {
             throw 'Flutter is not available on PATH; pass -SkipFlutterContract only for an API-only diagnostic run.'

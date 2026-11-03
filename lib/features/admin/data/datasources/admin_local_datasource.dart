@@ -78,6 +78,21 @@ class AdminLocalDataSource implements AdminRemoteDataSource {
   }
 
   @override
+  Future<void> setUserActive({
+    required String userId,
+    required bool isActive,
+  }) async {
+    await (_db.update(
+      _db.users,
+    )..where((row) => row.id.equals(userId))).write(
+      db.UsersCompanion(
+        isActive: Value(isActive),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  @override
   Future<AdminWallet> createWallet(CreateAdminWalletRequest request) async {
     final id = _uuid.v4();
     final now = DateTime.now();

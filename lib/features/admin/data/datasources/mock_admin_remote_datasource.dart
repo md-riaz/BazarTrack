@@ -4,6 +4,7 @@ abstract class AdminRemoteDataSource {
   Future<List<AdminUser>> getUsers();
   Future<List<AdminWallet>> getWallets();
   Future<AdminUser> createUser(CreateAdminUserRequest request);
+  Future<void> setUserActive({required String userId, required bool isActive});
   Future<AdminWallet> createWallet(CreateAdminWalletRequest request);
   Future<AdminWallet> updateWallet(UpdateAdminWalletRequest request);
   Future<void> setWalletActive({
@@ -113,6 +114,16 @@ class MockAdminRemoteDataSource implements AdminRemoteDataSource {
     );
     _users.insert(0, user);
     return user;
+  }
+
+  @override
+  Future<void> setUserActive({
+    required String userId,
+    required bool isActive,
+  }) async {
+    final index = _users.indexWhere((user) => user.id == userId);
+    if (index < 0) throw ArgumentError('ইউজার পাওয়া যায়নি');
+    _users[index] = _users[index].copyWith(isActive: isActive);
   }
 
   @override

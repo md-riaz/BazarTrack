@@ -17,11 +17,14 @@ final class RoutePolicy
         'auth.me' => ['GET'],
         'auth.user' => ['GET', 'POST'],
         'auth.logout' => ['POST'],
+        'auth.changePassword' => ['POST'],
         'setup.seed' => ['POST'],
         'setup.seedDemo' => ['POST'],
         'users.list' => ['GET'],
         'users.show' => ['GET'],
         'users.create' => ['POST'],
+        'users.setActive' => ['POST'],
+        'users.resetPassword' => ['POST'],
         'funds.list' => ['GET'],
         'funds.show' => ['GET'],
         'funds.create' => ['POST'],
@@ -53,6 +56,8 @@ final class RoutePolicy
         'users.list' => ['admin'],
         'users.show' => ['admin'],
         'users.create' => ['admin'],
+        'users.setActive' => ['admin'],
+        'users.resetPassword' => ['admin'],
         'funds.create' => ['admin'],
         'funds.addManager' => ['admin'],
         'accounts.create' => ['admin'],
@@ -86,14 +91,17 @@ final class RoutePolicy
         }
 
         $principal = Auth::authenticate();
+        if ($cmd !== 'auth' && self::mustChangePassword($principal)) {
+            Response::error('Password change required', 403, ['code' => 'password_change_required']);
+        }
         if (Request::method() !== 'GET') {
             RateLimiter::consume('mutation:' . $principal->userId, 120, 60);
         }
-        Validator::validate($cmd, $action, $input);
         $roles = self::ROLES[$route] ?? null;
         if ($roles !== null && !in_array($principal->role, $roles, true)) {
             Response::error('Forbidden', 403);
         }
+        Validator::validate($cmd, $action, $input);
 
         foreach (['companyId', 'createdBy', 'closedBy', 'confirmedBy', 'rejectedBy', 'requestedBy', 'paidBy', 'receivedBy'] as $field) {
             unset($input[$field]);
@@ -108,6 +116,12 @@ final class RoutePolicy
         $input['receivedBy'] = $principal->userId;
 
         Authorizer::authorizeObject($cmd, $action, $input, $principal);
+    }
+
+    private static function mustChangePassword(Principal $principal): bool
+    {
+        $user = Ar::find('User', $principal->userId);
+        return (int)($user['must_change_password'] ?? 0) === 1;
     }
 
     private static function requireMethod(string $route): void

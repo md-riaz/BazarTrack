@@ -23,6 +23,7 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
   AdminRole _role = AdminRole.assistant;
   final Set<String> _selectedWalletIds = <String>{};
   bool _canSeeAllWallets = true;
@@ -34,6 +35,7 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -50,6 +52,7 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
             CreateAdminUserRequest(
               name: _nameController.text.trim(),
               phone: _phoneController.text.trim(),
+              password: _passwordController.text,
               role: _role,
               walletIds: _selectedWalletIds.toList(growable: false),
             ),
@@ -111,6 +114,19 @@ class _AddUserScreenState extends ConsumerState<AddUserScreen> {
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'ফোন নম্বর দিন';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                _TextInput(
+                  controller: _passwordController,
+                  label: 'অস্থায়ী পাসওয়ার্ড',
+                  hintText: 'কমপক্ষে ১০ অক্ষর',
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.length < 10) {
+                      return 'কমপক্ষে ১০ অক্ষরের পাসওয়ার্ড দিন';
                     }
                     return null;
                   },
@@ -260,6 +276,7 @@ class _TextInput extends StatelessWidget {
     required this.hintText,
     this.keyboardType,
     this.validator,
+    this.obscureText = false,
   });
 
   final TextEditingController controller;
@@ -267,6 +284,7 @@ class _TextInput extends StatelessWidget {
   final String hintText;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
+  final bool obscureText;
 
   @override
   Widget build(BuildContext context) {
@@ -279,6 +297,7 @@ class _TextInput extends StatelessWidget {
           controller: controller,
           keyboardType: keyboardType,
           validator: validator,
+          obscureText: obscureText,
           decoration: InputDecoration(
             hintText: hintText,
             fillColor: AppColors.surface2,

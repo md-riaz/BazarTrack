@@ -29,6 +29,7 @@ class ApiUserDto {
     required this.isActive,
     this.phone,
     this.email,
+    this.mustChangePassword = false,
   });
 
   final String id;
@@ -39,6 +40,8 @@ class ApiUserDto {
   final bool isActive;
   final String? phone;
   final String? email;
+  @JsonKey(name: 'must_change_password', fromJson: _apiBool)
+  final bool mustChangePassword;
 
   factory ApiUserDto.fromJson(Map<String, dynamic> json) =>
       _$ApiUserDtoFromJson(json);

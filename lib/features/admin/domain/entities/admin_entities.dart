@@ -113,12 +113,14 @@ class CreateAdminUserRequest {
   const CreateAdminUserRequest({
     required this.name,
     required this.phone,
+    required this.password,
     required this.role,
     this.walletIds = const [],
   });
 
   final String name;
   final String phone;
+  final String password;
   final AdminRole role;
   final List<String> walletIds;
 }

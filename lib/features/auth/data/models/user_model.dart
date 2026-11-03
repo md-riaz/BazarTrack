@@ -10,6 +10,7 @@ class UserModel extends domain.User {
     required super.isActive,
     super.phone,
     super.email,
+    super.mustChangePassword,
   });
 
   factory UserModel.fromJson(Map<String, Object?> json) {
@@ -20,6 +21,7 @@ class UserModel extends domain.User {
       isActive: json['isActive'] as bool? ?? true,
       phone: json['phone'] as String?,
       email: json['email'] as String?,
+      mustChangePassword: json['mustChangePassword'] as bool? ?? false,
     );
   }
 
@@ -31,6 +33,7 @@ class UserModel extends domain.User {
       'isActive': isActive,
       'phone': phone,
       'email': email,
+      'mustChangePassword': mustChangePassword,
     };
   }
 
@@ -42,6 +45,7 @@ class UserModel extends domain.User {
       isActive: user.isActive,
       phone: user.phone,
       email: user.email,
+      mustChangePassword: user.mustChangePassword,
     );
   }
 }

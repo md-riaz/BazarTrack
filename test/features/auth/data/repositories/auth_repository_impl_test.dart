@@ -1,3 +1,4 @@
+import 'package:bazar/core/api/bazar_api_client.dart';
 import 'package:bazar/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:bazar/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:bazar/features/auth/data/models/user_model.dart';
@@ -77,6 +78,51 @@ void main() {
     expect(user, isNull);
     expect(await repository.hasActiveSession(), isFalse);
   });
+
+  test(
+    'getCurrentUser preserves session when auth restore has a network failure',
+    () async {
+      repository.dispose();
+      repository = AuthRepositoryImpl(
+        remoteDataSource: _FailingAuthRemoteDataSource(
+          const BazarApiException(message: 'Unable to connect to the API'),
+        ),
+        localDataSource: localDataSource,
+      );
+      await localDataSource.saveSession(
+        token: 'still-valid-token',
+        userId: 'u1',
+      );
+
+      await expectLater(
+        repository.getCurrentUser(),
+        throwsA(isA<BazarApiException>()),
+      );
+
+      expect(await localDataSource.readToken(), 'still-valid-token');
+      expect(await localDataSource.readUserId(), 'u1');
+      expect(await repository.hasActiveSession(), isTrue);
+    },
+  );
+
+  test(
+    'getCurrentUser clears session when auth restore is unauthorized',
+    () async {
+      repository.dispose();
+      repository = AuthRepositoryImpl(
+        remoteDataSource: _FailingAuthRemoteDataSource(
+          const BazarApiException(statusCode: 401, message: 'Invalid token'),
+        ),
+        localDataSource: localDataSource,
+      );
+      await localDataSource.saveSession(token: 'revoked-token', userId: 'u1');
+
+      expect(await repository.getCurrentUser(), isNull);
+
+      expect(await localDataSource.readToken(), isNull);
+      expect(await localDataSource.readUserId(), isNull);
+    },
+  );
 
   test('getCurrentUser token restore preserves selected role', () async {
     final cases = <({String token, String userId, UserRole role})>[
@@ -160,4 +206,29 @@ void main() {
     expect(restored.role, UserRole.owner);
     expect(restored.phone, '010');
   });
+}
+
+class _FailingAuthRemoteDataSource implements AuthRemoteDataSource {
+  const _FailingAuthRemoteDataSource(this.error);
+
+  final Object error;
+
+  @override
+  Future<UserModel> getUserByToken(String token) =>
+      Future<UserModel>.error(error);
+
+  @override
+  Future<AuthRemoteResponse> login({
+    required String phone,
+    required String password,
+  }) => Future<AuthRemoteResponse>.error(error);
+
+  @override
+  Future<UserModel> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) => Future<UserModel>.error(error);
+
+  @override
+  Future<void> logout() => Future<void>.value();
 }
