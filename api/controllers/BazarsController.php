@@ -204,11 +204,7 @@ final class BazarsController extends BaseController
             ]);
             $balance = (float)$account['current_balance'];
             if ($total > 0) {
-                Ar::create('LedgerEntry', [
-                    'id' => $this->uuid(),
-                    'company_id' => $bazar['company_id'],
-                    'fund_id' => $bazar['fund_id'],
-                    'account_id' => $bazar['account_id'],
+                $posted = $this->appendBalanceChange($account, [
                     'type' => 'bazar_spend',
                     'amount' => $total,
                     'signed_amount' => -$total,
@@ -216,14 +212,10 @@ final class BazarsController extends BaseController
                     'source_id' => $bazar['id'],
                     'created_by' => $input['closedBy'],
                     'note' => $input['note'] ?? null,
-                    'entry_date' => $input['entryDate'] ?? substr($now, 0, 10),
+                    'entry_date' => $input['entryDate'] ?? $bazar['bazar_date'],
                     'created_at' => $now,
                 ]);
-                $balance -= $total;
-                Ar::update('FundAssistantAccount', (string)$account['id'], [
-                    'current_balance' => $balance,
-                    'updated_at' => $now,
-                ]);
+                $balance = $posted['balance'];
             }
             $this->commitWriteTransaction();
             return ['bazar' => $updated, 'bazarSpent' => $total, 'accountBalance' => $balance];

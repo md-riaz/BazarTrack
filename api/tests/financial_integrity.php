@@ -44,13 +44,35 @@ $falseHistory->exec('create table schema_migrations (version integer primary key
 $falseHistory->exec("insert into schema_migrations values (1, 'initial_financial_schema', '2026-01-01')");
 $falseHistory->exec("insert into schema_migrations values (2, 'financial_integrity_indexes', '2026-01-01')");
 $falseHistory->exec("insert into schema_migrations values (3, 'api_rate_limits', '2026-01-01')");
+$falseHistory->exec("insert into schema_migrations values (4, 'bazar_item_receipts', '2026-01-01')");
+$falseHistory->exec("insert into schema_migrations values (5, 'ledger_balance_snapshots', '2026-01-01')");
+$falseHistory->exec("insert into schema_migrations values (6, 'ledger_reversal_idempotency', '2026-01-01')");
 $falseHistory->exec('create table money_entries (id varchar(36) primary key)');
 $falseHistory->exec('create table money_return_requests (id varchar(36) primary key)');
+$falseHistory->exec('create table ledger_entries (id varchar(36) primary key)');
+$falseHistory->exec('create table bazar_items (id varchar(36) primary key)');
 try {
     Schema::migrate($falseHistory);
     throw new RuntimeException('false migration history was incorrectly accepted');
 } catch (RuntimeException $error) {
     check(str_contains($error->getMessage(), 'does not match'), 'false migration history fails schema verification');
+}
+
+$partialLedger = new PDO('sqlite::memory:');
+$partialLedger->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$partialLedger->exec('create table schema_migrations (version integer primary key, name varchar(190), applied_at datetime)');
+$partialLedger->exec("insert into schema_migrations values (1, 'initial_financial_schema', '2026-01-01')");
+$partialLedger->exec("insert into schema_migrations values (2, 'financial_integrity_indexes', '2026-01-01')");
+$partialLedger->exec("insert into schema_migrations values (3, 'api_rate_limits', '2026-01-01')");
+$partialLedger->exec("insert into schema_migrations values (4, 'bazar_item_receipts', '2026-01-01')");
+$partialLedger->exec('create table companies (id varchar(36) primary key)');
+$partialLedger->exec('create table ledger_entries (id varchar(36) primary key, balance_before numeric, balance_after numeric, ledger_sequence integer)');
+$partialLedger->exec("insert into ledger_entries (id) values ('legacy-entry')");
+try {
+    Schema::migrate($partialLedger);
+    throw new RuntimeException('partial ledger migration was incorrectly accepted');
+} catch (RuntimeException $error) {
+    check(str_contains($error->getMessage(), 'incomplete audit snapshots'), 'partially applied ledger snapshot migration fails safely');
 }
 
 $lockPath = tempnam(sys_get_temp_dir(), 'bazar-fin-lock-');

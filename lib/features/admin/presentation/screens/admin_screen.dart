@@ -15,11 +15,13 @@ class AdminScreen extends ConsumerStatefulWidget {
     this.onAddUserTap,
     this.onAddWalletTap,
     this.onEditWalletTap,
+    this.onAuditTap,
   });
 
   final VoidCallback? onAddUserTap;
   final VoidCallback? onAddWalletTap;
   final ValueChanged<String>? onEditWalletTap;
+  final VoidCallback? onAuditTap;
 
   @override
   ConsumerState<AdminScreen> createState() => _AdminScreenState();
@@ -43,6 +45,17 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
       ),
       body: ListView(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: SizedBox(
+              height: 48,
+              child: OutlinedButton.icon(
+                onPressed: widget.onAuditTap,
+                icon: const Icon(Icons.fact_check_outlined),
+                label: const Text('অডিট লগ ও রিভার্স'),
+              ),
+            ),
+          ),
           _AdminTabs(
             selected: _tab,
             onChanged: (tab) => setState(() => _tab = tab),

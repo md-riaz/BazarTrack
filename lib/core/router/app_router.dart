@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../config/api_config.dart';
 import '../../features/admin/presentation/screens/add_user_screen.dart';
 import '../../features/admin/presentation/screens/add_wallet_screen.dart';
+import '../../features/admin/presentation/screens/admin_audit_screen.dart';
 import '../../features/admin/presentation/screens/admin_screen.dart';
 import '../../features/auth/domain/services/role_permissions.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
@@ -203,7 +204,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           onAddWalletTap: () => context.push(AppRoutes.addWallet),
           onEditWalletTap: (walletId) =>
               context.push(AppRoutes.editWallet(walletId)),
+          onAuditTap: () => context.push(AppRoutes.adminAudit),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.adminAudit,
+        name: 'admin-audit',
+        builder: (context, state) => const AdminAuditScreen(),
       ),
       GoRoute(
         path: AppRoutes.search,
@@ -307,6 +314,7 @@ class AppRoutes {
   static const walletDetailPath = '/wallets/:walletId';
   static const monthlyClose = '/reports/monthly-close';
   static const admin = '/admin';
+  static const adminAudit = '/admin/audit';
   static const search = '/search';
   static const settings = '/settings';
   static const offlineQueue = '/sync/offline-queue';
@@ -503,7 +511,7 @@ String? apiAdminRouteRedirect({
 }
 
 bool _canAccessRoute(String route, UserRole role) {
-  if (route == AppRoutes.admin ||
+  if (route == AppRoutes.admin || route == AppRoutes.adminAudit ||
       route == AppRoutes.addUser ||
       route == AppRoutes.addWallet ||
       _isWalletEditLocation(route)) {

@@ -13,8 +13,55 @@ final class Schema
         if (($db->getAttribute(PDO::ATTR_DRIVER_NAME) ?: '') === 'sqlite') {
             $db->exec('pragma foreign_keys = on');
         }
+        self::refuseUnmigratableLedgerHistory($db);
         MigrationRunner::migrate($db, self::migrations());
+        self::installLedgerImmutabilityGuards($db);
         self::assertCurrentSchema($db);
+    }
+
+    private static function refuseUnmigratableLedgerHistory(PDO $db): void
+    {
+        $columns = self::columnNames($db, 'ledger_entries');
+        if ($columns === []) {
+            return;
+        }
+        $count = (int)$db->query('select count(*) from ledger_entries')->fetchColumn();
+        if ($count === 0) {
+            return;
+        }
+        $snapshotColumns = ['balance_before', 'balance_after', 'ledger_sequence'];
+        if (array_diff($snapshotColumns, $columns) !== []) {
+            throw new \RuntimeException(
+                'Ledger history without audit snapshots cannot be upgraded in place. Back up and import into a freshly migrated database.'
+            );
+        }
+        $missing = (int)$db->query(
+            'select count(*) from ledger_entries where balance_before is null or balance_after is null or ledger_sequence is null'
+        )->fetchColumn();
+        if ($missing > 0) {
+            throw new \RuntimeException(
+                'Ledger history with incomplete audit snapshots cannot be upgraded in place. Back up and import into a freshly migrated database.'
+            );
+        }
+    }
+
+    private static function installLedgerImmutabilityGuards(PDO $db): void
+    {
+        if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            foreach ([
+                ['ledger_entries_no_update', 'before update on ledger_entries for each row signal sqlstate \'45000\' set message_text = \'Ledger entries are immutable\''],
+                ['ledger_entries_no_delete', 'before delete on ledger_entries for each row signal sqlstate \'45000\' set message_text = \'Ledger entries are immutable\''],
+            ] as [$name, $body]) {
+                $check = $db->prepare('select count(*) from information_schema.triggers where trigger_schema = database() and trigger_name = :name');
+                $check->execute(['name' => $name]);
+                if ((int)$check->fetchColumn() === 0) {
+                    $db->exec("create trigger {$name} {$body}");
+                }
+            }
+            return;
+        }
+        $db->exec("create trigger if not exists ledger_entries_no_update before update on ledger_entries begin select raise(abort, 'Ledger entries are immutable'); end");
+        $db->exec("create trigger if not exists ledger_entries_no_delete before delete on ledger_entries begin select raise(abort, 'Ledger entries are immutable'); end");
     }
 
     private static function assertCurrentSchema(PDO $db): void
@@ -22,6 +69,7 @@ final class Schema
         foreach ([
             'money_entries' => ['client_id', 'request_fingerprint'],
             'money_return_requests' => ['client_id', 'request_fingerprint'],
+            'ledger_entries' => ['balance_before', 'balance_after', 'reverses_ledger_entry_id', 'ledger_sequence', 'idempotency_key', 'client_id', 'request_fingerprint'],
             'bazar_items' => ['receipt_url'],
         ] as $table => $requiredColumns) {
             $available = self::columnNames($db, $table);
@@ -92,6 +140,27 @@ final class Schema
                 'name' => 'bazar_item_receipts',
                 'statements' => [
                     'alter table bazar_items add column receipt_url text null',
+                ],
+            ],
+            5 => [
+                'name' => 'ledger_balance_snapshots',
+                'statements' => [
+                    'alter table ledger_entries add column balance_before numeric(12,2) null',
+                    'alter table ledger_entries add column balance_after numeric(12,2) null',
+                    'alter table ledger_entries add column reverses_ledger_entry_id varchar(36) null',
+                    'alter table ledger_entries add column ledger_sequence integer null',
+                    'create index if not exists idx_ledger_account_created on ledger_entries (account_id, created_at, id)',
+                    'create unique index if not exists uq_ledger_account_sequence on ledger_entries (account_id, ledger_sequence)',
+                    'create unique index if not exists uq_ledger_reversal on ledger_entries (reverses_ledger_entry_id)',
+                ],
+            ],
+            6 => [
+                'name' => 'ledger_reversal_idempotency',
+                'statements' => [
+                    'alter table ledger_entries add column idempotency_key varchar(120) null',
+                    'alter table ledger_entries add column client_id varchar(120) null',
+                    'alter table ledger_entries add column request_fingerprint varchar(64) null',
+                    'create unique index if not exists uq_ledger_idempotency on ledger_entries (company_id, created_by, client_id, idempotency_key)',
                 ],
             ],
         ];

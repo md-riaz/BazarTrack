@@ -88,11 +88,7 @@ final class MoneyController extends BaseController
                 'client_id' => $clientId,
                 'request_fingerprint' => $fingerprint,
             ]);
-            Ar::create('LedgerEntry', [
-                'id' => $this->uuid(),
-                'company_id' => $account['company_id'],
-                'fund_id' => $account['fund_id'],
-                'account_id' => $account['id'],
+            $posted = $this->appendBalanceChange($account, [
                 'type' => 'fund_gave_money',
                 'amount' => $amount,
                 'signed_amount' => $amount,
@@ -105,12 +101,7 @@ final class MoneyController extends BaseController
                 'entry_date' => $entryDate,
                 'created_at' => $now,
             ]);
-
-            $balance = (float)$account['current_balance'] + $amount;
-            Ar::update('FundAssistantAccount', (string)$account['id'], [
-                'current_balance' => $balance,
-                'updated_at' => $now,
-            ]);
+            $balance = $posted['balance'];
             $this->commitWriteTransaction();
             return ['entry' => $entry, 'accountBalance' => $balance];
         } catch (Throwable $error) {

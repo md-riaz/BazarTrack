@@ -72,7 +72,7 @@ try {
         -e "MYSQL_ROOT_PASSWORD=$rootPassword" -e "MYSQL_DATABASE=$dbName" `
         -e "MYSQL_USER=$dbUser" -e "MYSQL_PASSWORD=$dbPassword" `
         --health-cmd "mysqladmin ping -h127.0.0.1 -uroot -p$rootPassword --silent" `
-        --health-interval 2s --health-timeout 5s --health-retries 90 mysql:8.4 | Out-Null
+        --health-interval 2s --health-timeout 5s --health-retries 90 mysql:8.4 --log-bin-trust-function-creators=1 | Out-Null
     Wait-Healthy $mysql
     $version = Invoke-MySql 'select version()' ''
     if (-not $version.StartsWith('8.')) { throw "Expected MySQL 8, got $version" }
@@ -99,7 +99,9 @@ try {
     if ($restored -lt 1) { throw 'Interrupted index migration did not recover.' }
     Write-Host '[PASS] Interrupted MySQL index migration recovers on rerun' -ForegroundColor Green
 
-    Invoke-MySql "delete from money_return_requests; delete from ledger_entries; delete from money_entries; update fund_assistant_accounts set current_balance=0 where id='acc1';"
+    Invoke-MySql "delete from money_return_requests; delete from money_entries; update fund_assistant_accounts set current_balance=0 where id='acc1';"
+    Invoke-MySql "drop trigger if exists ledger_entries_no_update; drop trigger if exists ledger_entries_no_delete; delete from ledger_entries;"
+    Invoke-SetupMigration | Out-Null
     $token = (& docker run --rm --network $network $image php api/tests/mysql_concurrency.php | Out-String).Trim()
     if ($LASTEXITCODE -ne 0 -or $token.Length -ne 64) { throw "Concurrency login failed: $token" }
     $jobs = 1..2 | ForEach-Object { Start-Job -ScriptBlock { param($Network,$Image,$Token); docker run --rm --network $Network -e "TOKEN=$Token" $Image php api/tests/mysql_race_request.php } -ArgumentList $network,$image,$token }
@@ -126,7 +128,7 @@ try {
     & docker run -d --name $restoreMysql --network $network --network-alias mysql-restore `
         -e "MYSQL_ROOT_PASSWORD=$rootPassword" -e "MYSQL_DATABASE=$dbName" `
         --health-cmd "mysqladmin ping -h127.0.0.1 -uroot -p$rootPassword --silent" `
-        --health-interval 2s --health-timeout 5s --health-retries 90 mysql:8.4 | Out-Null
+        --health-interval 2s --health-timeout 5s --health-retries 90 mysql:8.4 --log-bin-trust-function-creators=1 | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'Failed to start restore MySQL container.' }
     Wait-Healthy $restoreMysql
     & docker cp $dumpPath "${restoreMysql}:/tmp/bazartrack-stage.sql" | Out-Null

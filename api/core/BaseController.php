@@ -95,7 +95,7 @@ abstract class BaseController
 
     protected function lockRow(string $table, string $id): ?array
     {
-        $allowed = ['fund_assistant_accounts', 'bazars', 'money_return_requests'];
+        $allowed = ['fund_assistant_accounts', 'bazars', 'money_return_requests', 'ledger_entries'];
         if (!in_array($table, $allowed, true)) {
             throw new \InvalidArgumentException('Unsupported lock table');
         }
@@ -103,6 +103,41 @@ abstract class BaseController
             ? ' for update'
             : '';
         return $this->one("select * from {$table} where id = :id{$suffix}", ['id' => $id]);
+    }
+
+    /**
+     * Appends one immutable balance change and updates its account atomically.
+     * The caller must already hold the account row lock within a write transaction.
+     *
+     * @param array<string, mixed> $account
+     * @param array<string, mixed> $entry
+     * @return array{ledger: array<string, mixed>, balance: float}
+     */
+    protected function appendBalanceChange(array $account, array $entry): array
+    {
+        $before = round((float)$account['current_balance'], 2);
+        $signedAmount = round((float)$entry['signed_amount'], 2);
+        $after = round($before + $signedAmount, 2);
+        $now = $entry['created_at'] ?? $this->now();
+        $sequenceRow = $this->one(
+            'select coalesce(max(ledger_sequence), 0) as max_sequence from ledger_entries where account_id = :account_id',
+            ['account_id' => $account['id']]
+        );
+        $ledger = Ar::create('LedgerEntry', $entry + [
+            'ledger_sequence' => (int)$sequenceRow['max_sequence'] + 1,
+            'id' => $this->uuid(),
+            'company_id' => $account['company_id'],
+            'fund_id' => $account['fund_id'],
+            'account_id' => $account['id'],
+            'balance_before' => $before,
+            'balance_after' => $after,
+            'created_at' => $now,
+        ]);
+        Ar::update('FundAssistantAccount', (string)$account['id'], [
+            'current_balance' => $after,
+            'updated_at' => $now,
+        ]);
+        return ['ledger' => $ledger, 'balance' => $after];
     }
 
     protected function commitWriteTransaction(): void

@@ -342,6 +342,22 @@ try {
     Assert-Equal ([double]$summary.returnedConfirmed) 300 'Report includes confirmed return'
     Assert-Equal ([double]$summary.netBalanceChange) 500 'Report reconciles to final balance'
 
+    $ledger = Invoke-Api -Command ledger -Action list -Token $admin.token -Query @{accountId='acc1'; limit=20}
+    $original = @($ledger.Body.data | Where-Object { $_.type -eq 'bazar_spend' })[0]
+    Assert-True ($null -ne $original) 'Admin can inspect an immutable ledger transaction'
+    $reverseHeaders = @{'Idempotency-Key'='acceptance-reversal-1'}
+    $reversed = Invoke-Api -Command ledger -Action reverse -Method POST -Token $admin.token -Headers $reverseHeaders -Body @{originalLedgerEntryId=$original.id; reason='Acceptance correction'}
+    Assert-Equal ([double]$reversed.Body.data.accountBalance) 700 'Admin reversal posts the exact opposite balance change'
+    Assert-Equal ([string]$reversed.Body.data.ledgerEntry.reverses_ledger_entry_id) ([string]$original.id) 'Reversal links to its original ledger entry'
+    $reverseReplay = Invoke-Api -Command ledger -Action reverse -Method POST -Token $admin.token -Headers $reverseHeaders -Body @{originalLedgerEntryId=$original.id; reason='Acceptance correction'}
+    Assert-True ($reverseReplay.Body.data.idempotentReplay -eq $true) 'Admin reversal is retry safe'
+    $secondReverse = Invoke-Api -Command ledger -Action reverse -Method POST -Token $admin.token -Headers @{'Idempotency-Key'='acceptance-reversal-2'} -Body @{originalLedgerEntryId=$original.id; reason='Duplicate correction'} -ExpectedStatus @(409)
+    Assert-Equal $secondReverse.Status 409 'A ledger entry cannot be reversed twice'
+    $ownerReverse = Invoke-Api -Command ledger -Action reverse -Method POST -Token $manager.token -Headers @{'Idempotency-Key'='owner-reversal'} -Body @{originalLedgerEntryId=$original.id; reason='Unauthorized correction'} -ExpectedStatus @(403)
+    Assert-Equal $ownerReverse.Status 403 'Only admins can reverse ledger transactions'
+    $reconcile = Invoke-Api -Command ledger -Action reconcile -Token $admin.token -Query @{accountId='acc1'}
+    Assert-True ($reconcile.Body.data.consistent -eq $true) 'Reconciliation remains consistent after reversal'
+
     if (-not $SkipFlutterContract) {
         $flutter = Get-Command flutter -ErrorAction SilentlyContinue
         if ($null -eq $flutter) {

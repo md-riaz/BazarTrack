@@ -31,6 +31,7 @@ final class RoutePolicy
         'accounts.create' => ['POST'],
         'ledger.list' => ['GET'],
         'ledger.reconcile' => ['GET'],
+        'ledger.reverse' => ['POST'],
         'money.list' => ['GET'],
         'money.give' => ['POST'],
         'returns.list' => ['GET'],
@@ -61,6 +62,7 @@ final class RoutePolicy
         'returns.reject' => ['admin', 'owner'],
         'ledger.list' => ['admin', 'owner'],
         'ledger.reconcile' => ['admin', 'owner'],
+        'ledger.reverse' => ['admin'],
         'reports.summary' => ['admin', 'owner'],
     ];
 

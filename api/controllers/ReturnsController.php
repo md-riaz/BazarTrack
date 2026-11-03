@@ -145,12 +145,7 @@ final class ReturnsController extends BaseController
             }
 
             $now = $this->now();
-            $ledgerId = $this->uuid();
-            $ledger = Ar::create('LedgerEntry', [
-                'id' => $ledgerId,
-                'company_id' => $request['company_id'],
-                'fund_id' => $request['fund_id'],
-                'account_id' => $request['account_id'],
+            $posted = $this->appendBalanceChange($account, [
                 'type' => 'assistant_return_confirmed',
                 'amount' => $amount,
                 'signed_amount' => -$amount,
@@ -163,17 +158,15 @@ final class ReturnsController extends BaseController
                 'entry_date' => $input['entryDate'] ?? substr($now, 0, 10),
                 'created_at' => $now,
             ]);
+            $ledger = $posted['ledger'];
+            $ledgerId = $ledger['id'];
             $updatedRequest = Ar::update('MoneyReturnRequest', (string)$request['id'], [
                 'status' => 'confirmed',
                 'confirmed_by' => $input['confirmedBy'],
                 'confirmed_at' => $now,
                 'ledger_entry_id' => $ledgerId,
             ]);
-            $balance = (float)$account['current_balance'] - $amount;
-            Ar::update('FundAssistantAccount', (string)$account['id'], [
-                'current_balance' => $balance,
-                'updated_at' => $now,
-            ]);
+            $balance = $posted['balance'];
             $this->commitWriteTransaction();
             return ['request' => $updatedRequest, 'ledgerEntry' => $ledger, 'accountBalance' => $balance];
         } catch (Throwable $error) {

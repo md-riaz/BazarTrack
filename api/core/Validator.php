@@ -59,6 +59,10 @@ final class Validator
         if (in_array($route, ['money.give', 'returns.create'], true)) {
             $input['amount'] = Request::positiveAmount($input);
         }
+        if ($route === 'ledger.reverse') {
+            $input['originalLedgerEntryId'] = Request::string($input, 'originalLedgerEntryId', 120);
+            $input['reason'] = Request::string($input, 'reason', 2000);
+        }
         if (isset($input['status'])) {
             $allowed = match (strtolower($cmd)) {
                 'funds' => ['active', 'inactive'],
