@@ -3,12 +3,18 @@ import 'package:dio/dio.dart';
 import '../config/api_config.dart';
 
 class BazarApiClient {
+  static const _defaultTimeout = Duration(seconds: 15);
+
   BazarApiClient({
     required ApiConfig config,
     Dio? dio,
     Iterable<Interceptor> interceptors = const [],
   }) : _config = config,
        _dio = dio ?? Dio() {
+    _dio.options
+      ..connectTimeout ??= _defaultTimeout
+      ..sendTimeout ??= _defaultTimeout
+      ..receiveTimeout ??= _defaultTimeout;
     _dio.interceptors.addAll(interceptors);
   }
 
